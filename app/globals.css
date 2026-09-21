@@ -1,0 +1,316 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@theme inline {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+
+  --font-admin-display: var(--admin-display-font, var(--font-sans));
+
+  --radius-lg: var(--radius);
+}
+
+:root {
+  color-scheme: light;
+
+  /* ============================================================
+     STEPLY — GLOBAL UI COLOR SYSTEM
+     ============================================================ */
+
+  /* Base */
+  --background: #ffffff;
+  --foreground: #0a0a0c;
+
+  /* Cards */
+  --card: #ffffff;
+  --card-foreground: #0a0a0c;
+
+  /* Brand — primary lime, only for CTAs / active state / accents */
+  --primary: #e4f70a;
+  --primary-hover: #d2e600;
+  --primary-active: #c2d500;
+  --primary-foreground: #0a0a0c;
+  /* Darkened lime for icons/text that need brand meaning on a light
+     background — pure lime fails contrast there, see design rules. */
+  --primary-strong: #7a8a00;
+
+  /* Soft badge/icon-circle surface tinted with the brand color
+     (used across the app as "bg-secondary text-primary") */
+  --secondary: #f4f8d2;
+  --secondary-foreground: #0a0a0c;
+
+  /* Accent */
+  --accent: #e4f70a;
+  --accent-foreground: #0a0a0c;
+
+  /* Muted surfaces — dashboard sections, secondary blocks */
+  --muted: #f4f5f0;
+  --muted-foreground: #6b7280;
+
+  /* Borders */
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  /* Focus ring */
+  --ring: #e4f70a;
+
+  /* Status */
+  --success: #15803d;
+  --error: #dc2626;
+  --warning: #a16207;
+  --info: #2563eb;
+
+  /* Radius */
+  --radius: 0.875rem;
+}
+
+/* ================================================================
+   ADMIN THEME
+   ------------------------------------------------------------
+   Foydalanuvchi (candidate) ilovasi lime (#E4F70A) aksentda qoladi.
+   Admin panel esa o'z aksent rangi (indigo) va sarlavha shrifti bilan
+   vizual jihatdan alohida "boshqaruv markazi" hissi beradi — fon
+   baribir och (--background/--card) qoladi, faqat aksent va sarlavha
+   tipografiyasi farqlanadi. `--admin-display-font` qiymati
+   app/admin/layout.tsx'da next/font orqali ulanadi.
+   ================================================================ */
+
+.admin-theme {
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eef2ff;
+  --secondary-foreground: #4338ca;
+
+  --accent: #4f46e5;
+  --accent-foreground: #ffffff;
+
+  --ring: #4f46e5;
+}
+
+.admin-theme h1,
+.admin-theme h2,
+.admin-theme h3 {
+  font-family: var(--font-admin-display);
+  letter-spacing: -0.02em;
+}
+
+/* ================================================================
+   BASE
+   ================================================================ */
+
+* {
+  @apply border-border;
+}
+
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+
+  selection-background-color: #e4f70a;
+  selection-color: #151515;
+}
+
+::selection {
+  background: #e4f70a;
+  color: #151515;
+}
+
+/* Prevent horizontal overflow */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* ================================================================
+   CONTAINER
+   ================================================================ */
+
+.container-shell {
+  @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+}
+
+/* ================================================================
+   SHARED PRIMITIVES — surface (card), field (input), label-xs
+   Used across dashboard/mock/result/admin pages.
+   ================================================================ */
+
+.surface {
+  @apply rounded-xl border border-border bg-card;
+}
+
+.field {
+  @apply w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.field:focus {
+  @apply border-primary ring-2 ring-primary/25;
+}
+
+.label-xs {
+  @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground;
+}
+
+/* ================================================================
+   EDITORIAL GRID
+   ================================================================ */
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+
+    background-image:
+      linear-gradient(
+        to right,
+        rgba(21, 21, 21, 0.035) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        rgba(21, 21, 21, 0.035) 1px,
+        transparent 1px
+      );
+  }
+
+  /* ============================================================
+     LIGHT CARD
+     ============================================================ */
+
+  .light-card {
+    background: rgba(255, 255, 255, 0.92);
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    border: 1px solid rgba(220, 220, 212, 0.9);
+
+    box-shadow:
+      0 20px 30px -10px rgba(21, 21, 21, 0.05),
+      0 10px 15px -5px rgba(21, 21, 21, 0.025);
+  }
+
+  /* ============================================================
+     LIME SPOTLIGHT
+     ============================================================ */
+
+  .lime-spotlight {
+    background: radial-gradient(
+      circle,
+      rgba(228, 247, 10, 0.12) 0%,
+      rgba(228, 247, 10, 0.045) 38%,
+      rgba(250, 250, 247, 0) 72%
+    );
+  }
+
+  /* Very subtle lime glow */
+  .lime-glow {
+    box-shadow:
+      0 0 0 1px rgba(228, 247, 10, 0.15),
+      0 10px 35px rgba(228, 247, 10, 0.08);
+  }
+
+  /* ============================================================
+     EDITORIAL SURFACE
+     ============================================================ */
+
+  .surface-soft {
+    background: #f3f3ee;
+  }
+
+  .surface-warm {
+    background: #f7f7f2;
+  }
+
+  /* ============================================================
+     DARK PRODUCT SURFACE
+     ============================================================ */
+
+  .surface-dark {
+    background: #151515;
+    color: #ffffff;
+  }
+
+  /* ============================================================
+     SUBTLE DIVIDER
+     ============================================================ */
+
+  .divider-soft {
+    border-color: #e2e2da;
+  }
+
+  /* ============================================================
+     TEXT HELPERS
+     ============================================================ */
+
+  .text-muted {
+    color: #716f67;
+  }
+
+  .text-brand {
+    color: #e4f70a;
+  }
+
+  /* ============================================================
+     BRAND DOT
+     ============================================================ */
+
+  .brand-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: #e4f70a;
+  }
+}
+
+/* ================================================================
+   ACCESSIBILITY
+   ================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
