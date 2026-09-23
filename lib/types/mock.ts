@@ -1,45 +1,101 @@
-// `lib/cefr-api/mock.ts` uchun turlar. Bu fayl ilgari yo'q edi (checkpoint
-// hujjatida qayd etilgan "missing @/lib/types/mock" muammosi) — shu sabab
-// loyiha kompilyatsiya bo'lmas edi. Maydonlar backend javoblariga (mock-test
-// user_router.py va mock_test/mvp_router.py) asoslangan; aniq maydon
-// to'plamini backend javobini ko'rib kerak bo'lsa toraytiring/kengaytiring.
+// lib/cefr-api/mock.ts
 
+/**
+ * Mock exam API response types.
+ *
+ * Backend endpointlari:
+ * - mock-test/user_router.py
+ * - mock_test/mvp_router.py
+ */
+
+export type MockSkill =
+  | "READING"
+  | "LISTENING"
+  | "WRITING"
+  | "SPEAKING"
+
+export type MockStatus =
+  | "NOT_STARTED"
+  | "IN_PROGRESS"
+  | "SUBMITTED"
+  | "COMPLETED"
+  | "CANCELLED"
+  | string
+
+/**
+ * User mock exam.
+ */
 export interface UserMockExamResponse {
   id: string
   title?: string
-  status?: string
-  [key: string]: unknown
+  status?: MockStatus
+  created_at?: string
+  started_at?: string | null
+  completed_at?: string | null
 }
 
+/**
+ * Response when a mock exam is started.
+ */
 export interface MockExamStartResponse {
   attempt_id: number | string
-  [key: string]: unknown
+  exam_id?: number | string
+  status?: MockStatus
+  started_at?: string
 }
 
+/**
+ * Current status of one skill attempt.
+ */
 export interface MockSkillStatusResponse {
-  skill: 'READING' | 'LISTENING' | 'WRITING' | 'SPEAKING'
-  status: string
-  [key: string]: unknown
+  skill: MockSkill
+  status: MockStatus
+  attempt_id?: number | string
+  raw_score?: number | null
+  max_score?: number | null
+  percentage?: number | null
+  started_at?: string | null
+  submitted_at?: string | null
 }
 
+/**
+ * Payload for submitting a skill.
+ */
 export interface MockSkillSubmit {
   raw_score: number
   user_answers: unknown
 }
 
+/**
+ * Response after submitting a skill.
+ */
 export interface MockSkillAttemptResponse {
   attempt_id: number | string
-  skill?: string
-  status?: string
-  [key: string]: unknown
+  skill?: MockSkill
+  status?: MockStatus
+  raw_score?: number | null
+  max_score?: number | null
+  percentage?: number | null
+  submitted_at?: string | null
 }
 
+/**
+ * Final mock exam result.
+ */
 export interface MockExamResult {
-  overall_score?: number
-  cefr_level?: string
-  listening_ball?: number
-  reading_ball?: number
-  writing_ball?: number
-  speaking_ball?: number
-  [key: string]: unknown
+  overall_score?: number | null
+  cefr_level?: string | null
+
+  listening_ball?: number | null
+  reading_ball?: number | null
+  writing_ball?: number | null
+  speaking_ball?: number | null
+
+  listening_score?: number | null
+  reading_score?: number | null
+  writing_score?: number | null
+  speaking_score?: number | null
+
+  total_score?: number | null
+  max_score?: number | null
 }
