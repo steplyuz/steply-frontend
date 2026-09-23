@@ -170,7 +170,7 @@ function MockCard({ exam }: { exam: MockExam }) {
         </div>
 
         {/* Seats progress bar */}
-        {next && seatsLeft != null && exam.total_seats != null && exam.total_seats > 0 && (
+        {next && seatsLeft != null && next.capacity != null && next.capacity > 0 && (
           <div className="mt-4">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div
@@ -178,7 +178,7 @@ function MockCard({ exam }: { exam: MockExam }) {
                   "h-full rounded-full transition-all duration-500",
                   isFull ? "bg-red-400" : isLow ? "bg-amber-400" : "bg-primary"
                 )}
-                style={{ width: `${Math.min(100, ((exam.total_seats - seatsLeft) / exam.total_seats) * 100)}%` }}
+                style={{ width: `${Math.min(100, ((next.capacity - seatsLeft) / next.capacity) * 100)}%` }}
               />
             </div>
           </div>
