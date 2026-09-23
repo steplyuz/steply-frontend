@@ -256,7 +256,7 @@ function DeckCard({
       // FIX: className is always the same — absolute positioning regardless of reduce
       className="absolute inset-0 flex items-center"
       // FIX: non-current cards must not receive pointer events when hidden
-      {...(reduce && !current ? { inert: "" } : {})}
+      {...(reduce && !current ? { inert: true } : {})}
     >
       <article className="relative w-full overflow-hidden rounded-3xl border border-primary/30 bg-card p-5 shadow-[0_28px_70px_-40px_rgba(0,0,0,0.4)] sm:p-7">
         <span
