@@ -139,7 +139,7 @@ function SkillCard({
       style={motionStyle}
       aria-hidden={!current}
       className="absolute inset-0 flex items-center"
-      {...(reduce && !current ? { inert: "" } : {})}
+      {...(reduce && !current ? { inert: true } : {})}
     >
       <div className="grid w-full grid-cols-[1fr_1fr] items-center gap-5 sm:gap-8 lg:gap-14">
 
