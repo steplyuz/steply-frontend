@@ -22,9 +22,6 @@ export type MockStatus =
   | "CANCELLED"
   | string
 
-/**
- * User mock exam.
- */
 export interface UserMockExamResponse {
   id: string
   title?: string
@@ -34,9 +31,6 @@ export interface UserMockExamResponse {
   completed_at?: string | null
 }
 
-/**
- * Response when a mock exam is started.
- */
 export interface MockExamStartResponse {
   attempt_id: number | string
   exam_id?: number | string
@@ -44,9 +38,6 @@ export interface MockExamStartResponse {
   started_at?: string
 }
 
-/**
- * Current status of one skill attempt.
- */
 export interface MockSkillStatusResponse {
   skill: MockSkill
   status: MockStatus
@@ -58,17 +49,11 @@ export interface MockSkillStatusResponse {
   submitted_at?: string | null
 }
 
-/**
- * Payload for submitting a skill.
- */
 export interface MockSkillSubmit {
   raw_score: number
   user_answers: unknown
 }
 
-/**
- * Response after submitting a skill.
- */
 export interface MockSkillAttemptResponse {
   attempt_id: number | string
   skill?: MockSkill
@@ -79,9 +64,6 @@ export interface MockSkillAttemptResponse {
   submitted_at?: string | null
 }
 
-/**
- * Final mock exam result.
- */
 export interface MockExamResult {
   overall_score?: number | null
   cefr_level?: string | null
