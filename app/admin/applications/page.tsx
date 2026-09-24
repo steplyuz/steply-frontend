@@ -13,7 +13,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Check, Download, Search, ShieldAlert } from 'lucide-react'
-import { adminApi, mockExamsApi } from '@/lib/api/endpoints'
+import { adminApi, mockCenterApi, mockExamsApi } from '@/lib/api'
 import { authenticatedDownload } from '@/lib/api/download'
 import type { AdminStatistics, SessionRegistration } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/auth-context'
@@ -79,7 +79,7 @@ export default function AdminApplicationsPage() {
     if (!confirm('Bu talabaning kelganini tasdiqlaysizmi?')) return
     setConfirming(c => ({ ...c, [regId]: true }))
     try {
-      await adminApi.checkIn(
+      await mockCenterApi.checkIn(
         all?.find(r => r.id === regId)?.student_id ?? '',
         all?.find(r => r.id === regId)?.session_id,
       )

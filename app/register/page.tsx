@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AlertCircle, ArrowLeft, ArrowRight, Check, ChevronDown, Eye, EyeOff, Loader2, Lock, Phone, User } from "lucide-react"
 
-import { authApi } from "@/lib/api/endpoints"
+import { authApi } from "@/lib/api"
 import { ApiRequestError } from "@/lib/api/client"
 import { homeUrlForRole } from "@/lib/auth/auth-context"
 

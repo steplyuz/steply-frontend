@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { animate, motion, useInView, useReducedMotion, type Variants } from "framer-motion";
 import { VT323 } from "next/font/google";
 
-import { publicApi } from "@/lib/api/endpoints";
+import { publicApi } from "@/lib/api";
 import type { PublicStats } from "@/lib/api/types";
 
 /** Blocky monospace digits for the LED/dot-matrix look in the reference design. */

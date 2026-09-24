@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { authApi, profileApi } from '@/lib/api/endpoints'
+import { AUTH_CHANGED_EVENT, authApi, profileApi } from '@/lib/api'
 import type { Me } from '@/lib/api/types'
 
 interface AuthContextValue {
@@ -74,8 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       void load(true)
     }
 
-    window.addEventListener('steply:auth-changed', onChange)
-    return () => window.removeEventListener('steply:auth-changed', onChange)
+    window.addEventListener(AUTH_CHANGED_EVENT, onChange)
+    return () => window.removeEventListener(AUTH_CHANGED_EVENT, onChange)
   }, [load])
 
   const logout = useCallback(async () => {

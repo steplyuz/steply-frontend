@@ -107,7 +107,7 @@ function useScrolled(threshold = 24) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * Logo (PNG only). File: public/logo-full.png
+ * Logo (PNG only). File: public/logo.png
  * ──────────────────────────────────────────────────────────────────────────── */
 
 function Logo({ scrolled }: { scrolled: boolean }) {
@@ -121,7 +121,7 @@ function Logo({ scrolled }: { scrolled: boolean }) {
       ].join(' ')}
     >
       <img
-        src="/logo-full.png"
+        src="/logo.png"
         alt="Steply"
         className={[
           'w-auto shrink-0 object-contain',

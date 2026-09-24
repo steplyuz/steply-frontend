@@ -9,7 +9,7 @@ export function Footer() {
     <footer className="border-t border-border bg-background py-8 sm:py-10">
       <div className="container-shell flex flex-col items-center justify-between gap-5 sm:flex-row">
         <Link href="/" aria-label="Steply bosh sahifasi" className="inline-flex shrink-0">
-          <img src="/logo-full.png" alt="Steply" className="h-9 w-auto object-contain" />
+          <img src="/logo.png" alt="Steply" className="h-9 w-auto object-contain" />
         </Link>
         <nav
           aria-label="Pastki navigatsiya"

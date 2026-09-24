@@ -22,7 +22,7 @@ import {
 } from "framer-motion"
 
 import { SiteHeader } from "@/components/layout/header"
-import { publicApi } from "@/lib/api/endpoints"
+import { publicApi } from "@/lib/api"
 import type { VerifiedResult, VerifiedResultSkill } from "@/lib/api/types"
 
 /* ─── Types ─────────────────────────────────────────────────────────────────── */

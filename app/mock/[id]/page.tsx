@@ -10,7 +10,7 @@ import {
 import { motion, MotionConfig } from "framer-motion"
 
 import { SiteHeader } from "@/components/layout/header"
-import { publicApi } from "@/lib/api/endpoints"
+import { publicApi } from "@/lib/api"
 import type { PublicExamDetail } from "@/lib/api/types"
 
 /* ─── Constants ─────────────────────────────────────────────────────────────── */

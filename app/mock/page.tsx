@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { motion, MotionConfig, AnimatePresence, type Variants } from "framer-motion"
 
-import { publicApi } from "@/lib/api/endpoints"
+import { publicApi } from "@/lib/api"
 import type { MockExam } from "@/lib/api/types"
 import { SiteHeader } from "@/components/layout/header"
 

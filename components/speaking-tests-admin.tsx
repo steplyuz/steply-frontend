@@ -15,7 +15,7 @@ import {
   Check,
   Loader2,
 } from "lucide-react"
-import { speakingApi } from "@/lib/api/endpoints"
+import { speakingApi } from "@/lib/api"
 import type { SpeakingTest, SpeakingTestCreateInput } from "@/lib/api/types"
 
 /* ─── ImageUploader ────────────────────────────────────────────────── */
@@ -255,7 +255,7 @@ function TestCreateForm({ onCreated }: { onCreated: () => void }) {
     }
 
     try {
-      await speakingApi.createTest(payload)
+      await speakingApi.create(payload)
       setForm(blankForm())
       onCreated()
     } catch (err: any) {
@@ -392,7 +392,7 @@ function TestCard({ test, onDelete }: { test: SpeakingTest; onDelete: () => void
     if (!confirm("Bu testni o'chirishni tasdiqlaysizmi?")) return
     setDeleting(true)
     try {
-      await speakingApi.removeTest(test.id)
+      await speakingApi.remove(test.id)
       onDelete()
     } catch (err: any) {
       alert(err?.message ?? "O'chirishda xatolik")
@@ -469,7 +469,7 @@ export function SpeakingTestsAdmin() {
 
   const reload = async () => {
     try {
-      const data = await speakingApi.listTests()
+      const data = await speakingApi.adminList()
       // listTests returns SpeakingTestSummary[], cast is safe since fields overlap
       setTests(data as unknown as SpeakingTest[])
     } catch (err: any) {

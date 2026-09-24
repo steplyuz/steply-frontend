@@ -18,7 +18,7 @@ import {
   ArrowLeft, Archive, Calendar, Check,
   ChevronDown, ChevronUp, FileDown, MapPin, Plus, ShieldAlert, Users,
 } from 'lucide-react'
-import { mockExamsApi } from '@/lib/api/endpoints'
+import { mockExamsApi } from '@/lib/api'
 import { authenticatedDownload } from '@/lib/api/download'
 import type { ExamSession, ExamSessionCreateInput, MockExam, Region, SessionRegistration } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/auth-context'

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Plus, ShieldAlert, Trash2, Upload } from 'lucide-react'
-import { writingApi, mockCenterApi } from '@/lib/api/endpoints'
+import { writingApi, mockCenterApi } from '@/lib/api'
 import { useAuth } from '@/lib/auth/auth-context'
 import { ApiRequestError } from '@/lib/api/client'
 import type { WritingExam, WritingPendingItem } from '@/lib/api/types'

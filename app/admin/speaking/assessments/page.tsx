@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Clock3, Mic2, ShieldAlert } from 'lucide-react'
-import { speakingApi } from '@/lib/api/endpoints'
+import { speakingApi } from '@/lib/api'
 import type { SpeakingSubmission } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/auth-context'
 

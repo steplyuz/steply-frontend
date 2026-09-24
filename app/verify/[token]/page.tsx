@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { BookOpen, CheckCircle2, Headphones, PenLine, ShieldCheck, X } from 'lucide-react'
 import { SiteHeader } from '@/components/layout/header'
-import { publicApi } from '@/lib/api/endpoints'
+import { publicApi } from '@/lib/api'
 import type { VerifiedResult } from '@/lib/api/types'
 
 export default function VerifyPage({ params }: { params: Promise<{ token: string }> }) {

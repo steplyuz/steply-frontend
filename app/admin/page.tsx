@@ -37,7 +37,7 @@ import {
   readingApi,
   speakingApi,
   writingApi,
-} from "@/lib/api/endpoints";
+} from "@/lib/api";
 import { authenticatedDownload } from "@/lib/api/download";
 import type {
   AdminStatistics,
@@ -320,7 +320,7 @@ export default function AdminPage() {
         readingApi.getAll(),
         listeningApi.getAll(),
         writingApi.getAll(),
-        speakingApi.listTests(),
+        speakingApi.adminList(),
       ]);
 
       const reading = asArray<ReadingTest>(r).map(

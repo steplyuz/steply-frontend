@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, MapPin } from 'lucide-react'
 import { SiteHeader } from '@/components/layout/header'
 import { useAuth } from '@/lib/auth/auth-context'
-import { mockCenterApi, publicApi } from '@/lib/api/endpoints'
+import { mockCenterApi, publicApi } from '@/lib/api'
 import type { Gender, PublicExamDetail, PublicExamSession, Region } from '@/lib/api/types'
 
 const regions: [Region,string][] = [['tashkent_city','Toshkent shahri'],['tashkent_region','Toshkent viloyati'],['andijan','Andijon'],['bukhara','Buxoro'],['fergana','Farg‘ona'],['jizzakh','Jizzax'],['kashkadarya','Qashqadaryo'],['navoiy','Navoiy'],['namangan','Namangan'],['samarkand','Samarqand'],['surkhandarya','Surxondaryo'],['syrdarya','Sirdaryo'],['khorezm','Xorazm'],['karakalpakstan','Qoraqalpog‘iston']]

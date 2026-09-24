@@ -17,7 +17,7 @@ import {
 import { motion, MotionConfig, useReducedMotion, type Variants } from "framer-motion"
 
 import { SiteHeader } from "@/components/layout/header"
-import { publicApi } from "@/lib/api/endpoints"
+import { publicApi } from "@/lib/api"
 import type { VerifiedResult } from "@/lib/api/types"
 
 type SkillKey =

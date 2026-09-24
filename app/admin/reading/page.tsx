@@ -10,7 +10,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { BookOpen, ChevronRight, FileDown, Plus, ShieldAlert, Trash2, Upload } from 'lucide-react'
-import { readingApi } from '@/lib/api/endpoints'
+import { readingApi } from '@/lib/api'
 import { authenticatedDownload } from '@/lib/api/download'
 import type { ReadingTest } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/auth-context'

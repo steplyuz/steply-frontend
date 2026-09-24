@@ -8,7 +8,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { ChevronRight, FileDown, Headphones, Plus, ShieldAlert, Trash2, Upload } from 'lucide-react'
-import { listeningApi } from '@/lib/api/endpoints'
+import { listeningApi } from '@/lib/api'
 import { authenticatedDownload } from '@/lib/api/download'
 import type { ListeningTest } from '@/lib/api/types'
 import { useAuth } from '@/lib/auth/auth-context'

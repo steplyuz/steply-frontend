@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { AlertCircle, ArrowLeft, ArrowRight, Check, KeyRound, Loader2, Lock, Phone } from "lucide-react"
 
-import { authApi } from "@/lib/api/endpoints"
+import { authApi } from "@/lib/api"
 import { ApiRequestError } from "@/lib/api/client"
 
 // ─── Constants ────────────────────────────────────────────────────────────────

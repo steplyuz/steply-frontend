@@ -1,3 +1,26 @@
+# STEPLY frontend — API qatlami qayta tashkil etildi (2026-09-24)
+
+`lib/api` endi 12 ta modulga bo'lingan (har biri alohida fayl), turlar ham modul bo'yicha
+ajratilgan. Kirish nuqtasi: `import { readingApi } from '@/lib/api'`, turlar: `@/lib/api/types`.
+
+- `lib/api/routes.ts` — barcha backend prefikslari bitta joyda (yo'l o'zgarsa faqat shu fayl).
+- `lib/api/modules/*.ts` — auth, profile, public, mock-exams, mock-center, reading, listening,
+  writing, speaking, practice, billing, admin (+ system: health).
+- `lib/api/client.ts`, `upload.ts`, `download.ts` — bir xil auth (cookie, 401 -> refresh) va xato formati.
+- Eski `endpoints.ts`, `listening-audio.ts`, `types.ts` o'chirildi; ishlatilmagan `lib/cefr-api`,
+  `lib/cefr-types`, `lib/types/mock.ts`, `lib/api/auth.ts` olib tashlandi (kompilyatsiyani buzar edi).
+- Bir xil vazifalar birlashtirildi: `resource.ts` (createAdminCrud / createTestTakingApi / createPaperExamApi),
+  `apiUpload` + `buildForm` (barcha fayl yuklashlar), `withSessionRetry` (401→refresh: fetch/XHR/download),
+  `apiErrorFrom`, `UpdateOf<T>`. Metod nomlari birxillashdi: `adminList/adminGet/create/update/remove`
+  (speaking: listTests→adminList, createTest→create, removeTest→remove; reading/listening: getAdmin→adminGet).
+- Yo'llar (URL) o'zgarmagan: eski va yangi qatlam bir xil so'rovlar yuboradi (tekshirilgan).
+
+⚠️ Quyidagi eski yozuv (2026-09-18) endpoints.ts haqida `/mock-test`, `/reading-test` deydi, lekin
+zipdagi haqiqiy fayl `/mock-exams`, `/reading-tests`, `/admin/...` ishlatgan. Backend bilan oxirgi
+marta tekshirilgan yo'llar `routes.ts` da; nomuvofiqlik chiqsa faqat shu faylni tuzating.
+
+---
+
 # CEFR → EXAMS migration checkpoint
 
 ## 2026-09-18 — API URL path alignment (this pass)

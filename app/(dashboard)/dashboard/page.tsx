@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, Award, CalendarDays, Download, MapPin } from 'lucide-react'
 import { useAuth } from '@/lib/auth/auth-context'
 import { authenticatedDownload } from '@/lib/api/download'
-import { mockCenterApi } from '@/lib/api/endpoints'
+import { mockCenterApi } from '@/lib/api'
 import type { MockFinalResult, SessionRegistration } from '@/lib/api/types'
 
 // Auth-guard va sidebar/topbar endi (dashboard)/dashboard/layout.tsx da —
