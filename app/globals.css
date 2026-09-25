@@ -314,3 +314,20 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+.admin-theme {
+  /* mavjud qiymatlar qoladi, quyidagilar qo'shiladi */
+  --primary-hover: #4338ca;
+  --primary-active: #3730a3;
+  --primary-strong: #4f46e5;
+}
+
+/* Admin temada qattiq lime ishlatilgan yordamchilar aksentga ergashsin */
+.admin-theme .text-brand { color: var(--primary); }
+.admin-theme .brand-dot { background: var(--primary); }
+.admin-theme .lime-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 15%, transparent),
+    0 10px 35px color-mix(in srgb, var(--primary) 8%, transparent);
+}
+.admin-theme ::selection { background: var(--primary); color: #fff; }
