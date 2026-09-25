@@ -20,6 +20,7 @@ import {
   X,
   PenLine,
   Settings2,
+  CreditCard,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -348,6 +349,28 @@ export function AdminSidebar({
                 <SectionLabel>
                   Tizim
                 </SectionLabel>
+
+                <NavItem
+                  href="/admin/users"
+                  label="Foydalanuvchilar"
+                  icon={Users}
+                  active={isPathActive(
+                    pathname,
+                    '/admin/users',
+                  )}
+                  onClick={onClose}
+                />
+                
+                <NavItem
+                  href="/admin/billing"
+                  label="Obunalar (Billing)"
+                  icon={CreditCard}
+                  active={isPathActive(
+                    pathname,
+                    '/admin/billing',
+                  )}
+                  onClick={onClose}
+                />
 
                 <NavItem
                   href="/dashboard"

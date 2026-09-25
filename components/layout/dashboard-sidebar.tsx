@@ -2,14 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CalendarDays, LayoutDashboard, LogOut, Mic2, UserRound, X } from 'lucide-react'
+import { CalendarDays, LayoutDashboard, LogOut, Mic2, UserRound, X, Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth/auth-context'
 
 const NAV = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Bosh sahifa', exact: true },
-  { href: '/mock', icon: CalendarDays, label: 'Mock imtihonlar' },
+  { href: '/dashboard/mock', icon: CalendarDays, label: 'Mock imtihonlar' },
   { href: (process.env.NEXT_PUBLIC_SPEAKING_URL || '/speaking'), icon: Mic2, label: 'Speaking' },
+  { href: '/dashboard/settings', icon: Settings, label: 'Sozlamalar' },
 ]
 
 interface Props {
