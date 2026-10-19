@@ -1,6 +1,7 @@
 'use client'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpenText, CheckCircle2, Clock3, Headphones, Mic, Pencil, Play } from 'lucide-react'
@@ -13,9 +14,9 @@ export type TestCard = {
   title: string
   meta: (string | null | undefined)[]
   free?: boolean
-  /** Test qaysi qismga tegishli (masalan, 'Part 1'). Berilsa, katalog qismlar bo'yicha guruhlanadi va filtrlanadi. */
+  /** Test qaysi qismga tegishli (masalan, 'Part 1'). Berilsa, katalog qismlar bo'yicha guruhlanadi. */
   part?: string | null
-  /** Qism ko'rsatmasi (parts[0].description). Qism bo'limi sarlavhasi ostida ko'rinadi. */
+  /** Qism ko'rsatmasi (parts[0].description). Tanlangan qism sarlavhasi ostida ko'rinadi. */
   description?: string | null
 }
 export type ResultRow = { id: number; date: string; score: string; level?: string | null; note?: string | null }
@@ -199,9 +200,13 @@ export function SkillPractice(props: {
   const { title, desc, listPath, resultsPath, testBaseHref, toTest, toResult, resultAction, notice, footer, accessState = 'open', lockedAction } = props
   const tests = useApi<any[]>(listPath)
   const results = useApi<any[]>(resultsPath)
+  // Tanlangan qism (tab). Hech qachon tanlanmagan bo'lsa, birinchi qism ochiladi.
+  const [activePart, setActivePart] = useState<string | null>(null)
+
   const kind = detectSkill(title)
   const { tint, accent, icon: SkillIcon } = SKILLS[kind]
   const accentVar = { '--accent': accent } as CSSProperties
+
   // is_practice=false (yoki nofaol) testlar katalogda ko'rsatilmaydi
   const cards = (tests.data ?? []).filter(isPracticeVisible).map((raw) => {
     const t = toTest(raw)
@@ -224,6 +229,8 @@ export function SkillPractice(props: {
     items,
     description: items[0]?.description ?? null,
   }))
+
+  const current = partGroups.find((g) => g.part === activePart) ?? partGroups[0]
 
   const renderMetas = (t: TestCard, dark = false) => {
     const metas = t.meta.filter((m): m is string => !!m && !/mini-?test/i.test(m))
@@ -486,25 +493,46 @@ export function SkillPractice(props: {
               </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <h3 className="text-base font-black tracking-tight text-foreground sm:text-xl">Qismlar bo‘yicha mashq</h3>
                 <span className="rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums" style={{ background: tint, color: accent }}>
-                  {partCards.length} ta qism
+                  {partGroups.length} ta qism
                 </span>
               </div>
 
-              {partGroups.map((g) => (
-                <div key={g.part} className="space-y-3 border-t border-foreground/10 pt-5">
+              <div role="tablist" aria-label="Qismlar" className="flex gap-2 overflow-x-auto pb-1">
+                {partGroups.map((g) => {
+                  const active = current?.part === g.part
+                  return (
+                    <button
+                      key={g.part}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setActivePart(g.part)}
+                      className={`min-h-11 shrink-0 rounded-full px-5 text-sm font-bold transition motion-reduce:transition-none ${
+                        active ? 'text-white' : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10'
+                      } ${FOCUS}`}
+                      style={active ? { background: accent } : undefined}
+                    >
+                      {g.part}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {current && (
+                <div role="tabpanel" className="space-y-4">
                   <div>
-                    <h4 className="text-2xl font-black tracking-tighter text-foreground">{g.part}</h4>
-                    {g.description && (
-                      <p className="mt-1 max-w-3xl text-sm leading-6 text-foreground/60">{g.description}</p>
+                    <h4 className="text-2xl font-black tracking-tighter text-foreground">{current.part}</h4>
+                    {current.description && (
+                      <p className="mt-1 max-w-3xl text-sm leading-6 text-foreground/60">{current.description}</p>
                     )}
                   </div>
-                  <div className={gridCls}>{g.items.map(renderPartCard)}</div>
+                  <div className={gridCls}>{current.items.map(renderPartCard)}</div>
                 </div>
-              ))}
+              )}
             </div>
           </>
         )}
