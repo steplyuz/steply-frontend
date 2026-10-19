@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { motion, useMotionTemplate, useMotionValue, useReducedMotion, useSpring } from "framer-motion";
-import { BookOpen, CheckCircle2, ShieldCheck } from "lucide-react";
+import { CheckCircle2, QrCode, ShieldCheck } from "lucide-react";
 
 import { ease } from "./motion";
 
@@ -37,11 +37,11 @@ export function TiltResultCard() {
     rawRotateY.set(0);
   }
 
-  const skills: [string, string][] = [
-    ["READ", "Matn"],
-    ["LISTEN", "Audio"],
-    ["WRITE", "Esse"],
-    ["SPEAK", "Ovoz"],
+  const skills: [string, number][] = [
+    ["L", 68],
+    ["R", 71],
+    ["W", 64],
+    ["S", 69],
   ];
 
   return (
@@ -99,7 +99,7 @@ export function TiltResultCard() {
               style={reduceMotion ? undefined : { transform: "translateZ(24px)" }}
             >
               <span className="rounded-full bg-muted px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                Practice ko‘rinishi
+                Namuna natija
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
                 <ShieldCheck className="size-3.5" />
@@ -112,11 +112,11 @@ export function TiltResultCard() {
               style={reduceMotion ? undefined : { transform: "translateZ(38px)" }}
             >
               <div>
-                <p className="text-xs font-medium text-muted-foreground">Mashq bo‘limlari</p>
-                <p className="mt-1 text-5xl font-bold tracking-[-0.06em] sm:text-6xl">4 ta</p>
+                <p className="text-xs font-medium text-muted-foreground">Umumiy ball</p>
+                <p className="mt-1 text-5xl font-bold tracking-[-0.06em] sm:text-6xl">68.0</p>
               </div>
               <span className="rounded-2xl bg-foreground px-4 py-2 text-lg font-extrabold text-primary">
-                Practice
+                B2
               </span>
             </div>
 
@@ -124,7 +124,7 @@ export function TiltResultCard() {
               className="mt-5 grid grid-cols-4 gap-2 sm:mt-6 sm:gap-3"
               style={reduceMotion ? undefined : { transform: "translateZ(28px)" }}
             >
-              {skills.map(([label, description], i) => (
+              {skills.map(([label, score], i) => (
                 <motion.div
                   key={label}
                   initial={reduceMotion ? false : { opacity: 0, y: 10 }}
@@ -133,7 +133,7 @@ export function TiltResultCard() {
                   className="rounded-2xl border border-border/70 bg-muted/70 px-2 py-3 text-center"
                 >
                   <p className="text-[10px] font-bold tracking-wider text-muted-foreground">{label}</p>
-                  <p className="mt-1 text-xs font-semibold">{description}</p>
+                  <p className="mt-1 text-lg font-bold tabular-nums">{score}</p>
                 </motion.div>
               ))}
             </div>
@@ -144,11 +144,11 @@ export function TiltResultCard() {
             >
               <div className="min-w-0">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Mashq rejasi
+                  Mock ID
                 </p>
-                <p className="mt-1 truncate font-mono text-xs font-semibold tracking-wide">READ • LISTEN • WRITE • SPEAK</p>
+                <p className="mt-1 truncate font-mono text-xs font-semibold tracking-wide">MOCK-A1B2C3D4</p>
               </div>
-              <BookOpen className="size-8 shrink-0 text-foreground" aria-hidden />
+              <QrCode className="size-8 shrink-0 text-foreground" aria-hidden />
             </div>
           </motion.div>
         </div>
@@ -167,7 +167,7 @@ export function TiltResultCard() {
           </span>
           <span>
             <span className="block text-xs font-bold">4 ta ko‘nikma</span>
-            <span className="mt-0.5 block text-[11px] text-muted-foreground">Bitta platformada</span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">Bitta mock imtihonda</span>
           </span>
         </div>
       </motion.div>

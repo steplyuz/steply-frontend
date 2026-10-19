@@ -20,7 +20,7 @@ import { useMotionVariants } from "./motion";
 /* -------------------------------------------------------------------------- */
 
 type Skill = {
-  icon: string;         // path to PNG icon in /public/mascot/
+  icon: string;         // path to PNG icon in /public/icons/
   title: string;
   eyebrow: string;
   body: string;
@@ -34,7 +34,7 @@ type Skill = {
 
 const SKILLS: Skill[] = [
   {
-    icon: "/mascot/reading.png",
+    icon: "/icons/reading.png",
     title: "Reading",
     eyebrow: "O'qib tushunish",
     body: "Matnlarni tahlil qiling va savollarga CEFR Multilevel formatida javob bering. Har bir bo'lim real imtihon uslubida tuzilgan.",
@@ -46,7 +46,7 @@ const SKILLS: Skill[] = [
     number: "01",
   },
   {
-    icon: "/mascot/listening.png",
+    icon: "/icons/listening.png",
     title: "Listening",
     eyebrow: "Tinglab tushunish",
     body: "Audio topshiriqlarni tinglang, asosiy ma'lumotlarni ajrating va javoblaringizni tekshiring. Real imtihon shovqin darajasida.",
@@ -58,7 +58,7 @@ const SKILLS: Skill[] = [
     number: "02",
   },
   {
-    icon: "/mascot/writing.png",
+    icon: "/icons/writing.png",
     title: "Writing",
     eyebrow: "Yozma nutq",
     body: "Yozma topshiriqlarni bajaring va javoblaringizni baholash uchun yuboring. AI yordamida tezkor feedback oling.",
@@ -70,7 +70,7 @@ const SKILLS: Skill[] = [
     number: "03",
   },
   {
-    icon: "/mascot/speaking.png",
+    icon: "/icons/speaking.png",
     title: "Speaking",
     eyebrow: "Og'zaki nutq",
     body: "Savollarga ovozli javob bering va speaking ko'nikmangizni mashq qiling. Talaffuz va ravonlik bo'yicha baho oling.",

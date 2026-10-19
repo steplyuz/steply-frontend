@@ -8,6 +8,7 @@ import { TiltResultCard } from "./tilt-result-card";
 import { StatsStrip } from "./stats-strip";
 import { FinalCta } from "./final-cta";
 import { ProcessFlow } from "./process";
+import { VerificationSection } from "./verification";
 import { SkillsGrid } from "./skills";
 
 export function LandingPage() {
@@ -22,6 +23,7 @@ export function LandingPage() {
         <StatsStrip />
         <SkillsGrid />
         <ProcessFlow />
+        <VerificationSection />
         <FinalCta />
       </main>
 

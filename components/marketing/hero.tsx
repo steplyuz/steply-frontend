@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { ArrowRight, BookOpen, CheckCircle2, ShieldCheck } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2, ShieldCheck } from "lucide-react";
 
 /* -------------------------------------------------------------------------- */
 /* SHARED MOTION                                                               */
@@ -144,8 +144,8 @@ export function HeroDescription() {
       variants={fadeUp}
       className="mx-auto mt-4 max-w-xl text-sm leading-6 text-muted-foreground sm:mt-5 sm:text-base sm:leading-7 lg:mx-0 lg:text-lg lg:leading-8"
     >
-      Reading, Listening, Writing va Speaking bo‘yicha muntazam mashq qiling. O‘z sur’atingizda o‘rganing
-      va ko‘nikmalaringizni bosqichma-bosqich rivojlantiring.
+      Reading, Listening, Writing va Speaking bo‘yicha mock imtihonlarda qatnashing. Sanani tanlang,
+      tayyorgarligingizni sinang va natijangizni tekshiring.
     </motion.p>
   );
 }
@@ -165,7 +165,7 @@ export function HeroActions() {
     >
       <motion.div whileTap={tap} className="flex">
         <Link
-          href="/dashboard/reading"
+          href="/mock"
           className="group relative inline-flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-[0_12px_30px_-14px_rgba(228,247,10,0.75)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_34px_-14px_rgba(228,247,10,0.65)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-12 sm:px-6"
         >
           {/* shimmer */}
@@ -173,17 +173,17 @@ export function HeroActions() {
             aria-hidden
             className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 transition-all duration-700 group-hover:translate-x-[400%] group-hover:opacity-100"
           />
-          <span className="relative">Practice boshlash</span>
+          <span className="relative">Mock imtihon tanlash</span>
           <ArrowRight className="relative size-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </motion.div>
 
       <motion.div whileTap={tap} className="flex">
         <Link
-          href="/dashboard"
+          href="/result"
           className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card/80 px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-12 sm:px-6"
         >
-          Ko‘nikmalarni ko‘rish
+          Natijani tekshirish
         </Link>
       </motion.div>
     </motion.div>
@@ -196,8 +196,8 @@ export function HeroActions() {
 
 const TRUST_ITEMS = [
   { icon: CheckCircle2, label: "4 ta ko‘nikma" },
-  { icon: BookOpen, label: "Muntazam mashq" },
-  { icon: ShieldCheck, label: "Shaxsiy kabinet" },
+  { icon: CalendarDays, label: "Sana tanlash" },
+  { icon: ShieldCheck, label: "Natijani tekshirish" },
 ] as const;
 
 export function HeroTrust() {
@@ -251,7 +251,7 @@ export function Hero({ children }: { children?: ReactNode }) {
           animate="show"
           className="relative z-10 mx-auto w-full max-w-2xl text-center lg:mx-0 lg:text-left"
         >
-          <HeroBadge>CEFR Practice platformasi</HeroBadge>
+          <HeroBadge>CEFR Multilevel mock platformasi</HeroBadge>
           <HeroTitle />
           <HeroDescription />
           <HeroActions />

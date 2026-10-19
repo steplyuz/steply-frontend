@@ -126,10 +126,10 @@ export function FinalCta() {
               Keyingi qadam
             </p>
             <h2 className="mt-3 text-balance text-[1.75rem] font-bold leading-[1.1] tracking-tight sm:mt-4 sm:text-4xl lg:text-5xl">
-              Practice orqali ko‘nikmalaringizni rivojlantiring.
+              Keyingi mock imtihoningizga tayyorlanishni boshlang.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-background/70 sm:text-base sm:leading-7 lg:mx-0">
-              Reading, Listening, Writing va Speaking bo‘limlarida muntazam mashq qiling.
+              O‘zingizga mos imtihonni tanlang va CEFR Multilevel formatida bilimingizni sinab ko‘ring.
             </p>
           </motion.div>
 
@@ -139,24 +139,24 @@ export function FinalCta() {
           >
             <motion.div whileTap={tap} className="flex">
               <Link
-                href="/dashboard/reading"
+                href="/mock"
                 className="group relative inline-flex min-h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-[0_14px_34px_-14px_rgba(228,247,10,0.6)] transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-foreground sm:w-auto"
               >
                 <span
                   aria-hidden
                   className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 transition-all duration-700 group-hover:translate-x-[450%] group-hover:opacity-100"
                 />
-                <span className="relative">Practice boshlash</span>
+                <span className="relative">Mock imtihon tanlash</span>
                 <ArrowRight className="relative size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </motion.div>
 
             <motion.div whileTap={tap} className="flex">
               <Link
-                href="/dashboard/listening"
+                href="/result"
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-background/20 bg-background/5 px-6 py-3 text-sm font-semibold text-background transition-colors hover:bg-background/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-foreground sm:w-auto"
               >
-                Listening mashqi
+                Natijani tekshirish
               </Link>
             </motion.div>
           </motion.div>
