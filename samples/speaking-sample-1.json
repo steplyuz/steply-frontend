@@ -1,0 +1,53 @@
+{
+  "id": "speaking-sample-1",
+  "title": "Speaking Sample Test 1",
+  "description": "Multi-level speaking test (namunaviy topshiriq)",
+  "is_free": false,
+  "is_practice": true,
+  "is_active": true,
+  "part_1_1": {
+    "external_id": "sample1-p11",
+    "question_1_id": "sample1-p11-q1",
+    "question_2_id": "sample1-p11-q2",
+    "question_3_id": "sample1-p11-q3",
+    "question_1": "Please tell me about your best friend.",
+    "question_2": "Tell me about your country.",
+    "question_3": "What do you like to do in your free time?"
+  },
+  "part_1_2": {
+    "external_id": "sample1-p12",
+    "image_1_url": "/media/speaking/sample1/p12_driving.jpg",
+    "image_2_url": "/media/speaking/sample1/p12_walking.jpg",
+    "question_describe_id": "sample1-p12-q4",
+    "question_2_id": "sample1-p12-q5",
+    "question_3_id": "sample1-p12-q6",
+    "question_describe": "What do you see in these pictures?",
+    "question_2": "What are some advantages of walking over driving?",
+    "question_3": "Why do some people prefer having a car of their own?"
+  },
+  "part_2": {
+    "external_id": "sample1-p2",
+    "question_1_id": "sample1-p2-q1",
+    "question_2_id": "sample1-p2-q2",
+    "question_3_id": "sample1-p2-q3",
+    "image_url": "/media/speaking/sample1/p2_arrows.jpg",
+    "question_1": "Tell me about a critical decision you have made.",
+    "question_2": "How has this decision influenced you and your life?",
+    "question_3": "What factors have the highest impact on the decisions people make?"
+  },
+  "part_3": {
+    "external_id": "sample1-p3",
+    "topic_id": "sample1-p3-topic",
+    "topic": "Citizens should be allowed to carry personal guns.",
+    "for_points": [
+      "Guns can help people protect themselves",
+      "They prevent people from becoming victims of crimes like burglary",
+      "Necessary for hunting or target sports"
+    ],
+    "against_points": [
+      "Guns are weapons that are used to commit a crime",
+      "Fewer guns will reduce the murder rate",
+      "Small or military guns are not useful for activities like hunting"
+    ]
+  }
+}
