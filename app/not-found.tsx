@@ -1,4 +1,6 @@
 
+/* app/not-found.tsx */
+
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -40,13 +42,12 @@ export default function NotFound() {
             Bosh sahifaga qaytish
           </Link>
 
-          <button
-            type="button"
-            onClick={() => window.history.back()}
+          <Link
+            href="/"
             className="inline-flex min-h-12 items-center justify-center rounded-xl border border-gray-200 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
           >
-            Orqaga qaytish
-          </button>
+            Bosh sahifaga o‘tish
+          </Link>
         </div>
 
         <p className="mt-12 text-sm text-gray-400">
