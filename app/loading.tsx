@@ -1,20 +1,23 @@
-
-import Image from 'next/image'
+// app/loading.tsx
+import { Loader2 } from "lucide-react"
 
 export default function Loading() {
   return (
     <div
       role="status"
-      aria-label="Steply yuklanmoqda"
-      className="fixed inset-0 z-[99999] flex h-dvh w-screen items-center justify-center overflow-hidden bg-white"
+      aria-live="polite"
+      className="flex min-h-svh flex-col items-center justify-center gap-3 text-sm text-muted-foreground"
     >
       <img
-        src="/loading_steply.gif"
+        src="/logo.png"
         alt="Steply"
-        className="block h-full w-full object-contain"
-        style={{ width: '100%', height: '100%' }}
+        className="h-10 w-auto object-contain"
       />
-      <span className="sr-only">Yuklanmoqda...</span>
+
+      <span className="inline-flex items-center gap-2">
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        Yuklanmoqda...
+      </span>
     </div>
   )
 }

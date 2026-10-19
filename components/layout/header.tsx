@@ -53,12 +53,12 @@ const FOCUS_RING =
  * ──────────────────────────────────────────────────────────────────────────── */
 
 const PUBLIC_LINKS: NavLink[] = [
-  {
-    href: process.env.NEXT_PUBLIC_SPEAKING_URL || '/dashboard/speaking',
-    label: 'Speaking',
-    badge: 'AI',
-    external: Boolean(process.env.NEXT_PUBLIC_SPEAKING_URL),
-  },
+  { href: '/', label: 'Bosh sahifa' },
+  { href: '/dashboard', label: 'Kabinet' }, 
+  { href: '/about', label: 'Biz haqimizda' },
+  { href: '/result', label: 'Natijalar' },
+  { href: '/contact', label: 'Aloqa' },
+
 ]
 
 const DASHBOARD_LINKS: NavLink[] = [
