@@ -15,6 +15,8 @@ export type TestCard = {
   free?: boolean
   /** Test qaysi qismga tegishli (masalan, 'Part 1'). Berilsa, katalog qismlar bo'yicha guruhlanadi va filtrlanadi. */
   part?: string | null
+  /** Qism ko'rsatmasi (parts[0].description). Qism bo'limi sarlavhasi ostida ko'rinadi. */
+  description?: string | null
 }
 export type ResultRow = { id: number; date: string; score: string; level?: string | null; note?: string | null }
 
@@ -208,6 +210,20 @@ export function SkillPractice(props: {
   const partCards = cards.filter((c) => c.part).sort((x, y) => partNum(x.part!) - partNum(y.part!))
   const fullCards = cards.filter((c) => !c.part)
   const hasParts = partCards.length > 0
+
+  // Har bir qism uchun alohida guruh (partCards allaqachon raqam bo'yicha tartiblangan)
+  const partGroups = Array.from(
+    partCards.reduce((map, c) => {
+      const list = map.get(c.part!) ?? []
+      list.push(c)
+      map.set(c.part!, list)
+      return map
+    }, new Map<string, TestCard[]>()),
+  ).map(([part, items]) => ({
+    part,
+    items,
+    description: items[0]?.description ?? null,
+  }))
 
   const renderMetas = (t: TestCard, dark = false) => {
     const metas = t.meta.filter((m): m is string => !!m && !/mini-?test/i.test(m))
@@ -470,15 +486,25 @@ export function SkillPractice(props: {
               </div>
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-6">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <h3 className="text-base font-black tracking-tight text-foreground sm:text-xl">Qismlar bo‘yicha mashq</h3>
                 <span className="rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums" style={{ background: tint, color: accent }}>
                   {partCards.length} ta qism
                 </span>
               </div>
-              <p className="text-sm text-foreground/60">Har bir qismni alohida mashq qiling — qisqa va aniq.</p>
-              <div className={gridCls}>{partCards.map(renderPartCard)}</div>
+
+              {partGroups.map((g) => (
+                <div key={g.part} className="space-y-3 border-t border-foreground/10 pt-5">
+                  <div>
+                    <h4 className="text-2xl font-black tracking-tighter text-foreground">{g.part}</h4>
+                    {g.description && (
+                      <p className="mt-1 max-w-3xl text-sm leading-6 text-foreground/60">{g.description}</p>
+                    )}
+                  </div>
+                  <div className={gridCls}>{g.items.map(renderPartCard)}</div>
+                </div>
+              ))}
             </div>
           </>
         )}
