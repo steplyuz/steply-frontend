@@ -65,8 +65,16 @@ function detectPart(t: TestCard): string | null {
 }
 
 const partNum = (p: string) => parseInt(p.replace(/\D/g, ''), 10) || 0
-/** "Reading (National Assessment) — Part 1: Part 1" → "Reading (National Assessment)" */
-const baseTitle = (title: string) => title.split(/\s[—–]\s/)[0].trim()
+
+/**
+ * Mini-test sarlavhasi: "Reading — Paper 2 (National Assessment) — Part 1: Part 1"
+ * → "Paper 2 (National Assessment)". Uchta segment bo'lsa o'rtadagisi olinadi,
+ * aks holda birinchi segment.
+ */
+const baseTitle = (title: string) => {
+  const segs = title.split(/\s[—–]\s/).map((s) => s.trim())
+  return segs.length > 2 ? segs[1] : segs[0]
+}
 
 const WAVE = [30, 55, 40, 78, 50, 92, 60, 35, 72, 45, 85, 42, 26, 58]
 
