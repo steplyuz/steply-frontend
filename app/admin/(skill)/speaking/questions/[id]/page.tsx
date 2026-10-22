@@ -15,6 +15,7 @@ import { speakingApi } from '@/lib/api'
 import { resolveAssetUrl } from '@/lib/api/config'
 import type { SpeakingTest } from '@/lib/api/types'
 import { ApiRequestError } from '@/lib/api/client'
+import { LockControls } from '@/components/admin/lock-controls'
 
 export default function EditSpeakingTestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -151,6 +152,7 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
 
           <div className="flex items-center gap-3">
             {error && <span className="text-sm font-medium text-red-600 truncate max-w-[200px]">{error}</span>}
+            <LockControls onLock={() => speakingApi.lock(id)} onUnlock={() => speakingApi.unlock(id)} />
             {lastSaved && (
               <span className="text-xs text-muted-foreground hidden sm:inline">
                 {dirty ? <span className="text-amber-600">Saqlanmagan...</span> : `Saqlandi: ${lastSaved.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}`}
