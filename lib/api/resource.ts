@@ -76,6 +76,8 @@ export function createPaperExamApi(adminBase: string) {
       apiGet<AnswerKeyResponse>(`${adminBase}/${enc(id)}/answer-key`, { query: { version } }),
     versions: (id: string) => apiGet<ExamVersion[]>(`${adminBase}/${enc(id)}/versions`),
     lock: (id: string) => apiPost<LockResult>(`${adminBase}/${enc(id)}/lock`),
+    /** Lock qilingan testni tahrirlash: yangi DRAFT versiya ochadi (eski lock tarixi saqlanadi). */
+    newVersion: (id: string) => apiPost<ExamVersion>(`${adminBase}/${enc(id)}/new-version`),
     paperPdfUrl: (id: string) => apiUrl(`${adminBase}/${enc(id)}/paper-pdf`),
     answerSheetUrl: (id: string) => apiUrl(`${adminBase}/${enc(id)}/answer-sheet`),
   }
