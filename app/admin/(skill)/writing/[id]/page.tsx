@@ -16,6 +16,7 @@ import { writingApi } from '@/lib/api'
 import type { WritingExam, WritingTask } from '@/lib/api/types'
 import { ApiRequestError } from '@/lib/api/client'
 import { useAuth } from '@/lib/auth/auth-context'
+import { LockControls } from '@/components/admin/lock-controls'
 
 export default function EditWritingTestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -174,6 +175,7 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
 
           <div className="flex items-center gap-3">
             {error && <span className="text-sm font-medium text-red-600 truncate max-w-[200px]">{error}</span>}
+            <LockControls onLock={() => writingApi.lock(id)} onUnlock={() => writingApi.unlock(id)} />
             {lastSaved && (
               <span className="text-xs text-muted-foreground hidden sm:inline">
                 {dirty ? <span className="text-amber-600">Saqlanmagan...</span> : `Saqlandi: ${lastSaved.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}`}
