@@ -34,7 +34,17 @@ export function createAdminCrud<T, C, U = UpdateOf<C>, TItem = T>(adminBase: str
     create: (input: C) => apiPost<T>(adminBase, input),
     importJson: (file: File) => apiUpload<T>(adminBase, { file }),
     update: (id: string, input: U) => send<T>(`${adminBase}/${enc(id)}`, input),
-    remove: (id: string) => apiDelete<void>(`${adminBase}/${enc(id)}`),
+    /** force: faqat SUPER_ADMIN — natija/urinishlar bilan birga o'chirish (backend force=true). */
+    remove: (id: string, opts?: { force?: boolean }) =>
+      apiDelete<void>(`${adminBase}/${enc(id)}`, { query: { force: opts?.force ? true : undefined } }),
+  }
+}
+
+/** Lock / LOCK OFF (Writing va Speaking). lock — snapshot muzlatadi; unlock — qayta tahrirlashga ochadi. */
+export function createLockApi(adminBase: string) {
+  return {
+    lock: (id: string) => apiPost<LockResult>(`${adminBase}/${enc(id)}/lock`),
+    unlock: (id: string) => apiPost<{ status: string }>(`${adminBase}/${enc(id)}/unlock`),
   }
 }
 
