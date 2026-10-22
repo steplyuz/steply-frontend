@@ -7,8 +7,15 @@
 //   POST /reading-tests/attempts/{attempt_id}/finish
 //   POST /reading-tests/{id}/submit              (faqat mock rejimi: exam_attempt_id bilan)
 // (exams-auth / /exams/* ishlatilmaydi — u faqat mock imtihon portali uchun).
+//
+// TUZATISH: avval `call()` body'ni ob'ekt holida fetch'ga berardi (JSON.stringify yo'q),
+// natijada server "[object Object]" olardi -> har javob saqlash 422 bo'lardi va
+// urinishni yakunlash "javoblar saqlanmadi" xatosi bilan to'xtardi.
+// Endi umumiy apiGet/apiPost/apiPut ishlatiladi (ular body'ni JSON qiladi).
+// Javob maydoni `answers` (ro'yxat) yuboriladi — `answer` (string) maydoniga massiv yuborish 422 beradi.
 import { readingApi } from '@/lib/api'
-import { apiRequest } from '@/lib/api/client'
+import { apiGet, apiPost, apiPut } from '@/lib/api/client'
+import { enc } from '@/lib/api/config'
 import type { ReadingResultDetail } from '@/lib/api/types'
 import type { ReadingExam } from '@/lib/cefr-types/reading'
 
@@ -54,31 +61,23 @@ export interface ReadingAttemptState {
   rows?: SavedRow[]
 }
 
-/**
- * MOSLASHTIRISH NUQTASI: `apiRequest` ning aniq imzosi (path, { method, body }) deb faraz qilingan.
- * Agar `lib/api/client.ts` dagi imzo boshqacha bo'lsa, FAQAT shu bitta funksiyani to'g'rilang.
- */
-const call = <T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (apiRequest as any)(path, init) as Promise<T>
-
 export const startReadingAttemptAPI = (testId: string) => {
   if (!testId) throw new Error('testId is required')
-  return call<ReadingAttemptState>(`/reading-tests/${testId}/attempts`, { method: 'POST' })
+  return apiPost<ReadingAttemptState>(`/reading-tests/${enc(testId)}/attempts`)
 }
 
 export const getReadingAttemptAPI = (attemptId: number) =>
-  call<ReadingAttemptState>(`/reading-tests/attempts/${attemptId}`, { method: 'GET' })
+  apiGet<ReadingAttemptState>(`/reading-tests/attempts/${enc(attemptId)}`)
 
 /** Bitta javobni saqlaydi (idempotent). Bo'sh qiymat — javob tozalanadi. */
 export const saveReadingAnswerAPI = (attemptId: number, questionId: number, value: string) =>
-  call<unknown>(`/reading-tests/attempts/${attemptId}/answers`, {
-    method: 'PUT',
-    body: { question_id: questionId, answer: value.trim() ? [value] : [] },
+  apiPut<unknown>(`/reading-tests/attempts/${enc(attemptId)}/answers`, {
+    question_id: questionId,
+    answers: value.trim() ? [value] : [],
   })
 
 export const finishReadingAttemptAPI = (attemptId: number) =>
-  call<ReadingResultDetail>(`/reading-tests/attempts/${attemptId}/finish`, { method: 'POST' })
+  apiPost<ReadingResultDetail>(`/reading-tests/attempts/${enc(attemptId)}/finish`)
 
 /** Serverdagi saqlangan javoblarni { savol_db_id: javob_matni } ko'rinishiga keltiradi. */
 export function attemptAnswersToMap(state: ReadingAttemptState | null | undefined): Record<number, string> {
