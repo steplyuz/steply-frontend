@@ -2,7 +2,7 @@
 
 import { apiGet, apiPost, apiUpload } from '../client'
 import { apiUrl, enc } from '../config'
-import { createAdminCrud } from '../resource'
+import { createAdminCrud, createLockApi } from '../resource'
 import { ROUTES } from '../routes'
 import type {
   JsonObject, SpeakingRecordingDraft, SpeakingRecordingSubmission,
@@ -27,6 +27,7 @@ export const speakingApi = {
   importJson: crud.importJson,
   update: crud.update,
   remove: crud.remove,
+  ...createLockApi(ADMIN),
 
   // --- Baholash (admin yoki speaking_evaluator) ---
   pendingSubmissions: (query?: { limit?: number; offset?: number }) =>
