@@ -55,6 +55,8 @@ export interface ReadingAttemptState {
   test_id: string
   status: string // IN_PROGRESS | SUBMITTED | EXPIRED
   expires_at?: string | null
+  server_time?: string | null
+  remaining_seconds?: number | null
   duration_seconds?: number | null
   result_id?: number | null
   answers?: SavedRow[]
