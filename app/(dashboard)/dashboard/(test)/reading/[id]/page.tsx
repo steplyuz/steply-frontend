@@ -21,7 +21,7 @@ import { Loader2, AlertCircle, Maximize, BookOpen, ShieldCheck } from "lucide-re
 import { toast } from "sonner"
 import { PreflightStart } from "@/components/exam/preflight"
 import { useAuth } from "@/lib/auth/auth-context"
-import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, remainingSeconds } from "@/lib/exam-lock"
+import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, readingPracticeMinutes, remainingSeconds, serverRemainingSeconds } from "@/lib/exam-lock"
 
 const SAVE_DEBOUNCE_MS = 600
 
@@ -218,11 +218,12 @@ function ReadingExamComponent() {
                 setIdMap(mapping)
                 setRevMap(reverseMapping)
 
-                const duration = (examData.duration_minutes || 60) * 60
+                const duration = (mode === "mock" ? (examData.duration_minutes || 60) : readingPracticeMinutes(examData)) * 60
                 const sessionStarted = localStorage.getItem(`reading-${testId}-started`) === "true"
 
                 // Practice: serverdagi urinish bo'lmasa, eski mahalliy sessiya yaroqsiz — boshidan boshlaymiz
                 let serverAnswers: Record<number, string> = {}
+                let serverLeft: number | null = null
                 let resumeOk = sessionStarted
                 if (sessionStarted && mode !== "mock") {
                     const savedAttempt = Number(localStorage.getItem(`reading-${testId}-attempt`))
@@ -238,6 +239,7 @@ function ReadingExamComponent() {
                                 attemptIdRef.current = savedAttempt
                                 serverAnswers = attemptAnswersToMap(st)
                                 if (st.status === "EXPIRED") serverExpiredRef.current = true
+                                serverLeft = serverRemainingSeconds(st)
                             }
                         } catch {
                             resumeOk = false
@@ -275,7 +277,11 @@ function ReadingExamComponent() {
                     }
 
                     const savedTime = parseInt(localStorage.getItem(`reading-${testId}-time`) || "", 10)
-                    const dl = getOrCreateDeadline(uid, "reading", testId, duration, Number.isFinite(savedTime) ? savedTime : undefined)
+                    if (mode !== "mock" && serverLeft !== null) clearDeadline(uid, "reading", testId)
+                    const dl = getOrCreateDeadline(
+                        uid, "reading", testId, duration,
+                        serverLeft !== null ? serverLeft : Number.isFinite(savedTime) ? savedTime : undefined,
+                    )
                     deadlineRef.current = dl
                     const remaining = serverExpiredRef.current ? 0 : remainingSeconds(dl)
                     if (remaining <= 0) expiredRef.current = true
@@ -381,7 +387,7 @@ function ReadingExamComponent() {
     const handleStartExam = async () => {
         if (!testId || !test || starting) return
 
-        const baseDuration = (test.duration_minutes || 60) * 60
+        const baseDuration = (mode === "mock" ? (test.duration_minutes || 60) : readingPracticeMinutes(test)) * 60
         let duration = baseDuration
 
         if (isPractice) {
@@ -406,10 +412,8 @@ function ReadingExamComponent() {
                     })
                     localStorage.setItem(`reading-${testId}-answers`, JSON.stringify(answersRef.current))
                 }
-                if (st.expires_at) {
-                    const left = Math.floor((Date.parse(st.expires_at) - Date.now()) / 1000)
-                    if (Number.isFinite(left)) duration = Math.max(1, left)
-                }
+                const left = serverRemainingSeconds(st)
+                if (left !== null) duration = Math.max(1, left)
             } catch (err: any) {
                 const msg = err?.message || "Testni boshlab bo'lmadi"
                 setStartError(msg)
@@ -421,6 +425,8 @@ function ReadingExamComponent() {
         }
 
         localStorage.setItem(`reading-${testId}-started`, "true")
+        // Practice: vaqtning manbai — server. Oldingi urinishdan qolgan mahalliy deadline ishlatilmasin.
+        if (isPractice) clearDeadline(uid, "reading", testId)
         const dl = getOrCreateDeadline(uid, "reading", testId, duration)
         deadlineRef.current = dl
         setTimeLeft(remainingSeconds(dl))
@@ -553,7 +559,7 @@ function ReadingExamComponent() {
                         </div>
                         <div className="p-3 bg-background rounded-2xl">
                             <div className="text-xs text-muted-foreground font-medium">Vaqt</div>
-                            <div className="text-lg font-bold text-foreground">{test.duration_minutes || 60} daqiqa</div>
+                            <div className="text-lg font-bold text-foreground">{mode === "mock" ? (test.duration_minutes || 60) : readingPracticeMinutes(test)} daqiqa</div>
                         </div>
                     </div>
 
