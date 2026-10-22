@@ -60,7 +60,7 @@ export interface TestLibraryConfig<T> {
   icon: ElementType
   load: () => Promise<T[]>
   toRow: (item: T) => LibraryRow
-  remove: (id: string) => Promise<unknown>
+  remove: (id: string, opts?: { force?: boolean }) => Promise<unknown>
   importJson: (file: File) => Promise<unknown>
   /** Bo'sh test yaratish: forma qiymatlari -> API chaqiruvi */
   create: (values: Record<string, string | number>) => Promise<unknown>
@@ -96,6 +96,7 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
   const c = config
   const { user, isLoading } = useAuth()
   const isAdmin = user?.global_role === 'admin' || user?.global_role === 'super_admin'
+  const isSuperAdmin = user?.global_role === 'super_admin'
 
   const [items, setItems] = useState<T[] | null>(null)
   const [category, setCategory] = useState<string>('all')
@@ -171,12 +172,29 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
 
   async function handleRemove(row: LibraryRow) {
     if (!confirm(`"${row.title}" (${row.id}) ${c.noun} testini butunlay o'chirishni tasdiqlaysizmi?`)) return
+    const dropRow = () => setItems(prev => prev?.filter(t => c.toRow(t).id !== row.id) ?? null)
     setBusy(b => ({ ...b, [row.id]: true })); setError(null)
     try {
       await c.remove(row.id)
-      setItems(prev => prev?.filter(t => c.toRow(t).id !== row.id) ?? null)
+      dropRow()
     } catch (err) {
-      setError(errMsg(err, "O'chirishda xatolik"))
+      const conflict = err instanceof ApiRequestError && err.status === 409
+      if (conflict && isSuperAdmin) {
+        // 409 = natija/urinish bor. Super admin uchun aniq tasdiq bilan majburiy o'chirish (force=true).
+        const msg = errMsg(err, "O'chirib bo'lmadi")
+        if (confirm(`${msg}\n\nSuper admin sifatida natija va urinishlar bilan BIRGA majburiy o'chirilsinmi? Bu qaytarilmaydi.`)) {
+          try {
+            await c.remove(row.id, { force: true })
+            dropRow()
+          } catch (forceErr) {
+            setError(errMsg(forceErr, "Majburiy o'chirishda xatolik"))
+          }
+        } else {
+          setError(msg)
+        }
+      } else {
+        setError(errMsg(err, "O'chirishda xatolik"))
+      }
     } finally { setBusy(b => ({ ...b, [row.id]: false })) }
   }
 
