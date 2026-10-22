@@ -2,7 +2,7 @@
 
 import { apiDelete, apiGet, apiPost } from '../client'
 import { apiUrl, enc } from '../config'
-import { createAdminCrud, createTestTakingApi } from '../resource'
+import { createAdminCrud, createLockApi, createTestTakingApi } from '../resource'
 import { ROUTES } from '../routes'
 import type {
   WritingAiEvaluateInput, WritingCreateInput, WritingExam, WritingFormat, WritingFormatCreateInput,
@@ -22,6 +22,7 @@ export const writingApi = {
   importJson: crud.importJson,
   update: crud.update,
   remove: crud.remove,
+  ...createLockApi(ADMIN),
   allResults: taking.allResults,
   paperPdfUrl: (examId: string) => apiUrl(`${ADMIN}/${enc(examId)}/paper-pdf`),
 
