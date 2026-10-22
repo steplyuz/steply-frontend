@@ -593,7 +593,7 @@ export default function BillingPage() {
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {plans.data.map((plan) => {
               const key = `buy-plan-${plan.id}`
-              const includedSkills = plan.included_skills || (plan.tier === 'pro' ? ['READING', 'LISTENING', 'WRITING', 'SPEAKING'] : ['READING', 'LISTENING', 'WRITING'])
+              const includedSkills = plan.included_skills || (plan.tier === 'free' ? ['READING', 'LISTENING', 'WRITING'] : ['READING', 'LISTENING', 'WRITING', 'SPEAKING'])
               const hasSpeaking = includedSkills.includes('SPEAKING')
               const discountedPrice = Math.round(plan.price * (1 - (plan.discount_percent || 0) / 100))
               const promoDiscount = appliedPromo
