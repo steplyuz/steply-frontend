@@ -922,6 +922,20 @@ export default function AdminReadingEditorPage({ params }: { params: Promise<{ i
     return () => window.removeEventListener('keydown', onKey)
   }, [isLocked, dirty, handleSave])
 
+  async function handleUnlock() {
+    if (!confirm("Lock ochilsinmi? Test tahrirlash rejimiga o'tadi. Qayta lock qilmaguncha o'zgarishlar yangi draft versiyaga yoziladi, eski lock tarixi saqlanadi.")) return
+    setError(null); setLockErrors([])
+    setLocking(true)
+    try {
+      await readingApi.newVersion(testId)
+      await load()
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : "Lock ochilmadi")
+    } finally {
+      setLocking(false)
+    }
+  }
+
   async function handleLock() {
     if (!confirm("Testni lock qilishni tasdiqlaysizmi? Lock qilingandan so'ng tuzilma o'zgarmaydi.")) return
     setError(null); setLockErrors([])
@@ -1069,12 +1083,15 @@ export default function AdminReadingEditorPage({ params }: { params: Promise<{ i
               </button>
             )}
             <button
-              onClick={handleLock}
-              disabled={locking || saving || isLocked || answersMissing}
-              className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+              onClick={isLocked ? handleUnlock : handleLock}
+              disabled={locking || saving || (!isLocked && answersMissing)}
+              title={isLocked ? "Lock'ni ochib tahrirlash rejimiga o'tish" : undefined}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ${
+                isLocked ? 'border hover:bg-muted' : 'bg-primary text-primary-foreground'
+              }`}
             >
-              <Lock className="size-3.5" />
-              {isLocked ? 'Lock qilingan' : locking ? 'Tekshirilmoqda...' : 'Validate & Lock'}
+              {isLocked ? <Unlock className="size-3.5" /> : <Lock className="size-3.5" />}
+              {isLocked ? (locking ? 'Ochilmoqda...' : "Lock'ni ochish") : locking ? 'Tekshirilmoqda...' : 'Validate & Lock'}
             </button>
           </div>
         </div>
