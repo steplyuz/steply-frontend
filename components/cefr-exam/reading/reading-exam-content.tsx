@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react"
+import { useState, useCallback, useRef, useEffect, useMemo, type ReactNode } from "react"
 import { BookOpen, ChevronDown, ChevronLeft, ChevronRight, Check, CheckCircle2, CircleHelp, FileQuestion, FileText, Folder, FolderOpen, HelpCircle, Highlighter, Info, ListChecks, ListTree, TextCursorInput, Trash2, CaseSensitive, SquareCheckBig, TriangleAlert } from "lucide-react"
 import QuestionRenderer, { GapFillFillRenderer } from "@/components/cefr-exam/reading/reading-question-renderer"
 import HighlightText, { type TextHighlight } from "@/components/highlight-text"
@@ -25,6 +25,8 @@ interface ReadingExamContentProps {
     canNext?: boolean
     currentNumber?: number
     totalQuestions?: number
+    /** O'ng tomondagi sidebar (Vaqt, Yakunlash, Savollar, Kuzatuv). Navigatordan pastda, yonida turadi. */
+    sidebar?: ReactNode
 }
 
 // highlight-text.tsx dagi qat'iy tip: { id, start, end, color }
@@ -122,6 +124,7 @@ export default function ReadingExamContent({
     canNext = false,
     currentNumber,
     totalQuestions,
+    sidebar,
 }: ReadingExamContentProps) {
     const [activePartIndex, setActivePartIndex] = useState(0)
     const [highlightsByPart, setHighlightsByPart] = useState<Record<number, Highlight[]>>({})
@@ -495,7 +498,7 @@ export default function ReadingExamContent({
             className={`relative flex h-full flex-col gap-3 overflow-hidden bg-background p-3 ${isResizing ? "select-none" : ""}`}
             style={{ ["--q-w" as string]: `${questionsWidth}%` }}
         >
-            {/* ===== QISMLAR ===== */}
+            {/* ===== QISMLAR: to'liq kenglikda, eng tepada (sidebar ustida) ===== */}
             <nav
                 aria-label="Qismlar"
                 className="flex shrink-0 items-center justify-center gap-2 overflow-x-auto rounded-2xl border border-border bg-white px-3 py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
@@ -516,7 +519,7 @@ export default function ReadingExamContent({
                             title={`${idx + 1}-qism · ${stat.done}/${stat.total}${stat.from !== null ? ` · ${stat.from}–${stat.to}` : ""}`}
                             className={`flex h-9 min-w-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border px-3.5 text-sm font-semibold transition-all duration-200
                                 ${active
-                                    ? "border-foreground bg-[#E4F70A] text-foreground shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
+                                    ? "border-[#E4F70A] bg-[#E4F70A] text-foreground shadow-[0_4px_10px_rgba(0,0,0,0.12)]"
                                     : stat.complete
                                         ? "border-emerald-500/40 bg-emerald-500/10 text-foreground hover:border-foreground hover:bg-foreground/[0.08]"
                                         : "border-border bg-white text-foreground hover:border-foreground hover:bg-foreground/[0.08]"}`}
@@ -546,6 +549,7 @@ export default function ReadingExamContent({
                 ))}
             </div>
 
+            {/* ===== PASTKI QATOR: matn | resizer | javoblar | sidebar ===== */}
             <div className="flex min-h-0 flex-1 gap-0">
                 {/* ===== CHAP: MATN ===== */}
                 <section
@@ -804,6 +808,9 @@ export default function ReadingExamContent({
                         </button>
                     </footer>
                 </section>
+
+                {/* ===== O'NG: SIDEBAR (Vaqt, Yakunlash, Savollar, Kuzatuv) ===== */}
+                {sidebar && <div className="min-h-0 lg:ml-3 lg:flex">{sidebar}</div>}
             </div>
         </div>
     )

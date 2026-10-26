@@ -8,17 +8,25 @@ import WritingTopBar from "@/components/cefr-exam/writing/writing-top-bar"
 import WritingFinishModal from "@/components/cefr-exam/writing/writing-finish-modal"
 import { writingApi } from "@/lib/api"
 import type { WritingExam, WritingResult } from "@/lib/api/types"
-import { Loader2, AlertCircle, PenTool, Sparkles, ArrowLeft, FileDown } from "lucide-react"
+import { Loader2, AlertCircle, PenTool } from "lucide-react"
 import { toast } from "sonner"
 import { PreflightStart } from "@/components/exam/preflight"
 import { useAuth } from "@/lib/auth/auth-context"
 import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, remainingSeconds } from "@/lib/exam-lock"
 import Link from "next/link"
 
-function formatTime(s: number) {
-    const m = Math.floor(s / 60)
+const FONT_SIZE = 17
+const LOW_TIME_SECONDS = 300
+
+// mm:ss (1 soatdan ko'p bo'lsa h:mm:ss)
+function formatTime(total: number) {
+    const s = Math.max(0, Math.floor(total))
+    const h = Math.floor(s / 3600)
+    const m = Math.floor((s % 3600) / 60)
     const sec = s % 60
-    return `${m}m ${String(sec).padStart(2, "0")}s`
+    const mm = String(m).padStart(2, "0")
+    const ss = String(sec).padStart(2, "0")
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
 }
 
 function WritingExamComponent() {
@@ -29,7 +37,6 @@ function WritingExamComponent() {
     const uid = user?.id ? String(user.id) : "anon"
 
     const testId = params?.id || searchParams.get("id")
-    const mode = searchParams.get("mode")
 
     const [test, setTest] = useState<WritingExam | null>(null)
     const [loading, setLoading] = useState(true)
@@ -46,7 +53,6 @@ function WritingExamComponent() {
         return false
     })
 
-    const [fontSize, setFontSize] = useState(17)
     const [isFinishModalOpen, setIsFinishModalOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [result, setResult] = useState<WritingResult | null>(null)
@@ -79,11 +85,17 @@ function WritingExamComponent() {
                             const parsed = JSON.parse(savedAnswers)
                             setAnswers(parsed)
                             answersRef.current = parsed
-                        } catch {}
+                        } catch { }
                     }
                     const savedTime = parseInt(localStorage.getItem(`writing-${testId}-time`) || "", 10)
                     const duration = (examData.duration_minutes || 45) * 60
-                    const dl = getOrCreateDeadline(uid, "writing", testId, duration, Number.isFinite(savedTime) ? savedTime : undefined)
+                    const dl = getOrCreateDeadline(
+                        uid,
+                        "writing",
+                        testId,
+                        duration,
+                        Number.isFinite(savedTime) ? savedTime : undefined
+                    )
                     deadlineRef.current = dl
                     const remaining = remainingSeconds(dl)
                     if (remaining <= 0) expiredRef.current = true
@@ -122,7 +134,7 @@ function WritingExamComponent() {
             const formattedAnswers = test.tasks.map((task, i) => {
                 const tId = task.id ?? i
                 return {
-                    task_id: task.id ?? i,
+                    task_id: tId,
                     content: (answersRef.current[tId] || "").trim(),
                 }
             })
@@ -146,8 +158,10 @@ function WritingExamComponent() {
             setIsSubmitting(false)
             isExamFinished.current = false
             setFinalizing(false)
+            // Vaqt tugagan bo'lsa ham qayta urinish mumkin bo'lsin
+            timeoutSubmitAttempted.current = false
         }
-    }, [testId, test, isSubmitting, uid])
+    }, [testId, test, isSubmitting, uid, router])
 
     // Timer logic
     const timerReady = timeLeft !== null
@@ -158,6 +172,12 @@ function WritingExamComponent() {
             const remain = dl ? remainingSeconds(dl) : 0
             setTimeLeft(remain)
             localStorage.setItem(`writing-${testId}-time`, remain.toString())
+
+            if (remain > 0 && remain <= LOW_TIME_SECONDS && !lowTimeWarned.current) {
+                lowTimeWarned.current = true
+                toast.warning("Vaqt tugashiga 5 daqiqa qoldi")
+            }
+
             if (remain <= 0) {
                 clearInterval(interval)
                 expiredRef.current = true
@@ -180,22 +200,25 @@ function WritingExamComponent() {
         setHasStarted(true)
     }
 
-    const handleAnswer = (taskId: number, value: string) => {
-        if (expiredRef.current) return
-        setAnswers((prev) => {
-            const next = { ...prev, [taskId]: value }
+    const handleAnswer = useCallback(
+        (taskId: number, value: string) => {
+            if (expiredRef.current) return
+            const next = { ...answersRef.current, [taskId]: value }
             answersRef.current = next
-            localStorage.setItem(`writing-${testId}-answers`, JSON.stringify(next))
-            return next
-        })
-    }
+            setAnswers(next)
+            try {
+                localStorage.setItem(`writing-${testId}-answers`, JSON.stringify(next))
+            } catch { }
+        },
+        [testId]
+    )
 
     const tasks = useMemo(() => test?.tasks ?? [], [test])
 
     if (!testId) {
         return (
-            <div className="h-full min-h-[60vh] flex flex-col items-center justify-center p-6 bg-background">
-                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+            <div className="flex h-full min-h-[60vh] flex-col items-center justify-center bg-background p-6">
+                <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
                 <h2 className="text-xl font-bold">Xatolik: Test ID topilmadi</h2>
             </div>
         )
@@ -203,8 +226,8 @@ function WritingExamComponent() {
 
     if (loading) {
         return (
-            <div className="h-full min-h-[60vh] flex items-center justify-center bg-background">
-                <Loader2 className="w-8 h-8 animate-spin text-foreground mr-2" />
+            <div className="flex h-full min-h-[60vh] items-center justify-center bg-background">
+                <Loader2 className="mr-2 h-8 w-8 animate-spin text-foreground" />
                 <span className="font-semibold text-muted-foreground">Writing topshirig&apos;i yuklanmoqda...</span>
             </div>
         )
@@ -212,13 +235,13 @@ function WritingExamComponent() {
 
     if (error || !test) {
         return (
-            <div className="h-full min-h-[60vh] flex flex-col items-center justify-center bg-background text-center p-6">
-                <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-                <h2 className="text-xl font-bold mb-2">Xatolik yuz berdi</h2>
-                <p className="text-muted-foreground mb-6">{error || "Test topilmadi"}</p>
+            <div className="flex h-full min-h-[60vh] flex-col items-center justify-center bg-background p-6 text-center">
+                <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+                <h2 className="mb-2 text-xl font-bold">Xatolik yuz berdi</h2>
+                <p className="mb-6 text-muted-foreground">{error || "Test topilmadi"}</p>
                 <button
                     onClick={() => router.back()}
-                    className="px-6 py-3 bg-foreground text-white rounded-xl font-semibold hover:bg-black transition"
+                    className="rounded-xl bg-foreground px-6 py-3 font-semibold text-white transition hover:bg-black"
                 >
                     Orqaga
                 </button>
@@ -229,10 +252,13 @@ function WritingExamComponent() {
     // Natija baholash moduliga o'tkaziladi (AI tekshiruv, PDF, o'qituvchi bahosi).
     if (result) {
         return (
-            <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 bg-background p-6 text-center">
+            <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 bg-background p-6 text-center">
                 <Loader2 className="size-7 animate-spin text-foreground" />
                 <p className="font-semibold text-foreground">Javoblaringiz qabul qilindi</p>
-                <Link href={`/dashboard/writing/results/${result.id}`} className="text-sm font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground">
+                <Link
+                    href={`/dashboard/writing/results/${result.id}`}
+                    className="text-sm font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                >
                     Natijaga o&apos;tish
                 </Link>
             </div>
@@ -242,36 +268,36 @@ function WritingExamComponent() {
     // Start / Readiness screen
     if (!hasStarted) {
         return (
-            <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 sm:p-6 bg-background">
-                <div className="w-full max-w-xl bg-white border border-border rounded-3xl shadow-xl p-6 sm:p-8 space-y-6">
+            <div className="flex min-h-[80vh] flex-col items-center justify-center bg-background p-4 sm:p-6">
+                <div className="w-full max-w-xl space-y-6 rounded-3xl border border-border bg-white p-6 shadow-xl sm:p-8">
                     <div className="flex items-center gap-4">
-                        <div className="size-14 rounded-2xl bg-foreground text-white flex items-center justify-center shadow-lg shrink-0">
+                        <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-foreground text-white shadow-lg">
                             <PenTool className="size-7" />
                         </div>
                         <div className="min-w-0">
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 {test.cefr_level || "CEFR"} · Yozish bo&apos;limi
                             </span>
-                            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate" title={test.title}>
+                            <h1 className="truncate text-xl font-extrabold text-foreground sm:text-2xl" title={test.title}>
                                 {test.title}
                             </h1>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 py-4 border-y border-border text-center">
-                        <div className="p-3 bg-background rounded-2xl">
-                            <div className="text-xs text-muted-foreground font-medium">Topshiriqlar</div>
+                    <div className="grid grid-cols-2 gap-3 border-y border-border py-4 text-center">
+                        <div className="rounded-2xl bg-background p-3">
+                            <div className="text-xs font-medium text-muted-foreground">Topshiriqlar</div>
                             <div className="text-lg font-bold text-foreground">{tasks.length} ta</div>
                         </div>
-                        <div className="p-3 bg-background rounded-2xl">
-                            <div className="text-xs text-muted-foreground font-medium">Vaqt</div>
+                        <div className="rounded-2xl bg-background p-3">
+                            <div className="text-xs font-medium text-muted-foreground">Vaqt</div>
                             <div className="text-lg font-bold text-foreground">{test.duration_minutes || 45} daqiqa</div>
                         </div>
                     </div>
 
-                    <div className="space-y-3 text-sm text-muted-foreground bg-background p-4 rounded-2xl border border-border">
+                    <div className="space-y-3 rounded-2xl border border-border bg-background p-4 text-sm text-muted-foreground">
                         <div className="font-bold text-foreground">Imtihon haqida:</div>
-                        <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
+                        <ul className="list-disc space-y-1.5 pl-5 text-xs sm:text-sm">
                             <li>To&apos;liq ekran rejimi va kamera majburiy emas.</li>
                             <li>Javoblar yozish davomida ushbu qurilmada saqlanadi.</li>
                             <li>Vaqt tugaganda kiritilgan javoblar avtomatik yuboriladi.</li>
@@ -279,7 +305,11 @@ function WritingExamComponent() {
                         </ul>
                     </div>
 
-                    <PreflightStart needs={{ mic: 'optional' }} onBack={() => router.push("/dashboard/writing")} onStart={handleStartExam} />
+                    <PreflightStart
+                        needs={{ mic: "optional" }}
+                        onBack={() => router.push("/dashboard/writing")}
+                        onStart={handleStartExam}
+                    />
                 </div>
             </div>
         )
@@ -287,28 +317,30 @@ function WritingExamComponent() {
 
     return (
         <div className="fixed inset-0 z-40 flex h-full w-full flex-col overflow-hidden bg-background">
-            <WritingTopBar title={test.title} />
-            <div className="flex flex-1 min-h-0 flex-row overflow-hidden">
-                <main className="flex-1 min-w-0 overflow-hidden relative">
+            <WritingTopBar
+                title={test.title}
+                timeLeft={timeLeft === null ? "--:--" : formatTime(timeLeft)}
+                isLowTime={timeLeft !== null && timeLeft <= LOW_TIME_SECONDS}
+                onFinish={() => setIsFinishModalOpen(true)}
+            />
+
+            <div className="flex min-h-0 flex-1 flex-row overflow-hidden">
+                <main className="relative min-w-0 flex-1 overflow-hidden">
                     <WritingExamContent
                         tasks={tasks}
                         activeTaskIndex={activeTaskIndex}
                         onSelectTask={setActiveTaskIndex}
                         answers={answers}
                         onAnswer={handleAnswer}
-                        fontSize={fontSize}
-                        onIncreaseFontSize={() => setFontSize((s) => Math.min(s + 2, 26))}
-                        onDecreaseFontSize={() => setFontSize((s) => Math.max(s - 2, 13))}
+                        fontSize={FONT_SIZE}
                     />
                 </main>
+
                 <WritingExamSidebar
                     tasks={tasks}
                     activeTaskIndex={activeTaskIndex}
                     onSelectTask={setActiveTaskIndex}
                     answers={answers}
-                    timeLeft={formatTime(timeLeft || 0)}
-                    isLowTime={timeLeft !== null && timeLeft <= 300}
-                    onFinish={() => setIsFinishModalOpen(true)}
                 />
             </div>
 
@@ -334,8 +366,8 @@ export default function WritingPracticePage() {
     return (
         <Suspense
             fallback={
-                <div className="h-full min-h-[60vh] flex items-center justify-center bg-background">
-                    <Loader2 className="w-8 h-8 animate-spin text-foreground mr-2" />
+                <div className="flex h-full min-h-[60vh] items-center justify-center bg-background">
+                    <Loader2 className="mr-2 h-8 w-8 animate-spin text-foreground" />
                     <span className="font-semibold text-muted-foreground">Yuklanmoqda...</span>
                 </div>
             }
