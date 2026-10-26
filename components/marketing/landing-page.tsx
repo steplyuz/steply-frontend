@@ -20,7 +20,6 @@ export function LandingPage() {
         <Hero>
           <TiltResultCard />
         </Hero>
-        <StatsStrip />
         <SkillsGrid />
         <ProcessFlow />
         <VerificationSection />
