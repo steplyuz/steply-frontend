@@ -23,10 +23,10 @@ export type SkillType = 'reading' | 'listening' | 'writing' | 'speaking'
 
 /** Umumiy bayroq maydonlari — barcha 4 skill uchun bir xil */
 export interface TestFlags {
-  is_demo: boolean
-  is_free: boolean
-  is_practice: boolean
-  is_active: boolean
+  is_demo?: boolean
+  is_free?: boolean
+  is_practice?: boolean
+  is_active?: boolean
 }
 
 /** TestSettings komponentiga uzatiladigan props */
@@ -74,7 +74,7 @@ function FieldLabel({ children }: { children: ReactNode }) {
 }
 
 // ─── Asosiy komponent ────────────────────────────────────────────────────────
-export function TestSettings<T extends TestFlags & Record<string, unknown>>({
+export function TestSettings<T extends TestFlags>({
   skill,
   value,
   onChange,

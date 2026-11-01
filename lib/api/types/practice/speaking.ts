@@ -23,6 +23,7 @@ export interface SpeakingTestSummary {
 
 export interface SpeakingTest extends SpeakingTestSummary {
   description: string | null
+  is_demo?: boolean
   is_free?: boolean
   is_practice?: boolean
   part_1_1: SpeakingPart11
@@ -35,6 +36,7 @@ export interface SpeakingTestCreateInput {
   // NOTE: id yuborilmaydi — backend SPEAK-{8 nanoid} ni o'zi yaratadi
   title: string
   description?: string | null
+  is_demo?: boolean
   is_free?: boolean
   is_practice?: boolean
   is_active?: boolean
