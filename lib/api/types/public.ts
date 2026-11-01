@@ -1,6 +1,6 @@
 // Public moduli turlari: /public/* (token shart emas)
 
-import type { MockExam } from './mock-exams'
+import type { MockExam } from './exam/mock-exams'
 
 export interface PublicExamSession {
   id: number

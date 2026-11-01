@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { CalendarDays, GraduationCap, MapPin, Pencil, Plus, RefreshCw, Save, Trash2, Users } from 'lucide-react'
-import { mockExamsApi } from '@/lib/api/modules/mock-exams'
-import { readingApi } from '@/lib/api/modules/reading'
-import { listeningApi } from '@/lib/api/modules/listening'
-import { writingApi } from '@/lib/api/modules/writing'
-import { speakingApi } from '@/lib/api/modules/speaking'
-import type { MockExam, ExamSession, ExamSessionCreateInput } from '@/lib/api/types/mock-exams'
+import { mockExamsApi } from '@/lib/api/modules/exam/mock-exams'
+import { SessionRegistrations } from '@/components/admin/session-registrations'
+import { readingApi } from '@/lib/api/modules/practice/reading'
+import { listeningApi } from '@/lib/api/modules/practice/listening'
+import { writingApi } from '@/lib/api/modules/practice/writing'
+import { speakingApi } from '@/lib/api/modules/practice/speaking'
+import type { MockExam, ExamSession, ExamSessionCreateInput } from '@/lib/api/types/exam/mock-exams'
+import { errMsg } from '@/lib/api/legacy'
 
 /* ───────────── Types & constants ───────────── */
 
@@ -54,6 +56,7 @@ const blankSession = (mockExamId = '') => ({
   required_documents: 'Pasport yoki ID karta',
   is_active: true,
   delivery_mode: 'COMPUTER' as DeliveryMode,
+  requires_online_payment: false,
 })
 
 type ExamForm = ReturnType<typeof blankExam>
@@ -62,7 +65,6 @@ type SessionForm = ReturnType<typeof blankSession>
 const toOpts = (items: unknown): Opt[] =>
   (items as RawOpt[]).map(x => ({ id: String(x.id), title: x.title || String(x.id) }))
 
-const errMsg = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
 
 /* ───────────── Styles ─────────────
    Muhim: `primary` rangi och-yashil (lime), shuning uchun `text-primary` matn sifatida
@@ -119,6 +121,8 @@ export default function AdminMockExamsPage() {
   const [tab, setTab] = useState<Tab>('exams')
   const [exams, setExams] = useState<MockExam[]>([])
   const [sessions, setSessions] = useState<ExamSession[]>([])
+  const [openSessionId, setOpenSessionId] = useState<number | null>(null)
+  const openSession = sessions.find(x => x.id === openSessionId) ?? null
   const [opts, setOpts] = useState<Record<SkillBucket, Opt[]>>({ reading: [], listening: [], writing: [], speaking: [] })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -245,6 +249,7 @@ export default function AdminMockExamsPage() {
         required_documents: session.required_documents,
         is_active: session.is_active,
         delivery_mode: session.delivery_mode as ExamSessionCreateInput['delivery_mode'],
+        requires_online_payment: session.requires_online_payment,
       }
       await mockExamsApi.createSession(payload)
       flash('Imtihon sessiyasi yaratildi.')
@@ -291,12 +296,12 @@ export default function AdminMockExamsPage() {
       </header>
 
       {error && (
-        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div role="alert" className="rounded-lg border border-error/30 bg-error/10 p-3 text-sm text-error">
           {error}
         </div>
       )}
       {notice && (
-        <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+        <div role="status" className="rounded-lg border border-success/30 bg-success/10 p-3 text-sm text-success">
           {notice}
         </div>
       )}
@@ -353,7 +358,7 @@ export default function AdminMockExamsPage() {
                     <button
                       aria-label="O‘chirish"
                       onClick={() => void removeExam(e)}
-                      className="rounded-lg border border-red-200 px-2.5 text-red-600 transition hover:bg-red-50"
+                      className="rounded-lg border border-error/30 px-2.5 text-error transition hover:bg-error/10"
                     >
                       <Trash2 className="size-4" />
                     </button>
@@ -496,6 +501,11 @@ export default function AdminMockExamsPage() {
               Ro‘yxatdan o‘tish faol
             </label>
 
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" className="size-4 accent-[hsl(var(--primary))]" checked={session.requires_online_payment} onChange={e => setS('requires_online_payment', e.target.checked)} />
+              Oldindan onlayn to‘lov majburiy (akkaunt orqali yoziladi)
+            </label>
+
             <button disabled={saving || !exams.length} className={`${btnPrimary} w-full`}>
               <Plus className="size-4" />
               {saving ? 'Saqlanmoqda…' : 'Sessiya yaratish'}
@@ -523,15 +533,24 @@ export default function AdminMockExamsPage() {
                       </div>
                       <p className="mt-1 text-sm font-medium">{new Date(s.exam_date).toLocaleString('uz-UZ')}</p>
                     </div>
+                    <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setOpenSessionId(id => (id === s.id ? null : s.id))}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold transition hover:bg-muted"
+                    >
+                      <Users className="size-3.5" /> Ro‘yxat ({registered})
+                    </button>
                     <button
                       aria-label="Sessiyani o‘chirish"
                       disabled={registered > 0}
                       title={registered > 0 ? 'Ro‘yxatdan o‘tganlar bor — o‘chirib bo‘lmaydi' : undefined}
                       onClick={() => void removeSession(s)}
-                      className="rounded-lg border border-red-200 p-2 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="rounded-lg border border-error/30 p-2 text-error transition hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Trash2 className="size-4" />
                     </button>
+                    </div>
                   </div>
 
                   <div className="mt-3 space-y-1 text-sm text-muted-foreground">
@@ -551,6 +570,9 @@ export default function AdminMockExamsPage() {
                 </article>
               )
             })}
+            {openSession && (
+              <SessionRegistrations session={openSession} onClose={() => setOpenSessionId(null)} />
+            )}
             {!sessions.length && (
               <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
                 Hali sessiya yo‘q.

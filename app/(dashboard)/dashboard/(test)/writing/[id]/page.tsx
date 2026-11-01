@@ -12,22 +12,13 @@ import { Loader2, AlertCircle, PenTool } from "lucide-react"
 import { toast } from "sonner"
 import { PreflightStart } from "@/components/exam/preflight"
 import { useAuth } from "@/lib/auth/auth-context"
-import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, remainingSeconds } from "@/lib/exam-lock"
+import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, remainingSeconds } from "@/lib/exam/lock"
 import Link from "next/link"
+import { formatClock } from '@/lib/format'
 
 const FONT_SIZE = 17
 const LOW_TIME_SECONDS = 300
 
-// mm:ss (1 soatdan ko'p bo'lsa h:mm:ss)
-function formatTime(total: number) {
-    const s = Math.max(0, Math.floor(total))
-    const h = Math.floor(s / 3600)
-    const m = Math.floor((s % 3600) / 60)
-    const sec = s % 60
-    const mm = String(m).padStart(2, "0")
-    const ss = String(sec).padStart(2, "0")
-    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
-}
 
 function WritingExamComponent() {
     const params = useParams<{ id: string }>()
@@ -319,7 +310,7 @@ function WritingExamComponent() {
         <div className="fixed inset-0 z-40 flex h-full w-full flex-col overflow-hidden bg-background">
             <WritingTopBar
                 title={test.title}
-                timeLeft={timeLeft === null ? "--:--" : formatTime(timeLeft)}
+                timeLeft={timeLeft === null ? "--:--" : formatClock(timeLeft)}
                 isLowTime={timeLeft !== null && timeLeft <= LOW_TIME_SECONDS}
                 onFinish={() => setIsFinishModalOpen(true)}
             />

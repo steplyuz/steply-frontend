@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, Check, CheckCircle2, Clock3, Copy, CreditCard, FileText, GraduationCap, RefreshCw, UploadCloud } from 'lucide-react'
-import { mockExamsApi } from '@/lib/api/modules/mock-exams'
+import { mockExamsApi } from '@/lib/api/modules/exam/mock-exams'
 import { billingApi } from '@/lib/api/modules/billing'
 import { getErrorMessage } from '@/lib/api/client'
 import { FOCUS, LIME } from '@/lib/brand'
 import type { BillingOrder, PaymentDetails, MockExam } from '@/lib/api/types'
+import { MockRegistrationPanel } from '@/components/dashboard/mock-registration-panel'
 
 const STATUS_LABEL: Record<string, string> = {
   pending_payment: 'To‘lov kutilmoqda',
@@ -24,7 +25,7 @@ const STATUS_TONE: Record<string, string> = {
   cancelled: 'bg-foreground/5 text-foreground/50',
 }
 
-const HEAD_TINT = 'rgba(228,247,10,0.22)'
+const HEAD_TINT = 'rgba(200,255,0,0.22)'
 
 const pillDark = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 py-2 text-sm font-bold text-white transition hover:bg-foreground/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none ${FOCUS}`
 
@@ -262,7 +263,7 @@ export default function MockExamsPage() {
               return (
                 <article key={exam.id} className="group relative flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-black/10 transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
                   <div className="relative isolate flex min-h-28 items-start justify-between gap-3 overflow-hidden p-5 sm:p-6" style={{ background: HEAD_TINT }}>
-                    <Circle color="rgba(228,247,10,0.35)" width={16} className="-right-10 -top-14 size-36" />
+                    <Circle color="rgba(200,255,0,0.35)" width={16} className="-right-10 -top-14 size-36" />
                     <span className="relative z-10 flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
                       <GraduationCap aria-hidden="true" className="size-6" strokeWidth={1.9} />
                     </span>
@@ -309,6 +310,12 @@ export default function MockExamsPage() {
             })}
           </div>
         )}
+      </section>
+
+      {/* Ro'yxatdan o'tish: ochiq sanalar, yozilish va ruxsatnomalar */}
+      <section aria-labelledby="mock-registration" className="space-y-4 sm:space-y-6">
+        <h2 id="mock-registration" className="text-xl font-black tracking-tight text-foreground sm:text-3xl">Imtihonga yozilish</h2>
+        <MockRegistrationPanel />
       </section>
 
       {/* To'lov rekvizitlari */}

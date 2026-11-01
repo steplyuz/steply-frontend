@@ -15,7 +15,7 @@ export const input =
   'w-full min-h-11 rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground shadow-sm shadow-foreground/[0.02] placeholder:text-muted-foreground/70 transition focus:border-foreground/40 focus:outline-none focus:ring-2 focus:ring-foreground/10 disabled:cursor-not-allowed disabled:opacity-60'
 
 const TONES = {
-  primary: 'bg-[#E4F70A]/35 text-foreground',
+  primary: 'bg-[#C8FF00]/35 text-foreground',
   muted: 'bg-foreground/[0.06] text-foreground/65',
   green: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/15',
   amber: 'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/15',
@@ -92,8 +92,7 @@ export const Field = ({ label, children }: { label: string; children: ReactNode 
   </label>
 )
 
-export const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('uz-UZ') : '—')
-export const fmtMoney = (n?: number | null) => (n == null ? '—' : `${n.toLocaleString('uz-UZ')} so‘m`)
+export { formatDate as fmtDate, formatMoney as fmtMoney } from '@/lib/format'
 
 /** Limit / sarf ko'rsatkichi: butun kabinetda bir xil progress karta. */
 export function Meter({ label, used, limit, remaining, unit }: { label: string; used: number; limit: number | null | undefined; remaining?: number | null; unit?: string }) {

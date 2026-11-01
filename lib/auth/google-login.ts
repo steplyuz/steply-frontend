@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { authApi } from "@/lib/api"
 import type { Me } from "@/lib/api/types"
+import { loadScriptOnce, type LoginCallbacks } from "@/lib/auth/script-loader"
 
 const GOOGLE_GSI_SCRIPT = "https://accounts.google.com/gsi/client"
 
@@ -48,32 +49,14 @@ declare global {
   }
 }
 
-let googleScriptPromise: Promise<void> | null = null
-
 function loadGoogleScript(): Promise<void> {
-  if (typeof window === "undefined") return Promise.reject(new Error("no window"))
-  if (window.google?.accounts?.id) return Promise.resolve()
-  if (googleScriptPromise) return googleScriptPromise
-
-  googleScriptPromise = new Promise<void>((resolve, reject) => {
-    const el = document.createElement("script")
-    el.src = GOOGLE_GSI_SCRIPT
-    el.async = true
-    el.defer = true
-    el.onload = () => (window.google?.accounts?.id ? resolve() : reject(new Error("Google Identity yuklanmadi")))
-    el.onerror = () => reject(new Error("Google skripti yuklanmadi"))
-    document.head.appendChild(el)
-  }).catch((err) => {
-    googleScriptPromise = null
-    throw err
+  return loadScriptOnce(GOOGLE_GSI_SCRIPT, () => !!window.google?.accounts?.id, {
+    loadFailed: "Google skripti yuklanmadi",
+    notReady: "Google Identity yuklanmadi",
   })
-
-  return googleScriptPromise
 }
 
-interface Options {
-  onSuccess: (me: Me) => void
-  onError: (message: string) => void
+interface Options extends LoginCallbacks<Me> {
   text?: "signin_with" | "signup_with" | "continue_with" | "signin"
   locale?: string
 }

@@ -5,7 +5,7 @@ import { BadgeCheck, Camera, Loader2, Mail, Phone, Plus, Save, Star, Trash2, Use
 import { useApi } from '@/lib/api/use-api'
 import { useAuth } from '@/lib/auth/auth-context'
 import { UserAvatar } from '@/components/layout/user-badges'
-import { del, errMsg, patch, post, put, upload } from '@/lib/api/dashboard'
+import { del, errMsg, patch, post, put, upload } from '@/lib/api/legacy'
 import { FOCUS, LIME } from '@/lib/brand'
 import { Select } from '@/components/dashboard/select'
 import { DatePicker } from '@/components/dashboard/date-picker'
@@ -212,7 +212,7 @@ export default function ProfilePage() {
               {me.data.contacts.map((c) => (
                 <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white p-4 ring-1 ring-black/10 sm:p-5">
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl" style={{ background: 'rgba(228,247,10,0.22)' }}>
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl" style={{ background: 'rgba(200,255,0,0.22)' }}>
                       {c.contact_type === 'phone' ? <Phone aria-hidden="true" className="size-5" /> : <Mail aria-hidden="true" className="size-5" />}
                     </span>
                     <div className="min-w-0">

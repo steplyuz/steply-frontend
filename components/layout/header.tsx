@@ -43,7 +43,7 @@ const FOCUS_RING =
 /*
  * Steply brand tokens (see app/globals.css)
  *
- * Primary lime: var(--primary)   #E4F70A
+ * Primary lime: var(--primary)   #C8FF00
  * Dark text:    var(--foreground) #0A0A0C
  * Soft bg:      var(--muted)      #F4F5F0
  */
@@ -265,7 +265,7 @@ function NavItem({
           className={[
             'absolute inset-0 rounded-full',
             indicatorIsActive
-              ? 'bg-primary/80 shadow-[0_3px_12px_rgba(228,247,10,0.2)]'
+              ? 'bg-primary/80 shadow-[0_3px_12px_rgba(200,255,0,0.2)]'
               : 'bg-card shadow-sm ring-1 ring-black/[0.06]',
           ].join(' ')}
         />
@@ -456,10 +456,10 @@ function AuthActions({
             'px-4 py-2.5',
             'text-sm font-bold',
             'text-foreground',
-            'shadow-[0_5px_18px_rgba(228,247,10,0.22)]',
+            'shadow-[0_5px_18px_rgba(200,255,0,0.22)]',
             'transition-all duration-200',
             'hover:-translate-y-0.5',
-            'hover:shadow-[0_8px_24px_rgba(228,247,10,0.34)]',
+            'hover:shadow-[0_8px_24px_rgba(200,255,0,0.34)]',
             FOCUS_RING,
           ].join(' ')}
         >
@@ -503,7 +503,7 @@ function AuthActions({
             'px-4 py-2.5',
             'text-sm font-bold',
             'text-foreground',
-            'shadow-[0_5px_18px_rgba(228,247,10,0.22)]',
+            'shadow-[0_5px_18px_rgba(200,255,0,0.22)]',
             'transition-all duration-200',
             'hover:-translate-y-0.5',
             FOCUS_RING,
@@ -643,10 +643,10 @@ function AuthActions({
           'px-4 py-2',
           'text-sm font-bold',
           'text-foreground',
-          'shadow-[0_5px_18px_rgba(228,247,10,0.22)]',
+          'shadow-[0_5px_18px_rgba(200,255,0,0.22)]',
           'transition-all duration-200',
           'hover:-translate-y-0.5',
-          'hover:shadow-[0_8px_25px_rgba(228,247,10,0.34)]',
+          'hover:shadow-[0_8px_25px_rgba(200,255,0,0.34)]',
           'active:scale-[0.98]',
           FOCUS_RING,
         ].join(' ')}

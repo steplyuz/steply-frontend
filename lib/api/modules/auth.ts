@@ -8,6 +8,24 @@ import type {
 
 const BASE = ROUTES.auth
 
+type NonceResponse = { nonce: string; client_id: string }
+
+/**
+ * Nonce so'rovini birlashtiradi: bir vaqtda bir nechta chaqiruv (React StrictMode, ikki hook)
+ * bitta so'rovni baham ko'radi. Aks holda ikkita alohida nonce yaratiladi, brauzer cookie'si
+ * esa faqat bittasiga bog'langan bo'ladi va verify 401 beradi (nonce mos kelmaydi).
+ */
+const inflightNonce: Record<string, Promise<NonceResponse> | undefined> = {}
+function sharedNonce(provider: 'telegram' | 'google'): Promise<NonceResponse> {
+  const existing = inflightNonce[provider]
+  if (existing) return existing
+  const request = apiPost<NonceResponse>(`${BASE}/${provider}/nonce`, undefined, { anonymous: true }).finally(() => {
+    inflightNonce[provider] = undefined
+  })
+  inflightNonce[provider] = request
+  return request
+}
+
 export const authApi = {
   me: () => apiGet<Me>(`${BASE}/me`),
 
@@ -18,8 +36,7 @@ export const authApi = {
   },
 
   /** Telegram popup login, 1-qadam: bir martalik nonce + public client_id. */
-  telegramNonce: () =>
-    apiPost<{ nonce: string; client_id: string }>(`${BASE}/telegram/nonce`, undefined, { anonymous: true }),
+  telegramNonce: () => sharedNonce('telegram'),
 
   /** Telegram popup login, 2-qadam: id_token ni backend tekshiradi va cookie sessiya ochadi. */
   telegramVerify: async (idToken: string) => {
@@ -29,8 +46,7 @@ export const authApi = {
   },
 
   /** Google GIS login, 1-qadam: bir martalik nonce + public client_id. */
-  googleNonce: () =>
-    apiPost<{ nonce: string; client_id: string }>(`${BASE}/google/nonce`, undefined, { anonymous: true }),
+  googleNonce: () => sharedNonce('google'),
 
   /** Google GIS login, 2-qadam: id_token ni backend tekshiradi va cookie sessiya ochadi. */
   googleVerify: async (idToken: string) => {

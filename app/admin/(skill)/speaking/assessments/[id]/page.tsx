@@ -96,7 +96,7 @@ export default function Page() {
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Topshirilgan: {new Date(submission.created_at).toLocaleString('uz-UZ')} ·
-            Holati: <span className={submission.status === 'graded' ? 'text-emerald-600' : 'text-amber-600'}>{submission.status}</span>
+            Holati: <span className={submission.status === 'graded' ? 'text-success' : 'text-warning'}>{submission.status}</span>
           </p>
         </div>
 
@@ -137,16 +137,16 @@ export default function Page() {
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="flex flex-col gap-1.5 text-sm font-medium">
-                Umumiy xom ball (0–36) *
+                Umumiy xom ball (0–21) *
                 <input
                   type="number"
                   min={0}
-                  max={36}
+                  max={21}
                   step={0.5}
                   required
                   value={scores.overall_raw || ''}
                   onChange={(e) => setScores((p) => ({ ...p, overall_raw: e.target.value === '' ? 0 : Number(e.target.value) }))}
-                  placeholder="0–36"
+                  placeholder="0–21"
                   className="rounded-lg border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary"
                 />
                 <span className="text-xs font-normal text-muted-foreground">Yakuniy ball (0–75) serverda hisoblanadi.</span>
@@ -180,8 +180,8 @@ export default function Page() {
             {message && (
               <p className={`mt-4 rounded-lg px-4 py-3 text-sm ${
                 message.type === 'ok'
-                  ? 'border border-emerald-200 bg-emerald-50 text-emerald-700'
-                  : 'border border-red-200 bg-red-50 text-red-700'
+                  ? 'border border-success/30 bg-success/10 text-success'
+                  : 'border border-error/30 bg-error/10 text-error'
               }`}>
                 {message.text}
               </p>

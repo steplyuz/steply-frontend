@@ -6,6 +6,7 @@ import { DashboardSidebar } from '@/components/layout/dashboard-sidebar'
 import { DashboardTopbar } from '@/components/layout/dashboard-topbar'
 import { DashboardBottomNav } from '@/components/layout/dashboard-bottom-nav'
 import { useAuth } from '@/lib/auth/auth-context'
+import { onboardingApi } from '@/lib/api'
 
 const BONE = 'bg-foreground/[0.06]'
 
@@ -45,7 +46,10 @@ function DashboardSkeleton() {
 
 export default function DashboardCabinetLayout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
-  const { isLoading, isAuthenticated } = useAuth()
+  const { user, isLoading, isAuthenticated } = useAuth()
+  // Talaba onboardingni tugatmaguncha kabinetga kiritilmaydi
+  const [onboardingReady, setOnboardingReady] = useState(false)
+  const isStudent = user?.global_role === 'student'
   const router = useRouter()
   const pathname = usePathname()
   const close = useCallback(() => setOpen(false), [])
@@ -57,6 +61,29 @@ export default function DashboardCabinetLayout({ children }: { children: React.R
       router.replace(`/login?next=${encodeURIComponent(pathname || '/dashboard')}`)
     }
   }, [isLoading, isAuthenticated, router, pathname])
+
+  // Onboarding gate: faqat talabalar uchun. Xatolikda kabinet ochiladi (fail open).
+  useEffect(() => {
+    if (isLoading || !isAuthenticated) return
+    if (!isStudent) {
+      setOnboardingReady(true)
+      return
+    }
+    let cancelled = false
+    onboardingApi
+      .get()
+      .then((state) => {
+        if (cancelled) return
+        if (state.is_complete) setOnboardingReady(true)
+        else router.replace('/dashboard/onboarding')
+      })
+      .catch(() => {
+        if (!cancelled) setOnboardingReady(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [isLoading, isAuthenticated, isStudent, router])
 
   // Sahifa almashganda mobil menyu yopiladi
   useEffect(() => {
@@ -86,7 +113,7 @@ export default function DashboardCabinetLayout({ children }: { children: React.R
 
   // Test tanlash sahifalari ham odatiy kabinet navigatsiyasidan foydalanadi.
   // Faqat real imtihon route'lari (dashboard/(test)) alohida exam layoutiga o'tadi.
-  if (isLoading || !isAuthenticated) return <DashboardSkeleton />
+  if (isLoading || !isAuthenticated || !onboardingReady) return <DashboardSkeleton />
 
   return (
     <div className="min-h-screen bg-background lg:flex">

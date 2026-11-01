@@ -1,27 +1,16 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
-import {
-    Mic,
-    Square,
-    RotateCcw,
-    CheckCircle2,
-    Loader2,
-    ChevronLeft,
-    ChevronRight,
-    Headphones,
-    Sparkles,
-    Volume2,
-    AlertCircle,
-    Play,
-    Pause,
-} from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { AlertCircle, CheckCircle2, Headphones, Loader2, Mic, RotateCcw, Volume2 } from "lucide-react"
 import { resolveAudioUrl } from "@/lib/api"
 import { getMicStream } from "@/components/exam/preflight"
+import { PART_INSTRUCTIONS, PART_ORDER, type SpeakingPartKey } from "@/lib/speaking/instructions"
+import { cancelExaminer, playChime, speakExaminer } from "@/lib/speaking/examiner"
+import { formatClock } from '@/lib/format'
 
 export interface SpeakingPromptItem {
     partId: string
-    partKey: "part_1_1" | "part_1_2" | "part_2" | "part_3"
+    partKey: SpeakingPartKey
     partName: string
     questionId: string
     label: string
@@ -36,66 +25,43 @@ export interface SpeakingPromptItem {
 interface SpeakingExamContentProps {
     prompts: SpeakingPromptItem[]
     currentIndex: number
+    /** Faqat avtomatik o'tishda chaqiriladi — foydalanuvchi qo'lda o'tolmaydi */
     onSelectIndex: (index: number) => void
     uploadedStatus: Record<string, boolean>
-    audioUrls: Record<string, string>
+    /** Eski API bilan moslik uchun; ishlatilmaydi */
+    audioUrls?: Record<string, string>
     onRecordComplete: (prompt: SpeakingPromptItem, file: File, audioUrl: string) => Promise<void>
+    onAllDone?: () => void
     fontSize?: number
     onIncreaseFontSize?: () => void
     onDecreaseFontSize?: () => void
     onBusyChange?: (busy: boolean) => void
+    /** Eski API bilan moslik uchun; oqim endi doim avtomatik */
     autoStart?: boolean
 }
 
-function AudioPlayerInline({ url }: { url: string }) {
-    const audioRef = useRef<HTMLAudioElement | null>(null)
-    const [isPlaying, setIsPlaying] = useState(false)
-    const [currentTime, setCurrentTime] = useState(0)
-    const [duration, setDuration] = useState(0)
+type Phase = "examiner" | "prep" | "chime" | "recording" | "saving" | "gap" | "done" | "error"
 
-    const togglePlay = () => {
-        if (!audioRef.current) return
-        if (isPlaying) {
-            audioRef.current.pause()
-            setIsPlaying(false)
-        } else {
-            audioRef.current.play()
-            setIsPlaying(true)
-        }
+const BUSY_PHASES: Phase[] = ["examiner", "prep", "chime", "recording", "saving"]
+
+function pickMimeType(): string {
+    if (typeof MediaRecorder === "undefined") return ""
+    for (const m of ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"]) {
+        if (MediaRecorder.isTypeSupported(m)) return m
     }
+    return ""
+}
 
-    return (
-        <div className="flex items-center gap-3 rounded-2xl bg-background border border-border p-3 max-w-md">
-            <audio
-                ref={audioRef}
-                src={url}
-                onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                onEnded={() => setIsPlaying(false)}
-            />
-            <button
-                type="button"
-                onClick={togglePlay}
-                className="size-10 rounded-xl bg-foreground text-white flex items-center justify-center hover:bg-black transition shadow-sm shrink-0"
-            >
-                {isPlaying ? <Pause className="size-4" /> : <Play className="size-4 ml-0.5" />}
-            </button>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between text-xs text-muted-foreground font-medium mb-1">
-                    <span>Yozib olingan javobingiz</span>
-                    <span className="tabular-nums">
-                        {Math.floor(currentTime)}s / {Math.floor(duration || 0)}s
-                    </span>
-                </div>
-                <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-foreground transition-[width] duration-200"
-                        style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : "0%" }}
-                    />
-                </div>
-            </div>
-        </div>
-    )
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms))
+
+function waitUntil(end: number, token: { alive: boolean }) {
+    return new Promise<void>((resolve) => {
+        const tick = () => {
+            if (!token.alive || Date.now() >= end) return resolve()
+            window.setTimeout(tick, 150)
+        }
+        tick()
+    })
 }
 
 export default function SpeakingExamContent({
@@ -103,190 +69,179 @@ export default function SpeakingExamContent({
     currentIndex,
     onSelectIndex,
     uploadedStatus,
-    audioUrls,
     onRecordComplete,
+    onAllDone,
     fontSize = 17,
     onIncreaseFontSize,
     onDecreaseFontSize,
     onBusyChange,
-    autoStart = false,
 }: SpeakingExamContentProps) {
-    const currentPrompt = prompts[currentIndex]
-    const currentKey = currentPrompt ? `${currentPrompt.partId}-${currentPrompt.questionId}` : ""
-    const isUploaded = uploadedStatus[currentKey]
-    const localAudioUrl = audioUrls[currentKey]
+    const prompt = prompts[currentIndex]
+    const key = prompt ? `${prompt.partId}-${prompt.questionId}` : ""
 
-    // Recording states
-    const recorderRef = useRef<MediaRecorder | null>(null)
-    const streamRef = useRef<MediaStream | null>(null)
-    const chunksRef = useRef<BlobPart[]>([])
-    const [recording, setRecording] = useState(false)
-    const [startingMic, setStartingMic] = useState(false)
-    const [preparing, setPreparing] = useState(false)
-    const [prepSecondsLeft, setPrepSecondsLeft] = useState(0)
-    const [uploading, setUploading] = useState(false)
-    const [seconds, setSeconds] = useState(0)
+    const [phase, setPhase] = useState<Phase>("examiner")
+    const [deadline, setDeadline] = useState<number | null>(null)
+    const [now, setNow] = useState(() => Date.now())
     const [error, setError] = useState("")
-    const pendingPromptRef = useRef<SpeakingPromptItem | null>(null)
-    const prepDeadlineRef = useRef<number | null>(null)
-    const recordingStartedAtRef = useRef<number | null>(null)
-    const autoStartedKeyRef = useRef<string | null>(null)
+    const [attempt, setAttempt] = useState(0)
 
-    const stopStream = useCallback(() => {
-        streamRef.current?.getTracks().forEach((track) => track.stop())
+    // Effekt ichida eng so'nggi props'ni o'qish uchun
+    const latest = useRef({ prompts, currentIndex, onSelectIndex, uploadedStatus, onRecordComplete, onAllDone, onBusyChange })
+    useEffect(() => {
+        latest.current = { prompts, currentIndex, onSelectIndex, uploadedStatus, onRecordComplete, onAllDone, onBusyChange }
+    })
+
+    const streamRef = useRef<MediaStream | null>(null)
+    const recorderRef = useRef<MediaRecorder | null>(null)
+    const stopTimerRef = useRef<number | null>(null)
+
+    const releaseAudio = useCallback(() => {
+        if (stopTimerRef.current !== null) {
+            window.clearTimeout(stopTimerRef.current)
+            stopTimerRef.current = null
+        }
+        const rec = recorderRef.current
+        recorderRef.current = null
+        if (rec && rec.state !== "inactive") {
+            try {
+                rec.stop()
+            } catch {}
+        }
+        streamRef.current?.getTracks().forEach((t) => t.stop())
         streamRef.current = null
     }, [])
 
+    // Band holatini ota-ona sahifaga xabar qilish (yakunlashni bloklash uchun)
     useEffect(() => {
-        return () => {
-            try {
-                if (recorderRef.current?.state === "recording") recorderRef.current.stop()
-            } catch {}
-            stopStream()
+        latest.current.onBusyChange?.(BUSY_PHASES.includes(phase))
+    }, [phase])
+
+    // Tayyorgarlik/yozuv paytida sanoqni yangilash
+    useEffect(() => {
+        if (phase !== "prep" && phase !== "recording") return
+        const id = window.setInterval(() => setNow(Date.now()), 200)
+        return () => window.clearInterval(id)
+    }, [phase])
+
+    // ASOSIY OQIM: imtihonchi gapiradi -> (tayyorgarlik) -> signal -> avtomatik yozuv -> saqlash -> keyingi savol
+    useEffect(() => {
+        const current = latest.current
+        const p = current.prompts[current.currentIndex]
+        if (!p) return
+
+        const token = { alive: true }
+        const isLast = current.currentIndex >= current.prompts.length - 1
+        const isFirstOfPart =
+            current.currentIndex === 0 || current.prompts[current.currentIndex - 1].partKey !== p.partKey
+        const k = `${p.partId}-${p.questionId}`
+
+        const fail = (e: unknown) => {
+            if (!token.alive) return
+            releaseAudio()
+            setError(e instanceof Error ? e.message : "Xatolik yuz berdi")
+            setPhase("error")
         }
-    }, [stopStream])
 
-    useEffect(() => {
-        onBusyChange?.(recording || preparing || uploading || startingMic)
-    }, [recording, preparing, uploading, startingMic, onBusyChange])
-
-    const beginRecording = useCallback((prompt: SpeakingPromptItem, stream: MediaStream) => {
-        try {
-            chunksRef.current = []
-            let mimeType = ""
-            for (const m of ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"]) {
-                if (MediaRecorder.isTypeSupported(m)) {
-                    mimeType = m
-                    break
-                }
-            }
-            const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream)
-            recorderRef.current = recorder
-            recorder.ondataavailable = (event) => {
-                if (event.data.size > 0) chunksRef.current.push(event.data)
-            }
-            recorder.onerror = () => setError("Audio yozishda xatolik yuz berdi.")
-            recorder.onstop = async () => {
-                stopStream()
-                const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" })
-                if (!blob.size) {
-                    setError("Audio yozuvi bo'sh. Qaytadan urinib ko'ring.")
-                    return
-                }
-                setUploading(true)
-                try {
-                    const ext = (recorder.mimeType || "audio/webm").includes("ogg") ? "ogg" : "webm"
-                    const file = new File([blob], `${prompt.questionId}.${ext}`, { type: blob.type })
-                    const blobUrl = URL.createObjectURL(blob)
-                    await onRecordComplete(prompt, file, blobUrl)
-                } catch (e: unknown) {
-                    setError(e instanceof Error ? e.message : "Audio yuklanmadi")
-                } finally {
-                    setUploading(false)
-                }
-            }
-            recordingStartedAtRef.current = Date.now()
-            recorder.start()
-            setSeconds(0)
-            setRecording(true)
-        } catch (e: unknown) {
-            stopStream()
-            setError(e instanceof Error ? e.message : "Audio yozishni boshlashda xatolik yuz berdi")
-        }
-    }, [onRecordComplete, stopStream])
-
-    // Savol ko'rsatiladi, foydalanuvchi tugmani bosadi, tayyorgarlik tugagach yozuv boshlanadi.
-    useEffect(() => {
-        if (!preparing) return
-        const timer = window.setInterval(() => {
-            const deadline = prepDeadlineRef.current
-            if (deadline === null) return
-            const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000))
-            setPrepSecondsLeft(remaining)
-            if (remaining === 0) {
-                window.clearInterval(timer)
-                setPreparing(false)
-                const prompt = pendingPromptRef.current
-                const stream = streamRef.current
-                prepDeadlineRef.current = null
-                if (prompt && stream) beginRecording(prompt, stream)
-                else setError("Mikrofon oqimi uzildi. Qaytadan boshlang.")
-            }
-        }, 200)
-        return () => window.clearInterval(timer)
-    }, [preparing, beginRecording])
-
-    // Javob vaqti tugasa, yozuv avtomatik to'xtaydi.
-    useEffect(() => {
-        if (!recording) return
-        const maxSeconds = currentPrompt?.answerSeconds
-        const timer = window.setInterval(() => {
-            const started = recordingStartedAtRef.current ?? Date.now()
-            const elapsed = Math.floor((Date.now() - started) / 1000)
-            setSeconds(elapsed)
-            if (maxSeconds && maxSeconds > 0 && elapsed >= maxSeconds) {
-                const recorder = recorderRef.current
-                if (recorder?.state === "recording") {
-                    setRecording(false)
-                    recorder.stop()
-                }
-            }
-        }, 200)
-        return () => window.clearInterval(timer)
-    }, [recording, currentPrompt?.answerSeconds])
-
-    const startRecording = useCallback(async () => {
-        if (!currentPrompt || recording || preparing || uploading || startingMic) return
-        setError("")
-        setSeconds(0)
-        setStartingMic(true)
-        try {
-            if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-                throw new Error("Brauzeringiz audio yozishni qo'llab-quvvatlamaydi.")
-            }
-            const stream = await getMicStream()
-            streamRef.current = stream
-            pendingPromptRef.current = currentPrompt
-            const prepSeconds = Math.max(0, Math.floor(currentPrompt.prepSeconds ?? 0))
-            if (prepSeconds > 0) {
-                prepDeadlineRef.current = Date.now() + prepSeconds * 1000
-                setPrepSecondsLeft(prepSeconds)
-                setPreparing(true)
+        const goNext = async () => {
+            setPhase("gap")
+            await wait(1500)
+            if (!token.alive) return
+            if (isLast) {
+                setPhase("done")
+                latest.current.onAllDone?.()
             } else {
-                beginRecording(currentPrompt, stream)
+                latest.current.onSelectIndex(current.currentIndex + 1)
             }
-        } catch (e: unknown) {
-            stopStream()
-            setError(e instanceof Error ? e.message : "Mikrofonni yoqib bo'lmadi")
-        } finally {
-            setStartingMic(false)
         }
-    }, [currentPrompt, recording, preparing, uploading, startingMic, stopStream, beginRecording])
 
-    // Imtihon boshlangach yangi savol uchun tayyorgarlik va yozuv avtomatik boshlanadi.
-    // Mikrofon ruxsati birinchi marta so'ralishi mumkin; ruxsat berilmasa qo'lda qayta urinish mumkin.
-    useEffect(() => {
-        if (!autoStart || !currentPrompt || isUploaded || recording || preparing || uploading || startingMic) return
-        if (autoStartedKeyRef.current === currentKey) return
-        autoStartedKeyRef.current = currentKey
-        void startRecording()
-    }, [autoStart, currentPrompt, currentKey, isUploaded, recording, preparing, uploading, startingMic, startRecording])
+        const recordAnswer = (seconds: number) =>
+            new Promise<Blob | null>((resolve, reject) => {
+                const stream = streamRef.current
+                if (!stream) return reject(new Error("Mikrofon oqimi topilmadi"))
+                const mime = pickMimeType()
+                const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream)
+                const chunks: BlobPart[] = []
+                recorderRef.current = rec
+                rec.ondataavailable = (e) => {
+                    if (e.data.size > 0) chunks.push(e.data)
+                }
+                rec.onerror = () => reject(new Error("Audio yozishda xatolik yuz berdi"))
+                rec.onstop = () => resolve(chunks.length ? new Blob(chunks, { type: rec.mimeType || "audio/webm" }) : null)
+                setDeadline(Date.now() + seconds * 1000)
+                setPhase("recording")
+                rec.start(1000)
+                stopTimerRef.current = window.setTimeout(() => {
+                    if (rec.state === "recording") rec.stop()
+                }, seconds * 1000)
+            })
 
-    const stopRecording = () => {
-        if (preparing) {
-            setPreparing(false)
-            prepDeadlineRef.current = null
-            pendingPromptRef.current = null
-            stopStream()
-            return
+        const run = async () => {
+            setError("")
+            if (current.uploadedStatus[k]) {
+                await goNext()
+                return
+            }
+            try {
+                streamRef.current = await getMicStream()
+            } catch (e) {
+                return fail(e)
+            }
+            if (!token.alive) return releaseAudio()
+
+            // 1) Imtihonchi matnini ovozli o'qiydi
+            setPhase("examiner")
+            const script = [isFirstOfPart ? PART_INSTRUCTIONS[p.partKey].examinerEn : "", p.text]
+                .filter(Boolean)
+                .join(" ")
+            await speakExaminer(script)
+            if (!token.alive) return releaseAudio()
+
+            // 2) Tayyorgarlik vaqti (agar bor bo'lsa)
+            const prep = Math.max(0, Math.floor(p.prepSeconds ?? 0))
+            if (prep > 0) {
+                const end = Date.now() + prep * 1000
+                setDeadline(end)
+                setPhase("prep")
+                await waitUntil(end, token)
+                if (!token.alive) return releaseAudio()
+            }
+
+            // 3) "Gapirishni boshlang" signali
+            setPhase("chime")
+            await playChime()
+            if (!token.alive) return releaseAudio()
+
+            // 4) Avtomatik yozuv; vaqt tugasa o'zi to'xtaydi
+            const answer = Math.max(5, Math.floor(p.answerSeconds ?? 30))
+            const blob = await recordAnswer(answer)
+            releaseAudio()
+            if (!token.alive) return
+            if (!blob || blob.size === 0) throw new Error("Audio yozuvi bo'sh. Qayta urinib ko'ring.")
+
+            // 5) Saqlash, so'ng keyingi savolga avtomatik o'tish
+            setPhase("saving")
+            const ext = (blob.type || "").includes("ogg") ? "ogg" : "webm"
+            const file = new File([blob], `${p.questionId}.${ext}`, { type: blob.type || "audio/webm" })
+            await latest.current.onRecordComplete(p, file, URL.createObjectURL(blob))
+            if (!token.alive) return
+            await goNext()
         }
-        const recorder = recorderRef.current
-        if (!recorder || recorder.state !== "recording") return
-        setRecording(false)
-        recorder.stop()
+
+        run().catch(fail)
+
+        return () => {
+            token.alive = false
+            cancelExaminer()
+            releaseAudio()
+        }
+    }, [currentIndex, key, attempt, releaseAudio])
+
+    const retry = () => {
+        setError("")
+        setAttempt((n) => n + 1)
     }
 
-    if (!currentPrompt) {
+    if (!prompt) {
         return (
             <div className="h-full flex items-center justify-center p-6 text-muted-foreground">
                 Savol topilmadi
@@ -294,21 +249,42 @@ export default function SpeakingExamContent({
         )
     }
 
+    const partsStatus = PART_ORDER.map((code) => {
+        const items = prompts.filter((p) => p.partKey === code)
+        if (!items.length) return null
+        const done = items.every((p) => uploadedStatus[`${p.partId}-${p.questionId}`])
+        const state: "done" | "active" | "pending" = done ? "done" : prompt.partKey === code ? "active" : "pending"
+        return { code, label: PART_INSTRUCTIONS[code].shortTitle, state }
+    }).filter((x): x is NonNullable<typeof x> => x !== null)
+
+    const remaining = deadline ? Math.max(0, Math.ceil((deadline - now) / 1000)) : 0
+    const answered = prompts.filter((p) => uploadedStatus[`${p.partId}-${p.questionId}`]).length
+    const images = (Array.isArray(prompt.image) ? prompt.image : prompt.image ? [prompt.image] : [])
+        .filter((u): u is string => Boolean(u))
+
     return (
         <div className="flex h-full flex-col overflow-hidden bg-background">
-            {/* TOP BAR / TABS & CONTROLS */}
-            <div className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-white px-4">
+            {/* Vazifalar holati (namuna: Task / Status) */}
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-white px-4 py-3">
                 <div className="flex items-center gap-2 overflow-x-auto">
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        {currentPrompt.partName}:
-                    </span>
-                    <span className="text-xs font-extrabold text-foreground bg-muted px-2.5 py-1 rounded-lg">
-                        {currentPrompt.label}
-                    </span>
+                    {partsStatus.map((s) => (
+                        <div
+                            key={s.code}
+                            className={`flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold ${
+                                s.state === "active"
+                                    ? "border-foreground bg-foreground text-white"
+                                    : s.state === "done"
+                                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                                    : "border-border bg-background text-muted-foreground"
+                            }`}
+                        >
+                            {s.state === "done" ? <CheckCircle2 className="size-3.5" /> : <Headphones className="size-3.5" />}
+                            {s.label}
+                        </div>
+                    ))}
                 </div>
-
                 <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground font-medium">Shrift:</span>
+                    <span className="text-xs font-medium text-muted-foreground">Shrift:</span>
                     <button
                         onClick={onDecreaseFontSize}
                         disabled={fontSize <= 13}
@@ -316,9 +292,6 @@ export default function SpeakingExamContent({
                     >
                         A-
                     </button>
-                    <span className="w-5 text-center text-xs font-semibold tabular-nums text-foreground/80">
-                        {fontSize}
-                    </span>
                     <button
                         onClick={onIncreaseFontSize}
                         disabled={fontSize >= 26}
@@ -329,63 +302,65 @@ export default function SpeakingExamContent({
                 </div>
             </div>
 
-            {/* MAIN WORKSPACE */}
             <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8 flex flex-col items-center">
-                <div className="w-full max-w-3xl space-y-6">
-                    {/* PROMPT CARD */}
+                <div className="w-full max-w-3xl space-y-5">
+                    {/* Nomzod uchun yo'riqnoma */}
+                    <div className="rounded-2xl border border-border bg-white px-5 py-3 text-xs sm:text-sm text-muted-foreground">
+                        <span className="font-bold text-foreground">{PART_INSTRUCTIONS[prompt.partKey].title}. </span>
+                        {PART_INSTRUCTIONS[prompt.partKey].candidateUz}
+                    </div>
+
+                    {/* Savol kartasi */}
                     <div className="rounded-2xl border border-border bg-white p-6 shadow-sm space-y-4">
                         <div className="flex items-center justify-between border-b border-border pb-3">
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-extrabold text-foreground">
                                 <Headphones className="size-3.5" />
-                                {currentPrompt.label}
+                                {prompt.label}
                             </span>
-                            {isUploaded && (
-                                <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                            {uploadedStatus[key] && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
                                     <CheckCircle2 className="size-3.5" /> Yozildi
                                 </span>
                             )}
                         </div>
 
-                        {/* QUESTION / PROMPT TEXT */}
                         <div
                             className="font-bold text-foreground leading-relaxed whitespace-pre-wrap"
                             style={{ fontSize: `${fontSize + 1}px` }}
                         >
-                            {currentPrompt.text}
+                            {prompt.text}
                         </div>
 
-                        {/* IMAGE (if available) */}
-                        {currentPrompt.image && (
-                            <div className={`grid gap-3 pt-2 ${Array.isArray(currentPrompt.image) && currentPrompt.image.filter(Boolean).length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
-                                {(Array.isArray(currentPrompt.image) ? currentPrompt.image : [currentPrompt.image]).filter((url): url is string => Boolean(url)).map((url, index) => (
+                        {images.length > 0 && (
+                            <div className={`grid gap-3 pt-2 ${images.length > 1 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
+                                {images.map((url, index) => (
                                     <img
                                         key={`${url}-${index}`}
                                         src={resolveAudioUrl(url)}
                                         alt={`Speaking topshirig'i rasmi ${index + 1}`}
-                                        className="max-h-80 w-full rounded-xl border border-border shadow-sm object-contain"
+                                        className="max-h-80 w-full rounded-xl border border-border object-contain shadow-sm"
                                     />
                                 ))}
                             </div>
                         )}
 
-                        {/* FOR / AGAINST POINTS (Part 3) */}
-                        {(currentPrompt.forPoints?.length || currentPrompt.againstPoints?.length) ? (
-                            <div className="grid sm:grid-cols-2 gap-3 pt-3 border-t border-border text-xs sm:text-sm">
-                                {currentPrompt.forPoints && currentPrompt.forPoints.length > 0 && (
-                                    <div className="rounded-xl bg-emerald-50/70 border border-emerald-200/80 p-3.5 space-y-1.5">
+                        {(prompt.forPoints?.length || prompt.againstPoints?.length) ? (
+                            <div className="grid gap-3 pt-3 border-t border-border text-xs sm:grid-cols-2 sm:text-sm">
+                                {prompt.forPoints && prompt.forPoints.length > 0 && (
+                                    <div className="space-y-1.5 rounded-xl border border-emerald-200/80 bg-emerald-50/70 p-3.5">
                                         <div className="font-bold text-emerald-900">Qo&apos;llab-quvvatlovchi fikrlar:</div>
-                                        <ul className="list-disc pl-4 space-y-1 text-emerald-800">
-                                            {currentPrompt.forPoints.map((pt, i) => (
+                                        <ul className="list-disc space-y-1 pl-4 text-emerald-800">
+                                            {prompt.forPoints.map((pt, i) => (
                                                 <li key={i}>{pt}</li>
                                             ))}
                                         </ul>
                                     </div>
                                 )}
-                                {currentPrompt.againstPoints && currentPrompt.againstPoints.length > 0 && (
-                                    <div className="rounded-xl bg-rose-50/70 border border-rose-200/80 p-3.5 space-y-1.5">
+                                {prompt.againstPoints && prompt.againstPoints.length > 0 && (
+                                    <div className="space-y-1.5 rounded-xl border border-rose-200/80 bg-rose-50/70 p-3.5">
                                         <div className="font-bold text-rose-900">Qarshi fikrlar:</div>
-                                        <ul className="list-disc pl-4 space-y-1 text-rose-800">
-                                            {currentPrompt.againstPoints.map((pt, i) => (
+                                        <ul className="list-disc space-y-1 pl-4 text-rose-800">
+                                            {prompt.againstPoints.map((pt, i) => (
                                                 <li key={i}>{pt}</li>
                                             ))}
                                         </ul>
@@ -395,131 +370,132 @@ export default function SpeakingExamContent({
                         ) : null}
                     </div>
 
-                    {/* RECORDING CONSOLE */}
-                    <div className="rounded-2xl border border-border bg-white p-6 shadow-sm space-y-4 text-center flex flex-col items-center justify-center">
-                        {startingMic ? (
-                            <div className="flex flex-col items-center gap-3 py-6 text-sm font-semibold text-foreground/80">
-                                <Loader2 className="size-7 animate-spin text-foreground" />
-                                Mikrofon yoqilmoqda...
-                                <p className="max-w-sm text-center text-xs font-normal text-muted-foreground">Brauzer mikrofon ruxsatini so‘rasa, ruxsat bering. Shundan so‘ng tayyorgarlik va yozuv avtomatik boshlanadi.</p>
-                            </div>
-                        ) : preparing ? (
-                            <div className="space-y-4 w-full flex flex-col items-center py-2">
-                                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tayyorgarlik vaqti</div>
-                                <div className="flex size-20 items-center justify-center rounded-full border-4 border-[#E4F70A] bg-background text-3xl font-black tabular-nums text-foreground">{prepSecondsLeft}</div>
-                                <p className="max-w-md text-sm text-muted-foreground">Savolni o‘qing va javobingizni rejalashtiring. Vaqt tugagach audio yozish avtomatik boshlanadi.</p>
-                                <button type="button" onClick={stopRecording} className="rounded-xl border border-border px-5 py-2.5 text-sm font-bold text-foreground/80 hover:bg-background">Bekor qilish</button>
-                            </div>
-                        ) : recording ? (
-                            <div className="space-y-4 w-full flex flex-col items-center py-2">
-                                {/* Pulsing recording visualizer */}
-                                <div className="flex items-center gap-1.5 h-12">
-                                    <span className="w-1.5 h-6 bg-red-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                                    <span className="w-1.5 h-10 bg-red-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                                    <span className="w-1.5 h-12 bg-red-500 rounded-full animate-bounce" />
-                                    <span className="w-1.5 h-8 bg-red-600 rounded-full animate-bounce [animation-delay:-0.2s]" />
-                                    <span className="w-1.5 h-5 bg-red-500 rounded-full animate-bounce [animation-delay:-0.35s]" />
-                                </div>
-                                <div className="flex items-center gap-2 text-sm font-extrabold text-red-600">
-                                    <span className="size-2.5 rounded-full bg-red-600 animate-ping" />
-                                    Ovoz yozilmoqda: {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}
+                    {/* Holat paneli: avtomatik oqim */}
+                    <div className="flex flex-col items-center justify-center space-y-4 rounded-2xl border border-border bg-white p-6 text-center shadow-sm">
+                        <PhaseBanner phase={phase} remaining={remaining} answerSeconds={prompt.answerSeconds ?? 30} prepSeconds={prompt.prepSeconds ?? 0} />
+
+                        {phase === "error" && (
+                            <>
+                                <div className="flex w-full items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                                    <AlertCircle className="size-4 shrink-0 text-red-600" />
+                                    <span>{error}</span>
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={stopRecording}
-                                    className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg transition flex items-center gap-2 text-sm"
+                                    onClick={retry}
+                                    className="flex items-center gap-2 rounded-2xl bg-foreground px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-black"
                                 >
-                                    <Square className="size-4 fill-current" />
-                                    Yozishni to&apos;xtatish
+                                    <RotateCcw className="size-4" />
+                                    Qayta urinish
                                 </button>
-                            </div>
-                        ) : (
-                            <div className="space-y-4 w-full flex flex-col items-center py-2">
-                                {localAudioUrl && (
-                                    <div className="w-full flex justify-center pb-2">
-                                        <AudioPlayerInline url={localAudioUrl} />
-                                    </div>
-                                )}
-
-                                <div className="flex flex-wrap items-center justify-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={startRecording}
-                                        disabled={uploading || startingMic}
-                                        className="px-7 py-3.5 bg-foreground hover:bg-black text-white font-bold rounded-2xl shadow-lg transition flex items-center gap-2 text-sm disabled:opacity-50"
-                                    >
-                                        {uploading ? (
-                                            <>
-                                                <Loader2 className="size-4 animate-spin" />
-                                                Saqlanmoqda...
-                                            </>
-                                        ) : isUploaded ? (
-                                            <>
-                                                <RotateCcw className="size-4" />
-                                                Qayta yozish
-                                            </>
-                                        ) : currentPrompt.prepSeconds && currentPrompt.prepSeconds > 0 ? (
-                                            <>
-                                                <Sparkles className="size-4 text-[#E4F70A]" />
-                                                Tayyorgarlikni boshlash
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Mic className="size-4 text-[#E4F70A]" />
-                                                Javobni yozish
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-
-                                <p className="text-xs text-muted-foreground">
-                                    {isUploaded
-                                        ? "Javobingiz saqlandi. Istasangiz qayta yozib ko'rishingiz mumkin."
-                                        : currentPrompt.prepSeconds && currentPrompt.prepSeconds > 0
-                                        ? `Tugmani bosing. Sizga ${currentPrompt.prepSeconds} soniya tayyorgarlik beriladi, so‘ng yozuv boshlanadi.`
-                                        : autoStart
-                                            ? "Yozuv avtomatik boshlanadi. Qayta yozish kerak bo‘lsa tugmani bosing."
-                                            : "Tugmani bosing va aniq talaffuz bilan javobingizni gapiring."}
-                                </p>
-                            </div>
-                        )}
-
-                        {error && (
-                            <div className="w-full flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-700">
-                                <AlertCircle className="size-4 shrink-0 text-red-600" />
-                                <span>{error}</span>
-                            </div>
+                            </>
                         )}
                     </div>
+
+                    <p className="text-center text-xs text-muted-foreground">
+                        Orqaga qaytish mumkin emas. Savollar va yozuv avtomatik almashadi.
+                    </p>
                 </div>
             </div>
 
-            {/* BOTTOM NAV */}
-            <div className="flex h-14 shrink-0 items-center justify-between border-t border-border bg-white px-4">
-                <button
-                    type="button"
-                    onClick={() => onSelectIndex(Math.max(0, currentIndex - 1))}
-                    disabled={currentIndex === 0 || recording || preparing || uploading}
-                    className="flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs font-bold text-foreground/80 hover:bg-background disabled:opacity-40 transition"
-                >
-                    <ChevronLeft className="size-4" />
-                    Oldingi savol
-                </button>
-
-                <span className="text-xs font-semibold text-muted-foreground">
-                    {currentIndex + 1} / {prompts.length}
-                </span>
-
-                <button
-                    type="button"
-                    onClick={() => onSelectIndex(Math.min(prompts.length - 1, currentIndex + 1))}
-                    disabled={currentIndex === prompts.length - 1 || recording || preparing || uploading}
-                    className="flex items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-xs font-bold text-foreground/80 hover:bg-background disabled:opacity-40 transition"
-                >
-                    Keyingi savol
-                    <ChevronRight className="size-4" />
-                </button>
+            <div className="flex h-12 shrink-0 items-center justify-center border-t border-border bg-white px-4 text-xs font-semibold text-muted-foreground">
+                Javoblar: {answered} / {prompts.length}
             </div>
         </div>
     )
+}
+
+function PhaseBanner({
+    phase,
+    remaining,
+    answerSeconds,
+    prepSeconds,
+}: {
+    phase: Phase
+    remaining: number
+    answerSeconds: number
+    prepSeconds: number
+}) {
+    if (phase === "examiner") {
+        return (
+            <div className="flex flex-col items-center gap-3 py-4 text-sm font-semibold text-foreground/80">
+                <Volume2 className="size-8 text-foreground" />
+                Imtihonchi gapirmoqda...
+                <p className="max-w-sm text-xs font-normal text-muted-foreground">Savolni diqqat bilan tinglang.</p>
+            </div>
+        )
+    }
+    if (phase === "prep") {
+        return (
+            <div className="flex w-full flex-col items-center gap-3 py-2">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tayyorgarlik vaqti</div>
+                <div className="flex size-20 items-center justify-center rounded-full border-4 border-[#C8FF00] bg-background text-3xl font-black tabular-nums text-foreground">
+                    {remaining}
+                </div>
+                <p className="max-w-md text-sm text-muted-foreground">
+                    Javobingizni rejalashtiring. Vaqt tugagach signal eshitiladi va yozuv avtomatik boshlanadi.
+                </p>
+                <span className="text-xs text-muted-foreground">Tayyorgarlik: {prepSeconds} soniya</span>
+            </div>
+        )
+    }
+    if (phase === "chime") {
+        return (
+            <div className="flex flex-col items-center gap-3 py-4 text-sm font-extrabold text-foreground">
+                <Mic className="size-8 text-foreground" />
+                Gapirishni boshlang
+            </div>
+        )
+    }
+    if (phase === "recording") {
+        return (
+            <div className="flex w-full flex-col items-center gap-4 py-2">
+                <div className="flex h-12 items-center gap-1.5">
+                    <span className="h-6 w-1.5 animate-bounce rounded-full bg-red-500 [animation-delay:-0.3s]" />
+                    <span className="h-10 w-1.5 animate-bounce rounded-full bg-red-600 [animation-delay:-0.15s]" />
+                    <span className="h-12 w-1.5 animate-bounce rounded-full bg-red-500" />
+                    <span className="h-8 w-1.5 animate-bounce rounded-full bg-red-600 [animation-delay:-0.2s]" />
+                    <span className="h-5 w-1.5 animate-bounce rounded-full bg-red-500 [animation-delay:-0.35s]" />
+                </div>
+                <div className="flex items-center gap-2 text-sm font-extrabold text-red-600">
+                    <span className="size-2.5 animate-ping rounded-full bg-red-600" />
+                    Ovoz yozilmoqda
+                </div>
+                <div className="text-3xl font-black tabular-nums text-foreground">
+                    {formatClock(remaining)}
+                </div>
+                <div className="h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-border">
+                    <div
+                        className="h-full bg-red-500 transition-[width] duration-200"
+                        style={{ width: `${Math.max(0, Math.min(100, (remaining / answerSeconds) * 100))}%` }}
+                    />
+                </div>
+            </div>
+        )
+    }
+    if (phase === "saving") {
+        return (
+            <div className="flex flex-col items-center gap-3 py-4 text-sm font-semibold text-foreground/80">
+                <Loader2 className="size-7 animate-spin text-foreground" />
+                Javob saqlanmoqda...
+            </div>
+        )
+    }
+    if (phase === "gap") {
+        return (
+            <div className="flex flex-col items-center gap-3 py-4 text-sm font-semibold text-foreground/80">
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                Keyingi savol tayyorlanmoqda...
+            </div>
+        )
+    }
+    if (phase === "done") {
+        return (
+            <div className="flex flex-col items-center gap-3 py-4 text-sm font-bold text-emerald-700">
+                <CheckCircle2 className="size-8" />
+                Barcha javoblar yozildi. Yakunlash tugmasi orqali tasdiqlang.
+            </div>
+        )
+    }
+    return null
 }

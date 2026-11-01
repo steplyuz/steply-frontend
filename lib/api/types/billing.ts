@@ -5,7 +5,7 @@ import type { JsonObject } from './common'
 
 export type BillingProductType =
   | 'subscription' | 'mock_exam' | 'speaking_practice' | 'full_skills' | 'full_exam'
-  | 'writing_ai_credits' | 'teacher_review_credits'
+  | 'ai_credits' | 'teacher_review_credits'
 export type SubscriptionTier = 'free' | 'plus' | 'pro'
 /** Spetsifikatsiyada: pending_payment, under_review (chek yuborilgan), paid, rejected, cancelled. */
 export type BillingOrderStatus = 'pending_payment' | 'under_review' | 'paid' | 'rejected' | 'cancelled' | (string & {})
@@ -73,6 +73,10 @@ export interface BillingOrder {
   updated_at: string
   /** Spetsifikatsiyada yo'q; eski admin sahifa uchun saqlangan. Chekni /receipt/file orqali oling. */
   receipt_file_path?: string | null
+  /** inPAY to'lov sahifasi: onlayn to'lov buyurtmalari uchun. Xaridorni shu manzilga yo'naltiring. */
+  checkout_url?: string | null
+  /** To'lov provayderi: 'inpay' yoki null (manual chek orqali to'lov). */
+  payment_provider?: string | null
 }
 
 export interface BillingOrderCreateInput {
@@ -166,6 +170,8 @@ export interface PromoCode {
   valid_from?: string | null
   valid_until?: string | null
   is_active: boolean
+  /** Promo bog'langan tarif (null = istalgan tarif/mahsulot). */
+  activates_plan_id?: number | null
 }
 
 export interface PromoCodeInput {
@@ -176,6 +182,7 @@ export interface PromoCodeInput {
   valid_from?: string | null
   valid_until?: string | null
   is_active?: boolean
+  activates_plan_id?: number | null
 }
 
 export interface PromoValidateInput {
@@ -183,7 +190,30 @@ export interface PromoValidateInput {
   amount: number
 }
 
-export type PromoValidateResult = JsonObject
+/** POST /billing/promo/validate javobi. */
+export interface PromoValidateResult {
+  code: string
+  discount_amount: number
+  final_amount: number
+  discount_percent: number | null
+  fixed_discount_amount: number | null
+  /** Promo bog'langan tarif ID (null = bog'lanmagan). */
+  activates_plan_id: number | null
+  /** 100% promo bog'langan tarif uchun: to'lovsiz darhol faollashtiriladi (POST /billing/promo/activate). */
+  is_free_activation: boolean
+}
+
+/** POST /admin/billing/users/{user_id}/grant-subscription kirishi. */
+export interface AdminGrantSubscriptionInput {
+  plan_id: number
+  note?: string | null
+}
+
+/** POST /billing/promo/activate javobi: 0 so'mlik PAID buyurtma (sotib olingan yozuv). */
+export type PromoActivateInput = { code: string }
+
+/** GET /billing/me/ai-quota: umumiy AI kreditlar (Writing + Speaking). */
+export type AiQuota = BillingAiLimitUsage
 
 export interface BillingReportSummary {
   total_orders: number

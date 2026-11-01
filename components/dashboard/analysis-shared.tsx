@@ -3,7 +3,7 @@
 import { BookOpenText, Headphones, Mic, PenLine } from 'lucide-react'
 import { refreshSession } from '@/lib/api/client'
 
-export const LIME = '#E4F70A'
+export const LIME = '#C8FF00'
 
 export type Skill = 'READING' | 'LISTENING' | 'WRITING' | 'SPEAKING'
 export type AnalysisVideo = { id: number | string; skill: Skill; test_id: string; title: string; created_at: string }

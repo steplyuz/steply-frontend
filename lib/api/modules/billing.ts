@@ -6,17 +6,25 @@ import { ROUTES } from '../routes'
 import type {
   BillingLimits, BillingOrder, BillingOrderCreateInput, BillingPlan, BillingPlanInput, BillingPlanUpdateInput, BillingProduct, BillingProductInput,
   BillingSubscription, PaymentDetails, PromoCode, PromoCodeInput, PromoValidateInput,
-  PromoValidateResult, TierLimitUpsertInput, BillingReportSummary,
+  PromoValidateResult, PromoActivateInput, AiQuota, TierLimitUpsertInput, BillingReportSummary,
+  AdminGrantSubscriptionInput,
 } from '../types'
 
 const BASE = ROUTES.billing
 const ADMIN = ROUTES.billingAdmin
 
 export const billingApi = {
+  /** Admin: istalgan foydalanuvchiga istalgan faol tarifni darhol beradi (to'lovsiz, audit bilan). */
+  adminGrantSubscription: (userId: string, input: AdminGrantSubscriptionInput) =>
+    apiPost<BillingOrder>(`${ADMIN}/users/${enc(userId)}/grant-subscription`, input),
   // --- Foydalanuvchi ---
   plans: () => apiGet<BillingPlan[]>(`${BASE}/plans`),
   products: (productType?: string) => apiGet<BillingProduct[]>(`${BASE}/products`, { query: { product_type: productType } }),
   validatePromo: (input: PromoValidateInput) => apiPost<PromoValidateResult>(`${BASE}/promo/validate`, input),
+  /** 100% chegirmali promo: obunani to'lovsiz darhol faollashtiradi. */
+  activatePromo: (input: PromoActivateInput) => apiPost<BillingOrder>(`${BASE}/promo/activate`, input),
+  /** Umumiy AI kreditlar (Writing + Speaking): obuna limiti + sotib olingan kreditlar. */
+  aiQuota: () => apiGet<AiQuota>(`${BASE}/me/ai-quota`),
   createOrder: (input: BillingOrderCreateInput) => apiPost<BillingOrder>(`${BASE}/orders`, input),
   myOrders: (offset = 0, limit = 25) => apiGet<BillingOrder[]>(`${BASE}/orders`, { query: { offset, limit } }),
   orderDetail: (orderId: string) => apiGet<BillingOrder>(`${BASE}/orders/${enc(orderId)}`),

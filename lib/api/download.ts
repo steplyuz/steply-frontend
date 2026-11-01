@@ -5,6 +5,18 @@
 
 import { extractError, getErrorMessage, withSessionRetry } from './client'
 
+/** Blob'ni brauzerda fayl sifatida saqlaydi. Object URL setTimeout bilan bo'shatiladi (ba'zi brauzerlarda darhol revoke yuklashni buzadi). */
+export function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 export interface DownloadOptions {
   filename: string
   onError?: (msg: string) => void
@@ -22,15 +34,7 @@ export async function authenticatedDownload(url: string, { filename, onError }: 
       return false
     }
 
-    const blob = await res.blob()
-    const objectUrl = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = objectUrl
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(objectUrl)
+    saveBlob(await res.blob(), filename)
     return true
   } catch (err) {
     onError?.(getErrorMessage(err, 'Yuklab olishda kutilmagan xatolik'))

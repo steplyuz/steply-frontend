@@ -10,7 +10,7 @@
 
 import { Check } from 'lucide-react'
 import { TONES, type Tone } from '@/lib/brand'
-import { EXAM_FOCUS as FOCUS } from '@/lib/exam-theme'
+import { EXAM_FOCUS as FOCUS } from '@/lib/exam/theme'
 import { QuestionCard, QuestionHead, SKILL_META, TextQuestionCard } from './exam-ui'
 
 export interface ExamOption { label: string; value: string }

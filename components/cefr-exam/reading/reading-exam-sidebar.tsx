@@ -142,7 +142,7 @@ export default function ReadingExamSidebar({
                             type="button"
                             onClick={() => setIsOpen(true)}
                             aria-label="Savollar ro'yxatini ochish"
-                            className="flex size-9 items-center justify-center rounded-full bg-[#E4F70A] text-foreground transition-transform active:scale-90"
+                            className="flex size-9 items-center justify-center rounded-full bg-[#C8FF00] text-foreground transition-transform active:scale-90"
                         >
                             <Menu size={18} />
                         </button>

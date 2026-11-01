@@ -9,7 +9,7 @@ import { AlertCircle, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { TONES, type Tone } from '@/lib/brand'
-import { EXAM_FOCUS as FOCUS } from '@/lib/exam-theme'
+import { EXAM_FOCUS as FOCUS } from '@/lib/exam/theme'
 
 export function ExamLoading({ label }: { label?: string }) {
   return (
@@ -70,7 +70,7 @@ function ScoreRing({ percent }: { percent: number }) {
     <div className="relative size-36 shrink-0" role="img" aria-label={`Natija: ${Math.round(pct)} foiz`}>
       <svg viewBox="0 0 120 120" className="size-full -rotate-90">
         <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(255,255,255,.14)" strokeWidth="9" />
-        <circle cx="60" cy="60" r={r} fill="none" stroke="#E4F70A" strokeWidth="9" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} className="transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="#C8FF00" strokeWidth="9" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} className="transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-background">
         <span className="text-4xl font-black tabular-nums leading-none tracking-tight">{Math.round(pct)}<span className="text-lg font-bold text-background/60">%</span></span>

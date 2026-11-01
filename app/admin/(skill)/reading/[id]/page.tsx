@@ -29,7 +29,8 @@ import type { ReadingPart, ReadingQuestion, ReadingTest, ExamVersion, LockError 
 import { useAuth } from '@/lib/auth/auth-context'
 import { ApiRequestError } from '@/lib/api/client'
 import { resolveAssetUrl } from '@/lib/api/config'
-import { READING_QUESTION_TYPES, READING_LANGUAGES } from '@/lib/cefr-question-types'
+import { READING_QUESTION_TYPES, READING_LANGUAGES } from '@/lib/admin/question-types'
+import { TestSettings } from '@/components/admin/test-settings'
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Multilevel']
 
@@ -234,7 +235,7 @@ function QuestionEditor({ q, onChange, disabled, showNumber = true, partNumber =
         </p>
       )}
       {q.type === 'GAP_FILL_FILL' && partNumber !== 5 && (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+        <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs leading-5 text-warning">
           GAP_FILL_FILL Part 5 uchun mo‘ljallangan. Boshqa qismlarda GAP_FILL turidan foydalaning.
         </p>
       )}
@@ -264,7 +265,7 @@ function QuestionEditor({ q, onChange, disabled, showNumber = true, partNumber =
               return (
                 <div
                   key={i}
-                  className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 transition-colors ${checked ? 'border-emerald-300 bg-emerald-50/60' : 'bg-background'
+                  className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 transition-colors ${checked ? 'border-success/30 bg-success/60' : 'bg-background'
                     }`}
                 >
                   <input
@@ -292,7 +293,7 @@ function QuestionEditor({ q, onChange, disabled, showNumber = true, partNumber =
                   {!disabled && !fixed && (
                     <button
                       type="button" onClick={() => removeOption(i)}
-                      className="rounded p-1 text-red-500 hover:bg-red-50" aria-label="Variantni o'chirish"
+                      className="rounded p-1 text-error hover:bg-error/10" aria-label="Variantni o'chirish"
                     >
                       <Trash2 className="size-3.5" />
                     </button>
@@ -452,7 +453,7 @@ function AddQuestionModal({ partIdx, partNumber, nextNum, onAdd, onClose }: AddM
                 className="field resize-none font-mono text-xs"
               />
               {jsonError && (
-                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{jsonError}</p>
+                <p className="rounded-lg border border-error/30 bg-error/10 px-3 py-2 text-xs text-error">{jsonError}</p>
               )}
             </div>
           )}
@@ -552,17 +553,17 @@ function PartCard({
           </span>
         </button>
         {rangeMismatch && expected && (
-          <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+          <span className="shrink-0 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
             Kutilgan: {expected[0]}–{expected[1]}
           </span>
         )}
         {issueTotal > 0 && (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
             <CircleAlert className="size-3" /> {issueTotal}
           </span>
         )}
         {!locked && (
-          <button onClick={onRemove} className="shrink-0 rounded-lg p-1.5 text-red-500 hover:bg-red-50" aria-label="Qismni o'chirish">
+          <button onClick={onRemove} className="shrink-0 rounded-lg p-1.5 text-error hover:bg-error/10" aria-label="Qismni o'chirish">
             <Trash2 className="size-4" />
           </button>
         )}
@@ -599,7 +600,7 @@ function PartCard({
                 <div className="flex items-start gap-3">
                   <img src={resolveAssetUrl(part.image_url)} alt={`${part.title || `Part ${pIdx + 1}`} rasmi`} className="max-h-40 max-w-full rounded-lg border object-contain" />
                   {!locked && (
-                    <button type="button" onClick={() => onPatch({ image_url: null })} className="text-xs font-semibold text-red-600">
+                    <button type="button" onClick={() => onPatch({ image_url: null })} className="text-xs font-semibold text-error">
                       Rasmni olib tashlash
                     </button>
                   )}
@@ -648,7 +649,7 @@ function PartCard({
                 return (
                   <article
                     key={qIdx}
-                    className={`rounded-xl border bg-card shadow-sm transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary ${issues.length ? 'border-amber-300/70' : ''}`}
+                    className={`rounded-xl border bg-card shadow-sm transition-all focus-within:border-primary focus-within:ring-1 focus-within:ring-primary ${issues.length ? 'border-warning/70' : ''}`}
                   >
                     <div className="flex items-center gap-2 border-b px-4 py-2">
                       <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
@@ -665,7 +666,7 @@ function PartCard({
                           </button>
                           <button
                             onClick={() => onRemoveQuestion(qIdx)}
-                            className="rounded p-1.5 text-red-500 hover:bg-red-50" aria-label="O'chirish"
+                            className="rounded p-1.5 text-error hover:bg-error/10" aria-label="O'chirish"
                           >
                             <Trash2 className="size-3.5" />
                           </button>
@@ -684,7 +685,7 @@ function PartCard({
                           {issues.map(msg => (
                             <li
                               key={msg}
-                              className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800"
+                              className="flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-[11px] font-medium text-warning"
                             >
                               <CircleAlert className="size-3" /> {msg}
                             </li>
@@ -992,7 +993,7 @@ export default function AdminReadingEditorPage({ params }: { params: Promise<{ i
   if (!test) return (
     <main className="container-shell py-10">
       {error
-        ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        ? <p className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">{error}</p>
         : <p className="animate-pulse text-sm text-muted-foreground">Yuklanmoqda...</p>}
     </main>
   )
@@ -1027,10 +1028,10 @@ export default function AdminReadingEditorPage({ params }: { params: Promise<{ i
               <h1 className="truncate text-base font-bold leading-tight">{test.title || test.id}</h1>
               <p className="truncate text-xs text-muted-foreground">
                 {test.id} · {totalQuestions} savol
-                {totalIssues > 0 && <span className="text-amber-700"> · {totalIssues} ta ogohlantirish</span>}
+                {totalIssues > 0 && <span className="text-warning"> · {totalIssues} ta ogohlantirish</span>}
               </p>
             </div>
-            <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${isLocked ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+            <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${isLocked ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
               }`}>
               {isLocked ? <><Lock className="size-3" />LOCKED</> : <><Unlock className="size-3" />DRAFT</>}
             </span>
@@ -1040,8 +1041,8 @@ export default function AdminReadingEditorPage({ params }: { params: Promise<{ i
             {!isLocked && (
               <span className="mr-1 text-xs text-muted-foreground" aria-live="polite">
                 {saving ? 'Saqlanmoqda...'
-                  : dirty ? <span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-amber-500" />Saqlanmagan o'zgarishlar</span>
-                    : justSaved ? <span className="flex items-center gap-1 text-emerald-700"><Check className="size-3.5" />Saqlandi</span>
+                  : dirty ? <span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-warning" />Saqlanmagan o'zgarishlar</span>
+                    : justSaved ? <span className="flex items-center gap-1 text-success"><Check className="size-3.5" />Saqlandi</span>
                       : null}
               </span>
             )}
@@ -1099,18 +1100,18 @@ export default function AdminReadingEditorPage({ params }: { params: Promise<{ i
 
       <main className="container-shell space-y-6 py-8">
         {/* Xabarlar */}
-        {miniTestMessage && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{miniTestMessage}</p>}
+        {miniTestMessage && <p role="status" className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">{miniTestMessage}</p>}
         {answersMissing && (
-          <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div role="alert" className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
             <p className="flex items-center gap-1.5 font-semibold"><AlertTriangle className="size-4" /> To'g'ri javoblar serverdan kelmadi</p>
             <p className="mt-1">Admin endpoint <code>correct_answer</code> qaytarishi kerak. Tuzatilmaguncha saqlash va lock o'chirilgan.</p>
           </div>
         )}
         {error && (
-          <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+          <p role="alert" className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">{error}</p>
         )}
         {lockErrors.length > 0 && (
-          <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <div role="alert" className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
             <p className="flex items-center gap-1.5 font-semibold">
               <AlertTriangle className="size-4" /> Lock qilib bo'lmadi ({lockErrors.length}):
             </p>
@@ -1120,55 +1121,26 @@ export default function AdminReadingEditorPage({ params }: { params: Promise<{ i
           </div>
         )}
         {isLocked && (
-          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <p className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
             Bu test lock qilingan (v{latestVersion.version_number}). Tuzilmani o'zgartirib bo'lmaydi, lekin Demo / Bepul / Faol belgilarini o'zgartirish mumkin.
           </p>
         )}
 
-        {/* Umumiy ma'lumotlar */}
-        <section className="surface grid gap-4 p-5 sm:grid-cols-2">
-          <label className="block sm:col-span-2">
-            <span className="label-xs">Sarlavha</span>
-            <input disabled={isLocked} value={test.title} onChange={e => updateTest('title', e.target.value)} className="field" />
-          </label>
-          <label className="block">
-            <span className="label-xs">CEFR darajasi</span>
-            <select disabled={isLocked} value={test.cefr_level} onChange={e => updateTest('cefr_level', e.target.value)} className="field">
-              {CEFR_LEVELS.map(l => <option key={l}>{l}</option>)}
-            </select>
-          </label>
-          <label className="block">
-            <span className="label-xs">Til</span>
-            <select disabled title="Til faqat test yaratishda belgilanadi" value={test.language} onChange={e => updateTest('language', e.target.value)} className="field">
-              {READING_LANGUAGES.map(l => <option key={l}>{l}</option>)}
-            </select>
-          </label>
-          <label className="block">
-            <span className="label-xs">Davomiyligi (daqiqa)</span>
-            <input
-              disabled={isLocked} type="number" min={10} value={test.duration_minutes}
-              onChange={e => updateTest('duration_minutes', Number(e.target.value))} className="field"
-            />
-          </label>
-          <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
-            {([
-              ['is_demo', 'Demo'],
-              ['is_free', 'Bepul'],
-              ['is_practice', 'Mashq (practice) testi'],
-              ['is_active', 'Faol'],
-            ] as const).map(([key, label]) => (
-              <label key={key} className={`flex items-center gap-2 text-sm ${flagBusy ? 'opacity-60' : ''}`}>
-                <input
-                  disabled={flagBusy}
-                  type="checkbox"
-                  checked={!!test[key]}
-                  onChange={e => toggleFlag(key, e.target.checked)}
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-        </section>
+        {/* Test Sozlamalari */}
+        <TestSettings
+          skill="reading"
+          value={test}
+          onChange={(key, val) => {
+            // Bayroqlar uchun toggleFlag (optimistik + server saqlash)
+            const flagKeys = ['is_demo', 'is_free', 'is_practice', 'is_active'] as const
+            if (flagKeys.includes(key as typeof flagKeys[number])) {
+              void toggleFlag(key as typeof flagKeys[number], val as boolean)
+            } else {
+              updateTest(key, val as never)
+            }
+          }}
+          disabled={isLocked || flagBusy}
+        />
 
         {/* Qismlar */}
         <div className="space-y-4">

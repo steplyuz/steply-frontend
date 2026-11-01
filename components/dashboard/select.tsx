@@ -119,7 +119,7 @@ export function Select({ value, onChange, options, label, disabled, className = 
               >
                 <span className="truncate">{o.label}</span>
                 {isSelected && (
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full" style={{ background: '#E4F70A' }}>
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full" style={{ background: '#C8FF00' }}>
                     <Check aria-hidden="true" className="size-3" strokeWidth={3} />
                   </span>
                 )}

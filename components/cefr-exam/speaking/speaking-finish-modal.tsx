@@ -52,7 +52,7 @@ export default function SpeakingFinishModal({
                 {/* Header */}
                 <div className="flex items-center gap-3 bg-foreground p-6 text-white">
                     <div className="flex size-12 items-center justify-center rounded-xl bg-white/10">
-                        <ClipboardList className="size-6 text-[#E4F70A]" />
+                        <ClipboardList className="size-6 text-[#C8FF00]" />
                     </div>
                     <div>
                         <h2 id="speaking-finish-title" className="text-lg font-bold leading-tight">

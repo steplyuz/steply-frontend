@@ -32,6 +32,9 @@ export const ROUTES = {
 
   practice: '/practice',
 
+  onboarding: '/onboarding',
+  onboardingAdmin: '/admin/exam-dates',
+
   billing: '/billing',
   billingAdmin: '/admin/billing',
 

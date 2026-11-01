@@ -14,14 +14,14 @@ import {
     saveReadingAnswerAPI,
     startReadingAttemptAPI,
     submitReadingExamAPI,
-} from "@/lib/cefr-api/reading"
-import { pullMockSkillResultAPI } from "@/lib/cefr-api/mock"
-import type { ReadingExam } from "@/lib/cefr-types/reading"
+} from "@/lib/practice/api/reading"
+import { pullMockSkillResultAPI } from "@/lib/exam/api/mock"
+import type { ReadingExam } from "@/lib/exam/types/reading"
 import { Loader2, AlertCircle, Maximize, BookOpen, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
 import { PreflightStart } from "@/components/exam/preflight"
 import { useAuth } from "@/lib/auth/auth-context"
-import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, readingPracticeMinutes, remainingSeconds, serverRemainingSeconds } from "@/lib/exam-lock"
+import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, readingPracticeMinutes, remainingSeconds, serverRemainingSeconds } from "@/lib/exam/lock"
 
 const SAVE_DEBOUNCE_MS = 600
 

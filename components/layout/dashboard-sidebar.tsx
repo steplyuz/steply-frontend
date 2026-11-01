@@ -165,7 +165,7 @@ export function DashboardSidebar({ open, onClose }: { open: boolean; onClose: ()
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -right-8 -top-8 z-0 size-20 rounded-full"
-              style={{ border: '12px solid rgba(228,247,10,0.22)' }}
+              style={{ border: '12px solid rgba(200,255,0,0.22)' }}
             />
             <UserAvatar name={fullName} src={avatarUrl} className="relative z-10 size-10 ring-2 ring-white/20" />
             <span className="relative z-10 min-w-0 flex-1">

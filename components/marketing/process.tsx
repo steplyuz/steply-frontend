@@ -267,7 +267,7 @@ function DeckCard({
         </span>
 
         <div className="relative flex items-center gap-3.5">
-          <span className="relative flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-[0_10px_26px_-10px_rgba(228,247,10,0.9)] sm:size-14">
+          <span className="relative flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-[0_10px_26px_-10px_rgba(200,255,0,0.9)] sm:size-14">
             <Icon className="size-5 sm:size-[22px]" aria-hidden="true" />
             {current && !reduce && (
               <motion.span
@@ -455,7 +455,7 @@ export function ProcessFlow() {
               <motion.div whileTap={reduce ? undefined : { scale: 0.97 }} className="inline-flex">
                 <Link
                   href="/register"
-                  className="group relative inline-flex min-h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-[0_12px_30px_-14px_rgba(228,247,10,0.75)] transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  className="group relative inline-flex min-h-12 items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-[0_12px_30px_-14px_rgba(200,255,0,0.75)] transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <span
                     aria-hidden

@@ -30,6 +30,8 @@ import {
 } from 'lucide-react'
 
 import { billingApi } from '@/lib/api/modules/billing'
+import { adminApi } from '@/lib/api/modules/admin'
+import type { AdminGrantSubscriptionInput, AdminUser } from '@/lib/api/types'
 import { authenticatedDownload } from '@/lib/api/download'
 import { getErrorMessage } from '@/lib/api/client'
 import type {
@@ -54,6 +56,8 @@ import {
   AdminTable,
   AdminTableSkeleton,
 } from '@/components/layout/admin-page-shell'
+import { formatDateTime, formatMoney } from '@/lib/format'
+import { adminInput } from '@/components/admin/ui/styles'
 
 /* ── Order Status Meta ────────────────────────────────────── */
 const ORDER_STATUS_LABEL: Record<string, string> = {
@@ -66,11 +70,11 @@ const ORDER_STATUS_LABEL: Record<string, string> = {
 }
 
 const ORDER_STATUS_COLOR: Record<string, string> = {
-  under_review: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-400 dark:border-sky-800',
-  pending_payment: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800',
-  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800',
-  approved: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800',
-  rejected: 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800',
+  under_review: 'bg-info/10 text-info border-info/30 dark:bg-info/40 dark:text-info dark:border-info/30',
+  pending_payment: 'bg-warning/10 text-warning border-warning/30 dark:bg-warning/40 dark:text-warning dark:border-warning/30',
+  paid: 'bg-success/10 text-success border-success/30 dark:bg-success/40 dark:text-success dark:border-success/30',
+  approved: 'bg-success/10 text-success border-success/30 dark:bg-success/40 dark:text-success dark:border-success/30',
+  rejected: 'bg-error/10 text-error border-error/30 dark:bg-error/40 dark:text-error dark:border-error/30',
   cancelled: 'bg-muted text-muted-foreground border-border',
 }
 
@@ -87,25 +91,9 @@ const PRODUCT_TYPE_LABEL: Record<string, string> = {
   subscription: 'Obuna tarifi',
   speaking_practice: 'Speaking amaliyot',
   full_exam: 'Bitta test xaridi',
-  writing_ai_credits: 'Writing AI kreditlari',
+  ai_credits: 'AI kreditlari',
   mock_exam: 'Mock imtihon',
   full_skills: 'Barcha ko‘nikmalar',
-}
-
-function fmtDate(dt?: string | null) {
-  if (!dt) return '—'
-  return new Date(dt).toLocaleDateString('uz-UZ', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function fmtMoney(amount?: number | null) {
-  if (amount === undefined || amount === null) return '—'
-  return amount.toLocaleString('uz-UZ') + ' UZS'
 }
 
 function normalizeTierLimits(data: Record<string, { practice?: { weekly_limit: number | null; monthly_limit: number | null }; analysis?: { weekly_limit: number | null; monthly_limit: number | null } }> | null | undefined): TierLimitRule[] {
@@ -122,7 +110,7 @@ function normalizeTierLimits(data: Record<string, { practice?: { weekly_limit: n
   }))
 }
 
-type TabKey = 'plans' | 'products' | 'orders' | 'reports' | 'promos' | 'limits' | 'requisites'
+type TabKey = 'plans' | 'products' | 'orders' | 'reports' | 'promos' | 'limits' | 'requisites' | 'grant'
 
 export default function AdminBillingPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('plans')
@@ -134,7 +122,7 @@ export default function AdminBillingPage() {
   const [plans, setPlans] = useState<BillingPlan[]>([])
   const [products, setProducts] = useState<BillingProduct[]>([])
   const [orders, setOrders] = useState<BillingOrder[]>([])
-  const [reportSummary, setReportSummary] = useState<{total_orders:number;paid_orders:number;confirmed_revenue:number;paid_original_amount:number;paid_discount_amount:number;by_status:Record<string,{count:number;amount:number}>} | null>(null)
+  const [reportSummary, setReportSummary] = useState<{ total_orders: number; paid_orders: number; confirmed_revenue: number; paid_original_amount: number; paid_discount_amount: number; by_status: Record<string, { count: number; amount: number }> } | null>(null)
   const [promos, setPromos] = useState<PromoCode[]>([])
   const [tierLimits, setTierLimits] = useState<TierLimitRule[]>([])
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>({
@@ -148,6 +136,14 @@ export default function AdminBillingPage() {
 
   // Orders filters
   const [orderSearch, setOrderSearch] = useState('')
+  const [grantQuery, setGrantQuery] = useState('')
+  const [grantResults, setGrantResults] = useState<AdminUser[]>([])
+  const [grantUser, setGrantUser] = useState<AdminUser | null>(null)
+  const [grantPlanId, setGrantPlanId] = useState('')
+  const [grantNote, setGrantNote] = useState('')
+  const [grantBusy, setGrantBusy] = useState(false)
+  const [grantError, setGrantError] = useState('')
+  const [grantOk, setGrantOk] = useState('')
   const [orderStatusFilter, setOrderStatusFilter] = useState('ALL')
 
   // Modal states: Plan
@@ -175,12 +171,12 @@ export default function AdminBillingPage() {
   const [selfPurchaseSubmitting, setSelfPurchaseSubmitting] = useState(false)
   const [selfPurchaseUploading, setSelfPurchaseUploading] = useState(false)
 
-  // Billing products: backend faqat FULL_EXAM va WRITING_AI_CREDITS katalogini qabul qiladi.
+  // Billing products: backend faqat FULL_EXAM va AI_CREDITS katalogini qabul qiladi.
   const [productModalOpen, setProductModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<BillingProduct | null>(null)
   const [productSubmitting, setProductSubmitting] = useState(false)
   const [productForm, setProductForm] = useState<BillingProductInput>({
-    product_type: 'writing_ai_credits',
+    product_type: 'ai_credits',
     code: '',
     title: '',
     description: '',
@@ -200,6 +196,8 @@ export default function AdminBillingPage() {
     valid_from: string
     valid_until: string
     is_active: boolean
+    /** Bo'sh = istalgan tarif; tanlansa promo faqat shu tarifga qo'llanadi (100% bo'lsa — bepul obuna). */
+    activates_plan_id: string
   }>({
     code: '',
     discount_val: 20,
@@ -207,6 +205,7 @@ export default function AdminBillingPage() {
     valid_from: '',
     valid_until: '',
     is_active: true,
+    activates_plan_id: '',
   })
   const [promoSubmitting, setPromoSubmitting] = useState(false)
 
@@ -283,7 +282,7 @@ export default function AdminBillingPage() {
     {
       label: 'PLUS (1 oylik)',
       name: 'Steply PLUS',
-      description: 'Reading, Listening va Writing practice hamda Writing AI tekshiruvlari',
+      description: 'Reading, Listening va Writing practice hamda umumiy AI kreditlar (Writing + Speaking)',
       tier: 'plus' as SubscriptionTier,
       duration_days: 30,
       price: 150000,
@@ -462,7 +461,7 @@ export default function AdminBillingPage() {
   const openCreateProductModal = () => {
     setEditingProduct(null)
     setProductForm({
-      product_type: 'writing_ai_credits',
+      product_type: 'ai_credits',
       code: '',
       title: '',
       description: '',
@@ -497,11 +496,11 @@ export default function AdminBillingPage() {
       return
     }
     if (!externalRef) {
-      setError(productForm.product_type === 'full_exam' ? 'Full Exam uchun Mock Exam ID majburiy.' : 'Writing AI kreditlari sonini kiriting.')
+      setError(productForm.product_type === 'full_exam' ? 'Full Exam uchun Mock Exam ID majburiy.' : 'AI kreditlari sonini kiriting.')
       return
     }
-    if (productForm.product_type === 'writing_ai_credits' && (!/^\d+$/.test(externalRef) || Number(externalRef) < 1 || Number(externalRef) > 10000)) {
-      setError('Writing AI kreditlari 1–10000 oralig‘idagi butun son bo‘lishi kerak.')
+    if (productForm.product_type === 'ai_credits' && (!/^\d+$/.test(externalRef) || Number(externalRef) < 1 || Number(externalRef) > 10000)) {
+      setError('AI kreditlari 1–10000 oralig‘idagi butun son bo‘lishi kerak.')
       return
     }
     setProductSubmitting(true)
@@ -595,6 +594,7 @@ export default function AdminBillingPage() {
       valid_from: '',
       valid_until: '',
       is_active: true,
+      activates_plan_id: '',
     })
     setPromoModalOpen(true)
   }
@@ -610,6 +610,7 @@ export default function AdminBillingPage() {
         valid_from: p.valid_from ? p.valid_from.slice(0, 16) : '',
         valid_until: p.valid_until ? p.valid_until.slice(0, 16) : '',
         is_active: p.is_active,
+        activates_plan_id: p.activates_plan_id != null ? String(p.activates_plan_id) : '',
       })
     } else {
       setPromoDiscountType('amount')
@@ -620,6 +621,7 @@ export default function AdminBillingPage() {
         valid_from: p.valid_from ? p.valid_from.slice(0, 16) : '',
         valid_until: p.valid_until ? p.valid_until.slice(0, 16) : '',
         is_active: p.is_active,
+        activates_plan_id: p.activates_plan_id != null ? String(p.activates_plan_id) : '',
       })
     }
     setPromoModalOpen(true)
@@ -644,6 +646,7 @@ export default function AdminBillingPage() {
       valid_from: promoForm.valid_from ? new Date(promoForm.valid_from).toISOString() : null,
       valid_until: promoForm.valid_until ? new Date(promoForm.valid_until).toISOString() : null,
       is_active: promoForm.is_active,
+      activates_plan_id: promoForm.activates_plan_id ? Number(promoForm.activates_plan_id) : null,
     }
 
     setPromoSubmitting(true)
@@ -753,6 +756,38 @@ export default function AdminBillingPage() {
     return true
   })
 
+  /** Foydalanuvchini ism, username yoki MK ID bo'yicha qidiradi. */
+  const searchGrantUsers = async () => {
+    setGrantError(''); setGrantOk('')
+    const q = grantQuery.trim()
+    if (q.length < 2) { setGrantError("Kamida 2 ta belgi kiriting"); return }
+    try {
+      const found = await adminApi.users({ search: q, limit: 10 })
+      setGrantResults(found)
+      if (found.length === 0) setGrantError("Foydalanuvchi topilmadi")
+    } catch (e) {
+      setGrantError(getErrorMessage(e, "Qidirishda xatolik"))
+    }
+  }
+
+  /** Admin tanlangan foydalanuvchiga tarifni darhol beradi (to'lovsiz, audit bilan). */
+  const grantSubscription = async () => {
+    setGrantError(''); setGrantOk('')
+    if (!grantUser) { setGrantError("Avval foydalanuvchini tanlang"); return }
+    if (!grantPlanId) { setGrantError("Tarifni tanlang"); return }
+    const input: AdminGrantSubscriptionInput = { plan_id: Number(grantPlanId), note: grantNote.trim() || null }
+    try {
+      setGrantBusy(true)
+      await billingApi.adminGrantSubscription(grantUser.id, input)
+      setGrantOk(`${grantUser.full_name || grantUser.username || grantUser.id} ga tarif berildi.`)
+      setGrantNote('')
+    } catch (e) {
+      setGrantError(getErrorMessage(e, "Obuna berishda xatolik"))
+    } finally {
+      setGrantBusy(false)
+    }
+  }
+
   return (
     <AdminPageShell
       eyebrow="Moliya boshqaruvi"
@@ -784,8 +819,8 @@ export default function AdminBillingPage() {
       {/* ── Xabarlar ────────────────────────────────────────── */}
       {error && <AdminError message={error} />}
       {successMsg && (
-        <div className="mb-5 flex items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-800 dark:text-emerald-300">
-          <CheckCircle className="size-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+        <div className="mb-5 flex items-center gap-3 rounded-2xl border border-success/30 bg-success/10 p-4 text-success dark:text-success">
+          <CheckCircle className="size-5 shrink-0 text-success dark:text-success" />
           <p className="text-sm font-semibold">{successMsg}</p>
         </div>
       )}
@@ -794,37 +829,34 @@ export default function AdminBillingPage() {
       <div className="mb-7 flex items-center gap-2 overflow-x-auto border-b border-border pb-4 [scrollbar-width:thin]">
         <button
           onClick={() => setActiveTab('plans')}
-          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-            activeTab === 'plans'
+          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${activeTab === 'plans'
               ? 'bg-foreground text-background shadow-xs'
               : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
+            }`}
         >
           <Layers className="size-4" /> Tariflar ({plans.length})
         </button>
 
         <button
           onClick={() => setActiveTab('products')}
-          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-            activeTab === 'products'
+          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${activeTab === 'products'
               ? 'bg-foreground text-background shadow-xs'
               : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
+            }`}
         >
           <Package className="size-4" /> Mahsulotlar ({products.length})
         </button>
 
         <button
           onClick={() => setActiveTab('orders')}
-          className={`relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-            activeTab === 'orders'
+          className={`relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${activeTab === 'orders'
               ? 'bg-foreground text-background shadow-xs'
               : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
+            }`}
         >
           <Receipt className="size-4" /> Buyurtmalar ({orders.length})
           {underReviewCount > 0 && (
-            <span className="flex h-5 items-center justify-center rounded-full bg-sky-500 px-1.5 text-[10px] font-bold text-white">
+            <span className="flex h-5 items-center justify-center rounded-full bg-info px-1.5 text-[10px] font-bold text-white">
               {underReviewCount}
             </span>
           )}
@@ -839,35 +871,41 @@ export default function AdminBillingPage() {
 
         <button
           onClick={() => setActiveTab('promos')}
-          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-            activeTab === 'promos'
+          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${activeTab === 'promos'
               ? 'bg-foreground text-background shadow-xs'
               : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
+            }`}
         >
           <Tag className="size-4" /> Promo kodlar ({promos.length})
         </button>
 
         <button
           onClick={() => setActiveTab('limits')}
-          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-            activeTab === 'limits'
+          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${activeTab === 'limits'
               ? 'bg-foreground text-background shadow-xs'
               : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
+            }`}
         >
           <Sliders className="size-4" /> Tier Limitlari (Kvotalar)
         </button>
 
         <button
           onClick={() => setActiveTab('requisites')}
-          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
-            activeTab === 'requisites'
+          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${activeTab === 'requisites'
               ? 'bg-foreground text-background shadow-xs'
               : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
+            }`}
         >
           <CreditCard className="size-4" /> To'lov rekvizitlari
+        </button>
+        <button
+          onClick={() => setActiveTab('grant')}
+          className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${activeTab === 'grant'
+              ? 'bg-foreground text-background shadow-xs'
+              : 'border border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`}
+        >
+          <Layers className="size-4" /> Obuna berish
         </button>
       </div>
 
@@ -908,31 +946,28 @@ export default function AdminBillingPage() {
                 return (
                   <div
                     key={p.id}
-                    className={`relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-200 bg-card shadow-xs hover:border-foreground/40 ${
-                      p.is_active ? 'border-border' : 'border-dashed border-border opacity-60'
-                    }`}
+                    className={`relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-200 bg-card shadow-xs hover:border-foreground/40 ${p.is_active ? 'border-border' : 'border-dashed border-border opacity-60'
+                      }`}
                   >
                     <div>
                       {/* Tier Badge & Status */}
                       <div className="flex items-center justify-between mb-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
-                            isPro
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${isPro
                               ? 'bg-purple-500/15 text-purple-700 border border-purple-500/30 dark:text-purple-400'
                               : isPlus
-                              ? 'bg-foreground/15 text-foreground border border-foreground/30 dark:text-foreground/60'
-                              : 'bg-muted text-muted-foreground'
-                          }`}
+                                ? 'bg-foreground/15 text-foreground border border-foreground/30 dark:text-foreground/60'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
                         >
                           <Sparkles className="size-3" /> {p.tier}
                         </span>
 
                         <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                            p.is_active
-                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${p.is_active
+                              ? 'bg-success/10 text-success dark:bg-success/40 dark:text-success'
                               : 'bg-muted text-muted-foreground'
-                          }`}
+                            }`}
                         >
                           {p.is_active ? 'Faol' : 'Nofaol'}
                         </span>
@@ -949,7 +984,7 @@ export default function AdminBillingPage() {
                         <span className="font-mono text-2xl font-black text-foreground">
                           {salePrice.toLocaleString('uz-UZ')}
                         </span>
-                        {(p.discount_percent || 0) > 0 && <span className="ml-2 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-xs font-bold text-emerald-600">-{p.discount_percent}%</span>}
+                        {(p.discount_percent || 0) > 0 && <span className="ml-2 rounded-md bg-success/10 px-1.5 py-0.5 text-xs font-bold text-success">-{p.discount_percent}%</span>}
                         <span className="text-xs text-muted-foreground ml-1.5">UZS / {p.duration_days} kun</span>
                       </div>
 
@@ -965,7 +1000,7 @@ export default function AdminBillingPage() {
                         </div>
                         <div className="flex items-start justify-between gap-3">
                           <span className="text-muted-foreground">Bo‘limlar:</span>
-                          <strong className="text-right text-foreground">{includedSkills.map(skill => (({READING:'Reading',LISTENING:'Listening',WRITING:'Writing',SPEAKING:'Speaking'} as Record<string, string>)[skill] || skill)).join(', ')}</strong>
+                          <strong className="text-right text-foreground">{includedSkills.map(skill => (({ READING: 'Reading', LISTENING: 'Listening', WRITING: 'Writing', SPEAKING: 'Speaking' } as Record<string, string>)[skill] || skill)).join(', ')}</strong>
                         </div>
 
                         {(() => {
@@ -994,7 +1029,7 @@ export default function AdminBillingPage() {
                           type="button"
                           disabled={selfPurchaseSubmitting}
                           onClick={() => void handleSelfPurchase(p)}
-                          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-500/15 disabled:opacity-50 dark:text-emerald-400"
+                          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-xs font-semibold text-success transition hover:bg-success/15 disabled:opacity-50 dark:text-success"
                         >
                           <CreditCard className="size-3.5" /> {selfPurchaseSubmitting ? 'Buyurtma...' : 'O‘zim uchun sotib olish'}
                         </button>
@@ -1002,11 +1037,10 @@ export default function AdminBillingPage() {
                       <button
                         type="button"
                         onClick={() => handleTogglePlanActive(p)}
-                        className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
-                          p.is_active
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${p.is_active
                             ? 'border-border text-muted-foreground hover:bg-muted hover:text-foreground'
-                            : 'border-emerald-500/30 text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20'
-                        }`}
+                            : 'border-success/30 text-success bg-success/10 hover:bg-success/20'
+                          }`}
                       >
                         {p.is_active ? 'Faolsizlantirish' : 'Faollashtirish'}
                       </button>
@@ -1034,10 +1068,10 @@ export default function AdminBillingPage() {
         <div className="space-y-5">
           <div>
             <h2 className="text-lg font-bold text-foreground">Billing katalogi</h2>
-            <p className="text-xs leading-5 text-muted-foreground">Faqat backend qo‘llaydigan mahsulot turlari ko‘rsatiladi: Full Exam va Writing AI kreditlari. Mock Exam katalogining o‘zi “Mock Exam” bo‘limida boshqariladi.</p>
+            <p className="text-xs leading-5 text-muted-foreground">Faqat backend qo‘llaydigan mahsulot turlari ko‘rsatiladi: Full Exam va AI kreditlari. Mock Exam katalogining o‘zi “Mock Exam” bo‘limida boshqariladi.</p>
           </div>
           {loading ? <div className="h-48 animate-pulse rounded-2xl border border-border bg-muted/30" /> : products.length === 0 ? (
-            <AdminEmpty title="Mahsulot yo‘q" description="Writing AI kreditlari yoki Full Exam mahsulotini yarating." />
+            <AdminEmpty title="Mahsulot yo‘q" description="AI kreditlari yoki Full Exam mahsulotini yarating." />
           ) : (
             <div className="overflow-x-auto rounded-2xl border border-border bg-card">
               <table className="w-full min-w-[760px] text-sm">
@@ -1046,11 +1080,11 @@ export default function AdminBillingPage() {
                   {products.map(product => (
                     <tr key={product.id} className="hover:bg-muted/30">
                       <td className="px-4 py-4"><p className="font-semibold">{product.title}</p><p className="mt-1 font-mono text-[10px] text-muted-foreground">{product.code || `#${product.id}`}</p>{product.description && <p className="mt-1 max-w-sm text-xs text-muted-foreground">{product.description}</p>}</td>
-                      <td className="px-4 py-4 text-xs">{product.product_type === 'writing_ai_credits' ? 'Writing AI kreditlari' : product.product_type === 'full_exam' ? 'Full Exam' : 'Eski mahsulot turi'}</td>
-                      <td className="px-4 py-4 whitespace-nowrap font-semibold">{fmtMoney(product.price)}</td>
+                      <td className="px-4 py-4 text-xs">{product.product_type === 'ai_credits' ? 'AI kreditlari' : product.product_type === 'full_exam' ? 'Full Exam' : 'Eski mahsulot turi'}</td>
+                      <td className="px-4 py-4 whitespace-nowrap font-semibold">{formatMoney(product.price)}</td>
                       <td className="px-4 py-4 font-mono text-xs">{product.external_ref || '—'}</td>
-                      <td className="px-4 py-4"><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${product.is_active ? 'bg-emerald-500/10 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>{product.is_active ? 'Faol' : 'Nofaol'}</span></td>
-                      <td className="px-4 py-4"><button type="button" disabled={!['full_exam', 'writing_ai_credits'].includes(product.product_type)} onClick={() => openEditProductModal(product)} aria-label={`${product.title} mahsulotini tahrirlash`} title={!['full_exam', 'writing_ai_credits'].includes(product.product_type) ? 'Eski mahsulot turi tahrirlanmaydi' : 'Tahrirlash'} className="rounded-lg border border-border p-2 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"><Edit2 className="size-3.5" /></button></td>
+                      <td className="px-4 py-4"><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${product.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>{product.is_active ? 'Faol' : 'Nofaol'}</span></td>
+                      <td className="px-4 py-4"><button type="button" disabled={!['full_exam', 'ai_credits'].includes(product.product_type)} onClick={() => openEditProductModal(product)} aria-label={`${product.title} mahsulotini tahrirlash`} title={!['full_exam', 'ai_credits'].includes(product.product_type) ? 'Eski mahsulot turi tahrirlanmaydi' : 'Tahrirlash'} className="rounded-lg border border-border p-2 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"><Edit2 className="size-3.5" /></button></td>
                     </tr>
                   ))}
                 </tbody>
@@ -1088,11 +1122,11 @@ export default function AdminBillingPage() {
       {activeTab === 'orders' && (
         <div className="space-y-5">
           {underReviewCount > 0 && (
-            <div className="flex items-center gap-3 rounded-2xl border border-sky-500/30 bg-sky-500/10 p-4 text-sky-800 dark:text-sky-300">
-              <Clock className="size-5 shrink-0 text-sky-600 dark:text-sky-400" />
+            <div className="flex items-center gap-3 rounded-2xl border border-info/30 bg-info/10 p-4 text-info dark:text-info">
+              <Clock className="size-5 shrink-0 text-info dark:text-info" />
               <div>
                 <p className="text-sm font-semibold">{underReviewCount} ta to'lov cheki tekshiruv kutmoqda</p>
-                <p className="text-xs text-sky-700/80 dark:text-sky-300/80">Chekni ko'rib chiqib, buyurtmani tasdiqlang yoki rad eting.</p>
+                <p className="text-xs text-info/80 dark:text-info/80">Chekni ko'rib chiqib, buyurtmani tasdiqlang yoki rad eting.</p>
               </div>
             </div>
           )}
@@ -1110,11 +1144,10 @@ export default function AdminBillingPage() {
                 <button
                   key={f.id}
                   onClick={() => setOrderStatusFilter(f.id)}
-                  className={`h-8 rounded-xl px-3 text-xs font-semibold transition-all ${
-                    orderStatusFilter === f.id
+                  className={`h-8 rounded-xl px-3 text-xs font-semibold transition-all ${orderStatusFilter === f.id
                       ? 'bg-foreground text-background'
                       : 'border border-border text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
+                    }`}
                 >
                   {f.label}
                 </button>
@@ -1147,7 +1180,8 @@ export default function AdminBillingPage() {
             ) : (
               filteredOrders.map(order => {
                 const StatusIcon = ORDER_STATUS_ICON[order.status] || Clock
-                const canReview = order.status === 'under_review' || order.status === 'pending_payment'
+                const isInpayPending = order.status === 'pending_payment' && !!order.checkout_url
+                const canReview = order.status === 'under_review'
                 const hasReceipt = !!order.receipt_file_path || order.status === 'under_review'
 
                 return (
@@ -1178,10 +1212,10 @@ export default function AdminBillingPage() {
 
                     {/* Summa */}
                     <td className="px-5 py-4 font-mono text-xs font-semibold text-foreground">
-                      {fmtMoney(order.amount)}
+                      {formatMoney(order.amount)}
                       {order.discount_amount > 0 && (
-                        <span className="block text-[10px] font-normal text-emerald-600">
-                          -{fmtMoney(order.discount_amount)} promo
+                        <span className="block text-[10px] font-normal text-success">
+                          -{formatMoney(order.discount_amount)} promo
                         </span>
                       )}
                     </td>
@@ -1204,9 +1238,8 @@ export default function AdminBillingPage() {
                     {/* Holat */}
                     <td className="px-5 py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${
-                          ORDER_STATUS_COLOR[order.status] || ORDER_STATUS_COLOR.cancelled
-                        }`}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${ORDER_STATUS_COLOR[order.status] || ORDER_STATUS_COLOR.cancelled
+                          }`}
                       >
                         <StatusIcon className="size-3" />
                         {ORDER_STATUS_LABEL[order.status] || order.status}
@@ -1215,24 +1248,28 @@ export default function AdminBillingPage() {
 
                     {/* Sana */}
                     <td className="px-5 py-4 text-xs text-muted-foreground">
-                      {fmtDate(order.created_at)}
+                      {formatDateTime(order.created_at)}
                     </td>
 
                     {/* Amallar */}
                     <td className="px-5 py-4 text-right">
-                      {canReview ? (
+                      {isInpayPending ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-300 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-600 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-400">
+                          <Clock className="size-3" /> inPAY kutilmoqda
+                        </span>
+                      ) : canReview ? (
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
                             onClick={() => handleOpenReview(order.id, 'approve')}
-                            className="inline-flex items-center gap-1 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400 transition-colors"
+                            className="inline-flex items-center gap-1 rounded-lg border border-success/30 bg-success/10 px-2.5 py-1.5 text-xs font-semibold text-success hover:bg-success/20 dark:text-success transition-colors"
                           >
                             <Check className="size-3" /> Tasdiqlash
                           </button>
                           <button
                             type="button"
                             onClick={() => handleOpenReview(order.id, 'reject')}
-                            className="inline-flex items-center gap-1 rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-500/20 dark:text-red-400 transition-colors"
+                            className="inline-flex items-center gap-1 rounded-lg border border-error/30 bg-error/10 px-2.5 py-1.5 text-xs font-semibold text-error hover:bg-error/20 dark:text-error transition-colors"
                           >
                             <X className="size-3" /> Rad etish
                           </button>
@@ -1282,7 +1319,7 @@ export default function AdminBillingPage() {
                 const isPercent = p.discount_percent !== null && p.discount_percent !== undefined
                 const discountText = isPercent
                   ? `${p.discount_percent}%`
-                  : fmtMoney(p.discount_amount)
+                  : formatMoney(p.discount_amount)
 
                 return (
                   <tr key={p.id} className="transition-colors hover:bg-muted/40">
@@ -1293,7 +1330,7 @@ export default function AdminBillingPage() {
                     </td>
 
                     <td className="px-5 py-4">
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 text-xs">
+                      <span className="font-semibold text-success dark:text-success text-xs">
                         {discountText}
                       </span>
                     </td>
@@ -1305,7 +1342,7 @@ export default function AdminBillingPage() {
 
                     <td className="px-5 py-4 text-xs text-muted-foreground">
                       {p.valid_until ? (
-                        <span>{fmtDate(p.valid_until)} gacha</span>
+                        <span>{formatDateTime(p.valid_until)} gacha</span>
                       ) : (
                         <span>Muddatsiz</span>
                       )}
@@ -1313,11 +1350,10 @@ export default function AdminBillingPage() {
 
                     <td className="px-5 py-4">
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                          p.is_active
-                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${p.is_active
+                            ? 'bg-success/10 text-success dark:bg-success/40 dark:text-success'
                             : 'bg-muted text-muted-foreground'
-                        }`}
+                          }`}
                       >
                         {p.is_active ? 'Faol' : 'Nofaol'}
                       </span>
@@ -1396,6 +1432,88 @@ export default function AdminBillingPage() {
       {/* ──────────────────────────────────────────────────────────
          TAB 5: TO'LOV REKVIZITLARI (REQUISITES)
       ────────────────────────────────────────────────────────── */}
+      {activeTab === 'grant' && (
+        <div className="space-y-6 max-w-3xl">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Obuna berish</h2>
+            <p className="text-xs text-muted-foreground">
+              Istalgan foydalanuvchiga istalgan faol tarifni darhol bering. To'lov talab qilinmaydi; amal buyurtmalar ro'yxatida audit izi bilan qoladi.
+            </p>
+          </div>
+
+          <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">1. Foydalanuvchi</h3>
+            <div className="flex gap-2">
+              <input
+                value={grantQuery}
+                onChange={e => setGrantQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') void searchGrantUsers() }}
+                placeholder="Ism, username yoki MK ID"
+                className={adminInput}
+              />
+              <button type="button" onClick={() => void searchGrantUsers()} className="rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:bg-muted">
+                Qidirish
+              </button>
+            </div>
+            {grantResults.length > 0 && (
+              <ul className="divide-y divide-border rounded-lg border border-border">
+                {grantResults.map(u => (
+                  <li key={u.id}>
+                    <button
+                      type="button"
+                      onClick={() => { setGrantUser(u); setGrantResults([]); setGrantQuery('') }}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted"
+                    >
+                      <span className="font-semibold">{u.full_name || u.username || u.id}</span>
+                      <span className="text-xs text-muted-foreground">{u.global_role}{u.mk_id ? ` · ${u.mk_id}` : ''}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {grantUser && (
+              <p className="rounded-lg bg-muted px-3 py-2 text-sm">
+                Tanlangan: <span className="font-bold">{grantUser.full_name || grantUser.username || grantUser.id}</span>
+                <button type="button" onClick={() => setGrantUser(null)} className="ml-3 text-xs text-muted-foreground underline">bekor qilish</button>
+              </p>
+            )}
+          </section>
+
+          <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">2. Tarif va izoh</h3>
+            <select
+              value={grantPlanId}
+              onChange={e => setGrantPlanId(e.target.value)}
+              className={adminInput}
+            >
+              <option value="">Tarifni tanlang</option>
+              {plans.filter(p => p.is_active).map(p => (
+                <option key={p.id} value={p.id}>{p.name} — {p.duration_days} kun</option>
+              ))}
+            </select>
+            <input
+              value={grantNote}
+              onChange={e => setGrantNote(e.target.value)}
+              maxLength={300}
+              placeholder="Izoh (ixtiyoriy): kim/nima uchun"
+              className={adminInput}
+            />
+          </section>
+
+          {grantError && <p className="rounded-lg bg-error/10 px-3 py-2 text-sm text-error">{grantError}</p>}
+          {grantOk && <p className="rounded-lg bg-success/10 px-3 py-2 text-sm text-success">{grantOk}</p>}
+
+          <button
+            type="button"
+            onClick={() => void grantSubscription()}
+            disabled={grantBusy || !grantUser || !grantPlanId}
+            className="rounded-xl bg-foreground px-5 py-2.5 text-sm font-semibold text-background disabled:opacity-50"
+          >
+            {grantBusy ? 'Berilmoqda...' : 'Obunani berish'}
+          </button>
+        </div>
+      )}
+
       {activeTab === 'requisites' && (
         <div className="space-y-6 max-w-3xl">
           <div>
@@ -1409,7 +1527,7 @@ export default function AdminBillingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
-                  Karta raqami (Uzcard / Humo) <span className="text-red-500">*</span>
+                  Karta raqami (Uzcard / Humo) <span className="text-error">*</span>
                 </label>
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -1426,7 +1544,7 @@ export default function AdminBillingPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
-                  Karta egasi (Ism / Kompaniya) <span className="text-red-500">*</span>
+                  Karta egasi (Ism / Kompaniya) <span className="text-error">*</span>
                 </label>
                 <input
                   type="text"
@@ -1434,7 +1552,7 @@ export default function AdminBillingPage() {
                   value={requisitesForm.card_holder}
                   onChange={e => setRequisitesForm({ ...requisitesForm, card_holder: e.target.value })}
                   placeholder="STEPLEY EDUCATION MCHJ"
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
               </div>
             </div>
@@ -1442,7 +1560,7 @@ export default function AdminBillingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
-                  Bank nomi <span className="text-red-500">*</span>
+                  Bank nomi <span className="text-error">*</span>
                 </label>
                 <div className="relative">
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -1496,7 +1614,7 @@ export default function AdminBillingPage() {
                 value={requisitesForm.instructions || ''}
                 onChange={e => setRequisitesForm({ ...requisitesForm, instructions: e.target.value })}
                 placeholder="To'lovni amalga oshirgach, chekni tizimga yuklang..."
-                className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                className={adminInput}
               />
             </div>
 
@@ -1513,195 +1631,136 @@ export default function AdminBillingPage() {
          MODAL: TARIF YARATISH / TAHRIRLASH
       ────────────────────────────────────────────────────────── */}
       {planModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="w-full max-w-xl rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 my-8">
-            <div className="flex items-center justify-between pb-4 border-b border-border">
-              <div>
-                <h3 className="text-lg font-bold text-foreground">
-                  {editingPlan ? 'Tarifni tahrirlash' : 'Yangi tarif yaratish'}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Tarif parametrlari va unga biriktirilgan ko'nikmalar limitlarini sozlang
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPlanModalOpen(false)}
-                className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
-              >
-                <X className="size-5" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
+          onMouseDown={e => { if (e.target === e.currentTarget) setPlanModalOpen(false) }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="plan-modal-title"
+            className="flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-border bg-card text-[13px] shadow-2xl animate-in fade-in zoom-in-95"
+          >
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-5 py-3">
+              <h3 id="plan-modal-title" className="text-sm font-bold text-foreground">
+                {editingPlan ? 'Tarifni tahrirlash' : 'Yangi tarif yaratish'}
+              </h3>
+              <button type="button" onClick={() => setPlanModalOpen(false)} aria-label="Yopish" className="rounded-md p-1 text-muted-foreground hover:bg-muted">
+                <X className="size-4" />
               </button>
             </div>
 
-            <form onSubmit={handlePlanSubmit} className="mt-5 space-y-4">
-              {/* Tezkor Shablonlar */}
-              <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3.5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-primary flex items-center gap-1.5">
-                    <Sparkles className="size-3.5" /> Tezkor shablon tanlang (avtomatik to‘ldirish):
-                  </p>
-                  <span className="text-[10px] text-muted-foreground">Tavsiya etiladi</span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <form onSubmit={handlePlanSubmit} className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+                {/* Shablonlar: bitta qator */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="mr-1 flex items-center gap-1 text-[11px] font-semibold text-primary">
+                    <Sparkles className="size-3" /> Shablon:
+                  </span>
                   {PLAN_PRESETS.map(preset => (
                     <button
                       key={preset.label}
                       type="button"
                       onClick={() => applyPreset(preset)}
-                      className="rounded-lg border border-border bg-card p-2 text-left hover:border-primary hover:bg-muted/50 transition-all text-xs group"
+                      title={`${preset.price.toLocaleString('uz-UZ')} UZS`}
+                      className="rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold text-foreground transition hover:border-primary hover:text-primary"
                     >
-                      <div className="font-bold text-foreground text-[11px] truncate group-hover:text-primary">
-                        {preset.label}
-                      </div>
-                      <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
-                        {preset.price.toLocaleString('uz-UZ')} UZS
-                      </div>
+                      {preset.label}
                     </button>
                   ))}
                 </div>
-              </div>
 
-              {/* Asosiy ma'lumotlar */}
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
-                  Tarif nomi <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={planForm.name}
-                  onChange={e => setPlanForm({ ...planForm, name: e.target.value })}
-                  placeholder="Masalan: Steply PRO 1 oy, Steply PRO 1 yil"
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                />
-              </div>
+                <div className="grid grid-cols-4 gap-x-3 gap-y-2.5">
+                  <div className="col-span-4 sm:col-span-2">
+                    <label className="mb-0.5 block text-[11px] font-semibold text-foreground">Tarif nomi <span className="text-error">*</span></label>
+                    <input type="text" required value={planForm.name} onChange={e => setPlanForm({ ...planForm, name: e.target.value })} placeholder="Masalan: Steply PRO 1 oy" className={`${adminInput} !py-1.5`} />
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="mb-0.5 block text-[11px] font-semibold text-foreground">Daraja <span className="text-error">*</span></label>
+                    <select value={planForm.tier} onChange={e => handleTierChange(e.target.value)} className={`${adminInput} !py-1.5`}>
+                      <option value="plus">PLUS</option>
+                      <option value="pro">PRO</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="mb-0.5 block text-[11px] font-semibold text-foreground">Muddati (kun) <span className="text-error">*</span></label>
+                    <input type="number" min={1} max={3650} required value={planForm.duration_days} onChange={e => setPlanForm({ ...planForm, duration_days: Number(e.target.value) })} className={`${adminInput} !py-1.5`} />
+                  </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">
-                  Tavsifi (ixtiyoriy)
-                </label>
-                <textarea
-                  rows={2}
-                  value={planForm.description || ''}
-                  onChange={e => setPlanForm({ ...planForm, description: e.target.value })}
-                  placeholder="Tarif haqida qisqacha ma'lumot..."
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                />
-              </div>
+                  <div className="col-span-4">
+                    <label className="mb-0.5 block text-[11px] font-semibold text-foreground">Tavsifi (ixtiyoriy)</label>
+                    <input type="text" value={planForm.description || ''} onChange={e => setPlanForm({ ...planForm, description: e.target.value })} placeholder="Qisqacha ma'lumot..." className={`${adminInput} !py-1.5`} />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">
-                    Daraja (Tier) <span className="text-red-500">*</span>
+                  <div className="col-span-2">
+                    <label className="mb-0.5 block text-[11px] font-semibold text-foreground">Narxi (UZS) <span className="text-error">*</span></label>
+                    <input type="number" min={1000} step={1000} required value={planForm.price} onChange={e => setPlanForm({ ...planForm, price: Number(e.target.value) })} className={`${adminInput} !py-1.5`} />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="mb-0.5 block text-[11px] font-semibold text-foreground">Chegirma (%)</label>
+                    <input type="number" min={0} max={100} value={planForm.discount_percent ?? 0} onChange={e => setPlanForm({ ...planForm, discount_percent: Math.min(100, Math.max(0, Number(e.target.value))) })} className={`${adminInput} !py-1.5`} />
+                  </div>
+                  <div className="col-span-1 flex items-end pb-1.5 text-[11px] leading-tight text-muted-foreground">
+                    <span>= <strong className="text-foreground">{Math.round(planForm.price * (1 - (planForm.discount_percent || 0) / 100)).toLocaleString('uz-UZ')}</strong></span>
+                  </div>
+                </div>
+
+                {/* AI */}
+                <div className="flex items-center gap-3 rounded-lg border border-border px-3 py-2">
+                  <label className="flex flex-1 cursor-pointer items-center gap-2 font-semibold text-foreground">
+                    <input
+                      type="checkbox"
+                      checked={!!planForm.ai_enabled}
+                      onChange={e => setPlanForm({ ...planForm, ai_enabled: e.target.checked, ai_limit: e.target.checked ? Math.max(1, planForm.ai_limit || 20) : 0 })}
+                      className="size-4"
+                    />
+                    AI kreditlar (Writing + Speaking)
                   </label>
-                  <select
-                    value={planForm.tier}
-                    onChange={e => handleTierChange(e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                  >
-                    <option value="plus">PLUS</option>
-                    <option value="pro">PRO</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">
-                    Muddati (kunlarda) <span className="text-red-500">*</span>
+                  <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    Oyiga
+                    <input type="number" min={0} value={planForm.ai_limit ?? 0} disabled={!planForm.ai_enabled} onChange={e => setPlanForm({ ...planForm, ai_limit: Number(e.target.value) })} className={`${adminInput} !w-20 !py-1 disabled:opacity-50`} />
+                    ta
                   </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={3650}
-                    required
-                    value={planForm.duration_days}
-                    onChange={e => setPlanForm({ ...planForm, duration_days: Number(e.target.value) })}
-                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">
-                    Narxi (UZS) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={1000}
-                    step={1000}
-                    required
-                    value={planForm.price}
-                    onChange={e => setPlanForm({ ...planForm, price: Number(e.target.value) })}
-                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                  />
                 </div>
 
+                {/* Bo'limlar */}
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">
-                    AI tekshiruv limiti (insholar uchun)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={planForm.ai_limit ?? 0}
-                    disabled={!planForm.ai_enabled}
-                    onChange={e => setPlanForm({ ...planForm, ai_limit: Number(e.target.value) })}
-                    className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-border p-4 space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div><p className="text-sm font-semibold text-foreground">AI tekshiruvi</p><p className="text-xs text-muted-foreground">Bu tarifda Writing AI ishlatilsinmi?</p></div>
-                  <input type="checkbox" checked={!!planForm.ai_enabled} onChange={e => setPlanForm({ ...planForm, ai_enabled: e.target.checked, ai_limit: e.target.checked ? Math.max(1, planForm.ai_limit || 20) : 0 })} className="size-4" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-foreground mb-2">Tarifga kiritilgan bo‘limlar</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {([['READING','Reading'],['LISTENING','Listening'],['WRITING','Writing'],['SPEAKING','Speaking']] as const).map(([skill, label]) => (
-                      <label key={skill} className="flex items-center gap-2 rounded-lg border border-border p-2.5 text-sm">
-                        <input type="checkbox" checked={(planForm.included_skills || []).includes(skill)} onChange={e => {
-                          const current = planForm.included_skills || []
-                          const next = e.target.checked ? [...current, skill] : current.filter(x => x !== skill)
-                          setPlanForm({ ...planForm, included_skills: next })
-                        }} className="size-4" /> {label}
+                  <p className="mb-1 text-[11px] font-semibold text-foreground">Tarifga kiritilgan bo‘limlar <span className="font-normal text-muted-foreground">(kamida bittasi)</span></p>
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                    {([['READING', 'Reading'], ['LISTENING', 'Listening'], ['WRITING', 'Writing'], ['SPEAKING', 'Speaking']] as const).map(([skill, label]) => (
+                      <label key={skill} className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-2 py-1 hover:bg-muted/50">
+                        <input
+                          type="checkbox"
+                          checked={(planForm.included_skills || []).includes(skill)}
+                          onChange={e => {
+                            const current = planForm.included_skills || []
+                            const next = e.target.checked ? [...current, skill] : current.filter(x => x !== skill)
+                            setPlanForm({ ...planForm, included_skills: next })
+                          }}
+                          className="size-3.5"
+                        />
+                        {label}
                       </label>
                     ))}
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">Speaking faqat tarifda yoqilgan bo‘lsa ochiladi. Kamida bitta bo‘lim tanlanishi kerak.</p>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">Tarif chegirmasi (%)</label>
-                  <input type="number" min={0} max={100} value={planForm.discount_percent ?? 0} onChange={e => setPlanForm({ ...planForm, discount_percent: Math.min(100, Math.max(0, Number(e.target.value))) })} className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm" />
-                  <p className="mt-1 text-xs text-muted-foreground">Joriy chegirmali narx: {Math.round(planForm.price * (1 - (planForm.discount_percent || 0) / 100)).toLocaleString('uz-UZ')} UZS</p>
-                </div>
+
+                <p className="text-[11px] leading-4 text-muted-foreground">
+                  Practice va Analysis kvotalari “Tier Limitlari” bo‘limida alohida boshqariladi.
+                </p>
               </div>
 
-              <p className="rounded-xl border border-dashed border-border p-3 text-xs leading-5 text-muted-foreground">
-                Practice va Analysis kvotalari “Limitlar” bo‘limida alohida boshqariladi. AI tekshiruvi esa tarif bo‘yicha yoqiladi/o‘chiriladi va oylik limitga ega.
-              </p>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="plan_is_active"
-                  checked={planForm.is_active}
-                  onChange={e => setPlanForm({ ...planForm, is_active: e.target.checked })}
-                  className="size-4 rounded border-border"
-                />
-                <label htmlFor="plan_is_active" className="text-sm font-medium text-foreground cursor-pointer">
-                  Tarif sotuv uchun faol bo'lsin
+              <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border px-5 py-2.5">
+                <label htmlFor="plan_is_active" className="flex cursor-pointer items-center gap-2 font-medium text-foreground">
+                  <input type="checkbox" id="plan_is_active" checked={planForm.is_active} onChange={e => setPlanForm({ ...planForm, is_active: e.target.checked })} className="size-4 rounded border-border" />
+                  Sotuv uchun faol
                 </label>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-border flex items-center justify-end gap-3">
-                <AdminButton variant="default" onClick={() => setPlanModalOpen(false)}>
-                  Bekor qilish
-                </AdminButton>
-                <AdminButton type="submit" variant="primary" disabled={planSubmitting}>
-                  {planSubmitting ? 'Saqlanmoqda...' : editingPlan ? 'Saqlash' : 'Tarifni yaratish'}
-                </AdminButton>
+                <div className="flex items-center gap-2">
+                  <AdminButton variant="default" onClick={() => setPlanModalOpen(false)}>Bekor qilish</AdminButton>
+                  <AdminButton type="submit" variant="primary" disabled={planSubmitting}>
+                    {planSubmitting ? 'Saqlanmoqda...' : editingPlan ? 'Saqlash' : 'Yaratish'}
+                  </AdminButton>
+                </div>
               </div>
             </form>
           </div>
@@ -1721,8 +1780,8 @@ export default function AdminBillingPage() {
             <form onSubmit={handleProductSubmit} className="mt-5 space-y-4">
               <div>
                 <label className="mb-1 block text-xs font-semibold">Mahsulot turi</label>
-                <select disabled={!!editingProduct} value={productForm.product_type} onChange={e => setProductForm(previous => ({ ...previous, product_type: e.target.value as BillingProductInput['product_type'], external_ref: e.target.value === 'writing_ai_credits' ? '10' : '' }))} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm disabled:opacity-60">
-                  <option value="writing_ai_credits">Writing AI kreditlari</option>
+                <select disabled={!!editingProduct} value={productForm.product_type} onChange={e => setProductForm(previous => ({ ...previous, product_type: e.target.value as BillingProductInput['product_type'], external_ref: e.target.value === 'ai_credits' ? '10' : '' }))} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm disabled:opacity-60">
+                  <option value="ai_credits">AI kreditlari</option>
                   <option value="full_exam">Full Exam (Mock Exam ID bilan)</option>
                 </select>
               </div>
@@ -1730,9 +1789,9 @@ export default function AdminBillingPage() {
                 <div><label className="mb-1 block text-xs font-semibold">Mahsulot kodi</label><input required maxLength={100} value={productForm.code} onChange={e => setProductForm(previous => ({ ...previous, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_.-]/g, '').replace(/^[^A-Z0-9]+/, '') }))} placeholder="WRITING_AI_10" className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 font-mono text-sm" /></div>
                 <div><label className="mb-1 block text-xs font-semibold">Narx (UZS)</label><input required type="number" min={1} max={100000000} value={productForm.price} onChange={e => setProductForm(previous => ({ ...previous, price: Number(e.target.value) }))} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm" /></div>
               </div>
-              <div><label className="mb-1 block text-xs font-semibold">Nomi</label><input required maxLength={200} value={productForm.title} onChange={e => setProductForm(previous => ({ ...previous, title: e.target.value }))} placeholder="Writing AI — 10 kredit" className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm" /></div>
+              <div><label className="mb-1 block text-xs font-semibold">Nomi</label><input required maxLength={200} value={productForm.title} onChange={e => setProductForm(previous => ({ ...previous, title: e.target.value }))} placeholder="AI kredit — 10 ta" className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm" /></div>
               <div><label className="mb-1 block text-xs font-semibold">Tavsif (ixtiyoriy)</label><textarea maxLength={2000} value={productForm.description || ''} onChange={e => setProductForm(previous => ({ ...previous, description: e.target.value }))} rows={2} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm" /></div>
-              <div><label className="mb-1 block text-xs font-semibold">{productForm.product_type === 'writing_ai_credits' ? 'Kreditlar soni (external_ref)' : 'Mock Exam ID (external_ref)'}</label><input required maxLength={100} value={productForm.external_ref || ''} onChange={e => setProductForm(previous => ({ ...previous, external_ref: e.target.value.trim() }))} placeholder={productForm.product_type === 'writing_ai_credits' ? '10' : 'Mock Exam ID'} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 font-mono text-sm" /><p className="mt-1 text-[11px] text-muted-foreground">{productForm.product_type === 'writing_ai_credits' ? '1–10000 oralig‘idagi butun son kiriting.' : 'ID admin Mock Exam katalogidagi mavjud, faol imtihonga tegishli bo‘lishi kerak.'}</p></div>
+              <div><label className="mb-1 block text-xs font-semibold">{productForm.product_type === 'ai_credits' ? 'Kreditlar soni (external_ref)' : 'Mock Exam ID (external_ref)'}</label><input required maxLength={100} value={productForm.external_ref || ''} onChange={e => setProductForm(previous => ({ ...previous, external_ref: e.target.value.trim() }))} placeholder={productForm.product_type === 'ai_credits' ? '10' : 'Mock Exam ID'} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 font-mono text-sm" /><p className="mt-1 text-[11px] text-muted-foreground">{productForm.product_type === 'ai_credits' ? '1–10000 oralig‘idagi butun son kiriting.' : 'ID admin Mock Exam katalogidagi mavjud, faol imtihonga tegishli bo‘lishi kerak.'}</p></div>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={productForm.is_active ?? true} onChange={e => setProductForm(previous => ({ ...previous, is_active: e.target.checked }))} className="size-4" /> Xarid uchun faol</label>
               <div className="flex justify-end gap-3 border-t border-border pt-4"><AdminButton variant="default" onClick={() => { setProductModalOpen(false); setEditingProduct(null) }}>Bekor qilish</AdminButton><AdminButton type="submit" variant="primary" disabled={productSubmitting}>{productSubmitting ? 'Saqlanmoqda…' : editingProduct ? 'O‘zgarishlarni saqlash' : 'Mahsulot yaratish'}</AdminButton></div>
             </form>
@@ -1762,7 +1821,7 @@ export default function AdminBillingPage() {
             <form onSubmit={handlePromoSubmit} className="mt-5 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
-                  Promo kod <span className="text-red-500">*</span>
+                  Promo kod <span className="text-error">*</span>
                 </label>
                 <input
                   type="text"
@@ -1776,7 +1835,7 @@ export default function AdminBillingPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
-                  Chegirma turi <span className="text-red-500">*</span>
+                  Chegirma turi <span className="text-error">*</span>
                 </label>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 cursor-pointer text-sm">
@@ -1802,7 +1861,7 @@ export default function AdminBillingPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
-                  Chegirma miqdori {promoDiscountType === 'percent' ? '(%)' : '(UZS)'} <span className="text-red-500">*</span>
+                  Chegirma miqdori {promoDiscountType === 'percent' ? '(%)' : '(UZS)'} <span className="text-error">*</span>
                 </label>
                 <input
                   type="number"
@@ -1811,8 +1870,25 @@ export default function AdminBillingPage() {
                   required
                   value={promoForm.discount_val}
                   onChange={e => setPromoForm({ ...promoForm, discount_val: Number(e.target.value) })}
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Tarif (bo‘sh qolsa istalgan tarif)
+                </label>
+                <select
+                  value={promoForm.activates_plan_id}
+                  onChange={e => setPromoForm({ ...promoForm, activates_plan_id: e.target.value })}
+                  className={adminInput}
+                >
+                  <option value="">Bog‘lanmagan</option>
+                  {plans.map(pl => <option key={pl.id} value={pl.id}>{pl.name}</option>)}
+                </select>
+                {promoForm.activates_plan_id && promoDiscountType === 'percent' && promoForm.discount_val === 100 && (
+                  <p className="mt-1 text-xs text-success">100% chegirma: tanlangan tarif foydalanuvchiga to‘lovsiz, admin tasdig‘isiz darhol beriladi.</p>
+                )}
               </div>
 
               <div>
@@ -1825,7 +1901,7 @@ export default function AdminBillingPage() {
                   value={promoForm.max_usage}
                   onChange={e => setPromoForm({ ...promoForm, max_usage: e.target.value })}
                   placeholder="Cheksiz"
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
               </div>
 
@@ -1837,7 +1913,7 @@ export default function AdminBillingPage() {
                   type="datetime-local"
                   value={promoForm.valid_until}
                   onChange={e => setPromoForm({ ...promoForm, valid_until: e.target.value })}
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
               </div>
 
@@ -1862,7 +1938,7 @@ export default function AdminBillingPage() {
                   value={monthlyLimitValue}
                   onChange={e => setMonthlyLimitValue(e.target.value)}
                   placeholder="Bo'sh qoldiring = cheksiz"
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
               </div>
 
@@ -1905,7 +1981,7 @@ export default function AdminBillingPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1">
-                  Admin izohi {orderReviewModal.action === 'reject' && <span className="text-red-500">* (sabab)</span>}
+                  Admin izohi {orderReviewModal.action === 'reject' && <span className="text-error">* (sabab)</span>}
                 </label>
                 <textarea
                   rows={3}
@@ -1917,7 +1993,7 @@ export default function AdminBillingPage() {
                       ? "To'lov qabul qilindi (ixtiyoriy izoh)..."
                       : "Chek summasi mos kelmadi / soxta chek..."
                   }
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
               </div>
 
@@ -1929,7 +2005,7 @@ export default function AdminBillingPage() {
                   value={monthlyLimitValue}
                   onChange={e => setMonthlyLimitValue(e.target.value)}
                   placeholder="Bo'sh qoldiring = cheksiz"
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
               </div>
 
@@ -1940,11 +2016,10 @@ export default function AdminBillingPage() {
                 <button
                   type="submit"
                   disabled={reviewSubmitting}
-                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all disabled:opacity-50 ${
-                    orderReviewModal.action === 'approve'
-                      ? 'bg-emerald-600 hover:bg-emerald-700'
-                      : 'bg-red-600 hover:bg-red-700'
-                  }`}
+                  className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all disabled:opacity-50 ${orderReviewModal.action === 'approve'
+                      ? 'bg-success hover:bg-success'
+                      : 'bg-error hover:bg-error'
+                    }`}
                 >
                   {reviewSubmitting ? 'Bajarilmoqda...' : orderReviewModal.action === 'approve' ? 'Tasdiqlash' : 'Rad etish'}
                 </button>
@@ -1970,7 +2045,7 @@ export default function AdminBillingPage() {
             <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-sm text-muted-foreground">To'lanadigan summa</span>
-                <strong className="text-xl font-black text-foreground">{fmtMoney(selfPurchaseOrder.amount)}</strong>
+                <strong className="text-xl font-black text-foreground">{formatMoney(selfPurchaseOrder.amount)}</strong>
               </div>
               <p className="mt-2 text-xs leading-5 text-muted-foreground">Pul o'tkazmasidan so'ng chekni yuklang. Admin o'z buyurtmasini o'zi tasdiqlay olmaydi, shuning uchun boshqa admin tekshirishi kerak.</p>
             </div>
@@ -1985,7 +2060,7 @@ export default function AdminBillingPage() {
             </div>
 
             {selfPurchaseOrder.status === 'under_review' || selfPurchaseOrder.status === 'paid' ? (
-              <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-300">
+              <div className="mt-4 rounded-xl border border-success/30 bg-success/10 p-3 text-sm text-success dark:text-success">
                 {selfPurchaseOrder.status === 'paid' ? 'To‘lov tasdiqlangan.' : 'Chek tekshiruvda. Obuna boshqa admin tasdiqlagach faollashadi.'}
               </div>
             ) : (
@@ -2038,7 +2113,7 @@ export default function AdminBillingPage() {
                   value={limitValue}
                   onChange={e => setLimitValue(e.target.value)}
                   placeholder="Bo'sh qoldiring = Cheksiz (∞)"
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
                 <p className="mt-1 text-[11px] text-muted-foreground">
                   Bo'sh qoldirsangiz, foydalanuvchiga cheklov qo'yilmaydi (cheksiz).
@@ -2053,7 +2128,7 @@ export default function AdminBillingPage() {
                   value={monthlyLimitValue}
                   onChange={e => setMonthlyLimitValue(e.target.value)}
                   placeholder="Bo'sh qoldiring = cheksiz"
-                  className="w-full rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground outline-none focus:border-foreground"
+                  className={adminInput}
                 />
               </div>
 

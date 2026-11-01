@@ -67,7 +67,7 @@ export default function Page() {
     <div className="flex min-h-svh flex-col items-center justify-center gap-3 px-4 text-center">
       <ShieldAlert className="size-8 text-muted-foreground" />
       <p className="font-semibold">Bu bo'limga faqat administrator yoki baholovchi kira oladi.</p>
-      <Link href="/dashboard" className="text-sm font-semibold text-primary hover:underline">Kabinetga qaytish</Link>
+      <Link href="/dashboard" className="text-sm font-semibold text-primary-strong hover:underline">Kabinetga qaytish</Link>
     </div>
   )
 
@@ -89,7 +89,7 @@ export default function Page() {
           <Link href="/teacher-expert/speaking" className="mb-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="size-4" /> Ro'yxatga qaytish
           </Link>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Baholash</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary-strong">Baholash</p>
           <h1 className="mt-1 text-2xl font-bold">
             {submission.full_name || `Topshiriq #${submission.id}`}
             {submission.student_id && <span className="ml-2 font-mono text-sm text-muted-foreground">{submission.student_id}</span>}
@@ -137,16 +137,16 @@ export default function Page() {
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="flex flex-col gap-1.5 text-sm font-medium">
-                Umumiy xom ball (0–36) *
+                Umumiy xom ball (0–21) *
                 <input
                   type="number"
                   min={0}
-                  max={36}
+                  max={21}
                   step={0.5}
                   required
                   value={scores.overall_raw || ''}
                   onChange={(e) => setScores((p) => ({ ...p, overall_raw: e.target.value === '' ? 0 : Number(e.target.value) }))}
-                  placeholder="0–36"
+                  placeholder="0–21"
                   className="rounded-lg border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary"
                 />
                 <span className="text-xs font-normal text-muted-foreground">Yakuniy ball (0–75) serverda hisoblanadi.</span>

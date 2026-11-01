@@ -9,7 +9,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { AlertTriangle, CheckCircle2, Loader2, X } from 'lucide-react'
 import { TONES, type Tone } from '@/lib/brand'
-import { EXAM_FOCUS as FOCUS } from '@/lib/exam-theme'
+import { EXAM_FOCUS as FOCUS } from '@/lib/exam/theme'
 
 export type FinishRow = { label: string; value: ReactNode; done: boolean }
 
@@ -125,7 +125,7 @@ export function FinishDialog({
           onClick={onConfirm}
           disabled={submitting || confirmDisabled}
           className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-foreground transition disabled:opacity-60 ${FOCUS}`}
-          style={{ backgroundColor: '#E4F70A', color: '#0B0B0D' }}
+          style={{ backgroundColor: '#C8FF00', color: '#0B0B0D' }}
         >
           {submitting && <Loader2 size={15} className="animate-spin" />}
           {confirmLabel}

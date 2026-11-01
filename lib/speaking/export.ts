@@ -5,7 +5,9 @@
 // Audio fayllarning o'zi backenddan (GET /speaking-tests/submissions/{id}/audio) olinadi.
 
 import JSZip from 'jszip'
-import { authenticatedBlob, speakingApi } from '@/lib/api'
+import { authenticatedBlob, saveBlob, speakingApi } from '@/lib/api'
+import { pad2 } from '@/lib/format'
+
 
 export interface QuestionSnapshot {
   key: string
@@ -22,6 +24,8 @@ export interface QuestionSnapshot {
 /** blobUrl — shu sessiyadagi lokal nusxa; submissionId — serverdagi nusxa. */
 export interface RecordingRef {
   submissionId?: number
+  /** Practice urinish ID (backend `practice_attempt_id`): AI baholash shu ID bo'yicha so'raladi. */
+  practiceAttemptId?: number
   blobUrl?: string
   ext: string
 }
@@ -32,7 +36,13 @@ export interface SpeakingAttemptRecord {
   title: string
   finishedAt: string
   questions: QuestionSnapshot[]
-  recordings: Record<string, { submissionId: number; ext: string }>
+  recordings: Record<string, { submissionId: number; practiceAttemptId?: number; ext: string }>
+}
+
+/** Arxiv yozuvidagi practice urinish ID (AI baholash shu ID bo'yicha so'raladi). */
+export function attemptIdOf(record: SpeakingAttemptRecord): number | null {
+  const found = Object.values(record.recordings).find((r) => r.practiceAttemptId != null)
+  return found?.practiceAttemptId ?? null
 }
 
 const HISTORY_LIMIT = 20
@@ -59,7 +69,6 @@ export function saveAttempt(userId: string, attempt: SpeakingAttemptRecord) {
 const slug = (v: string) =>
   v.normalize('NFKD').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').toLowerCase().slice(0, 60) || 'speaking'
 
-const pad = (n: number) => String(n).padStart(2, '0')
 
 export function buildQuestionsText(title: string, questions: QuestionSnapshot[]): string {
   const lines: string[] = [`STEPLY — SPEAKING SAVOLLARI`, title, ''.padEnd(48, '='), '']
@@ -83,16 +92,7 @@ export function buildQuestionsText(title: string, questions: QuestionSnapshot[])
   return lines.join('\n')
 }
 
-export function saveBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
-}
+export { saveBlob }
 
 export function downloadQuestions(title: string, questions: QuestionSnapshot[]) {
   const blob = new Blob([buildQuestionsText(title, questions)], { type: 'text/plain;charset=utf-8' })
@@ -113,7 +113,7 @@ export async function fetchRecordingBlob(ref: RecordingRef): Promise<Blob> {
 }
 
 export const recordingFilename = (title: string, index: number, label: string, ext: string) =>
-  `${slug(title)}-${pad(index + 1)}-${slug(label)}.${ext}`
+  `${slug(title)}-${pad2(index + 1)}-${slug(label)}.${ext}`
 
 export async function downloadRecording(ref: RecordingRef, filename: string) {
   saveBlob(await fetchRecordingBlob(ref), filename)
@@ -134,7 +134,7 @@ export async function downloadAllZip(
   let failed = 0
   for (const { q, i, ref } of items) {
     try {
-      audio.file(`${pad(i + 1)}-${slug(q.label)}.${ref.ext}`, await fetchRecordingBlob(ref))
+      audio.file(`${pad2(i + 1)}-${slug(q.label)}.${ref.ext}`, await fetchRecordingBlob(ref))
       added++
     } catch {
       failed++

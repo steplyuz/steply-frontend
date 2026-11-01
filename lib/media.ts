@@ -1,13 +1,11 @@
 /**
  * Backend qaytargan media yo'lini (masalan nomzod rasmi `photo_url`) <img src> uchun
- * yaroqli URL'ga aylantiradi.
- *  - to'liq URL (https://..., data:, blob:) — o'zgarishsiz
- *  - nisbiy yo'l (/static/...) — same-origin; next.config.mjs rewrites backendga yo'naltiradi
+ * yaroqli URL'ga aylantiradi. Qoida umumiy resolveAssetUrl'da (api/config.ts).
  */
+import { resolveAssetUrl } from './api/config'
+
 export function resolveMediaUrl(url?: string | null): string | null {
-  if (!url) return null
-  const v = url.trim()
+  const v = url?.trim()
   if (!v) return null
-  if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:') || v.startsWith('blob:')) return v
-  return v.startsWith('/') ? v : `/${v}`
+  return resolveAssetUrl(v)
 }

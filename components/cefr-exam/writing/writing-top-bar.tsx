@@ -3,6 +3,7 @@
 import { PenTool, Clock, Flag, User } from "lucide-react"
 import { useAuth } from "@/lib/auth/auth-context"
 import { resolveMediaUrl } from "@/lib/media"
+import { formatClock } from '@/lib/format'
 
 interface WritingTopBarProps {
     title?: string
@@ -13,15 +14,7 @@ interface WritingTopBarProps {
 
 function formatTime(value?: string | number | null) {
     if (value == null || value === "") return "--:--"
-    if (typeof value === "number") {
-        const total = Math.max(0, Math.floor(value))
-        const h = Math.floor(total / 3600)
-        const m = Math.floor((total % 3600) / 60)
-        const s = total % 60
-        const mm = String(m).padStart(2, "0")
-        const ss = String(s).padStart(2, "0")
-        return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`
-    }
+    if (typeof value === "number") return formatClock(value)
     return value
 }
 

@@ -21,7 +21,8 @@ import { useAuth } from '@/lib/auth/auth-context'
 import { ApiRequestError } from '@/lib/api/client'
 import { resolveAssetUrl } from '@/lib/api/config'
 import { toast } from 'sonner'
-import { LISTENING_QUESTION_TYPES } from '@/lib/cefr-question-types'
+import { LISTENING_QUESTION_TYPES } from '@/lib/admin/question-types'
+import { TestSettings } from '@/components/admin/test-settings'
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Multilevel']
 
@@ -107,7 +108,7 @@ function MapImageField({
             <button
               type="button"
               onClick={() => onChange('')}
-              className="text-xs font-medium text-red-600 hover:underline"
+              className="text-xs font-medium text-error hover:underline"
             >
               Olib tashlash
             </button>
@@ -472,7 +473,7 @@ export default function AdminListeningEditorPage({ params }: { params: Promise<{
   if (!test) return (
     <main className="container-shell py-10">
       {error
-        ? <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        ? <p className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">{error}</p>
         : <p className="text-sm text-muted-foreground animate-pulse">Yuklanmoqda...</p>}
     </main>
   )
@@ -491,9 +492,8 @@ export default function AdminListeningEditorPage({ params }: { params: Promise<{
             <h1 className="text-lg font-bold">{test.title || test.id}</h1>
             <p className="text-xs text-muted-foreground">{test.id}</p>
           </div>
-          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-            isLocked ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
-          }`}>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${isLocked ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+            }`}>
             {isLocked
               ? <><Lock className="inline size-3 mr-1" />LOCKED</>
               : <><Unlock className="inline size-3 mr-1" />DRAFT</>}
@@ -559,17 +559,17 @@ export default function AdminListeningEditorPage({ params }: { params: Promise<{
         </div>
       </div>
 
-      {success && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{success}</p>}
-      {miniTestMessage && <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{miniTestMessage}</p>}
+      {success && <p role="status" className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">{success}</p>}
+      {miniTestMessage && <p role="status" className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">{miniTestMessage}</p>}
 
       {/* Xatolar */}
       {error && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p className="rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
           {error}
         </p>
       )}
       {lockErrors.length > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
           <p className="flex items-center gap-1.5 font-semibold">
             <AlertTriangle className="size-4" /> Lock qilib bo'lmadi:
           </p>
@@ -579,72 +579,18 @@ export default function AdminListeningEditorPage({ params }: { params: Promise<{
         </div>
       )}
       {isLocked && (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <p className="rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
           Bu test lock qilingan (v{latestVersion.version_number}). Tuzilmani o'zgartirib bo'lmaydi — faqat yangi versiya orqali.
         </p>
       )}
 
-      {/* Umumiy ma'lumotlar */}
-      <div className="surface p-6 grid gap-4 sm:grid-cols-2">
-        <label className="block sm:col-span-2">
-          <span className="label-xs">Sarlavha</span>
-          <input
-            disabled={isLocked}
-            value={test.title}
-            onChange={e => updateTest('title', e.target.value)}
-            className="field"
-          />
-        </label>
-        <label className="block">
-          <span className="label-xs">CEFR darajasi</span>
-          <select
-            disabled={isLocked}
-            value={test.level}
-            onChange={e => updateTest('level', e.target.value)}
-            className="field"
-          >
-            {CEFR_LEVELS.map(l => <option key={l}>{l}</option>)}
-          </select>
-        </label>
-        <label className="block">
-          <span className="label-xs">Davomiyligi (daqiqa)</span>
-          <input
-            disabled={isLocked}
-            type="number"
-            min={10}
-            value={test.duration}
-            onChange={e => updateTest('duration', Number(e.target.value))}
-            className="field"
-          />
-        </label>
-        <label className="block sm:col-span-2">
-          <span className="label-xs">Bo'limlar tavsifi (ixtiyoriy matn)</span>
-          <input
-            disabled={isLocked}
-            value={test.sections ?? ''}
-            onChange={e => updateTest('sections', e.target.value)}
-            className="field"
-          />
-        </label>
-        <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
-          {([
-            ['is_demo', 'Demo'],
-            ['is_free', 'Bepul'],
-            ['is_practice', 'Mashq (practice) testi'],
-            ['is_active', 'Faol'],
-          ] as const).map(([key, label]) => (
-            <label key={key} className="flex items-center gap-2 text-sm">
-              <input
-                disabled={isLocked}
-                type="checkbox"
-                checked={!!test[key]}
-                onChange={e => updateTest(key, e.target.checked as any)}
-              />
-              {label}
-            </label>
-          ))}
-        </div>
-      </div>
+      {/* Test Sozlamalari */}
+      <TestSettings
+        skill="listening"
+        value={test}
+        onChange={(key, val) => updateTest(key, val as never)}
+        disabled={isLocked}
+      />
 
       {/* Audio manbasi */}
       <section className="surface p-5 space-y-4">
@@ -740,327 +686,327 @@ export default function AdminListeningEditorPage({ params }: { params: Promise<{
                   </span>
                 </button>
                 {part.questions.length === 0 && (
-                  <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Savol yo'q</span>
+                  <span className="shrink-0 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">Savol yo'q</span>
                 )}
                 {audioMissing && (
-                  <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">Audio yo'q</span>
+                  <span className="shrink-0 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">Audio yo'q</span>
                 )}
               </header>
 
               {!isCollapsed && (
-              <div className="p-5 space-y-4">
+                <div className="p-5 space-y-4">
 
-              {/* Part asosiy maydonlari */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 grid gap-3 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="label-xs">Qism raqami</span>
-                    <input
-                      disabled={isLocked}
-                      type="number"
-                      min={1}
-                      value={part.part_number}
-                      onChange={e => updatePart(pIdx, { part_number: Number(e.target.value) })}
-                      className="field"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="label-xs">Sarlavha</span>
-                    <input
-                      disabled={isLocked}
-                      value={part.title}
-                      onChange={e => updatePart(pIdx, { title: e.target.value })}
-                      placeholder={`Part ${pIdx + 1}`}
-                      className="field"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="label-xs">Part audio URL</span>
-                    <div className="flex gap-2">
-                      <input
-                        disabled={isLocked || test.audio_mode === 'EXAM'}
-                        value={part.audio_url ?? part.audio_label ?? ''}
-                        onChange={e => updatePart(pIdx, { audio_url: e.target.value, audio_label: e.target.value })}
-                        placeholder="https://.../part1.mp3 yoki /static/..."
-                        className="field flex-1"
-                      />
-                      {!isLocked && test.audio_mode !== 'EXAM' && (
-                        <label className="shrink-0 cursor-pointer rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-muted">
-                          Upload
+                  {/* Part asosiy maydonlari */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 grid gap-3 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="label-xs">Qism raqami</span>
+                        <input
+                          disabled={isLocked}
+                          type="number"
+                          min={1}
+                          value={part.part_number}
+                          onChange={e => updatePart(pIdx, { part_number: Number(e.target.value) })}
+                          className="field"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="label-xs">Sarlavha</span>
+                        <input
+                          disabled={isLocked}
+                          value={part.title}
+                          onChange={e => updatePart(pIdx, { title: e.target.value })}
+                          placeholder={`Part ${pIdx + 1}`}
+                          className="field"
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="label-xs">Part audio URL</span>
+                        <div className="flex gap-2">
                           <input
-                            type="file"
-                            accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm"
-                            className="hidden"
-                            disabled={audioUploading}
-                            onChange={e => {
-                              const f = e.target.files?.[0]
-                              if (f) uploadAudio(f, pIdx)
-                              e.currentTarget.value = ''
-                            }}
+                            disabled={isLocked || test.audio_mode === 'EXAM'}
+                            value={part.audio_url ?? part.audio_label ?? ''}
+                            onChange={e => updatePart(pIdx, { audio_url: e.target.value, audio_label: e.target.value })}
+                            placeholder="https://.../part1.mp3 yoki /static/..."
+                            className="field flex-1"
                           />
-                        </label>
+                          {!isLocked && test.audio_mode !== 'EXAM' && (
+                            <label className="shrink-0 cursor-pointer rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-muted">
+                              Upload
+                              <input
+                                type="file"
+                                accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm"
+                                className="hidden"
+                                disabled={audioUploading}
+                                onChange={e => {
+                                  const f = e.target.files?.[0]
+                                  if (f) uploadAudio(f, pIdx)
+                                  e.currentTarget.value = ''
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      </label>
+                      {test.audio_mode === 'EXAM' && (
+                        <div className="grid grid-cols-2 gap-3 sm:col-span-2">
+                          <label className="block">
+                            <span className="label-xs">Audio boshlanishi (sekund)</span>
+                            <input type="number" min={0} step={0.1} disabled={isLocked}
+                              value={part.audio_start_seconds ?? ''}
+                              onChange={e => updatePart(pIdx, { audio_start_seconds: e.target.value === '' ? null : Number(e.target.value) })}
+                              placeholder="Masalan: 0" className="field" />
+                          </label>
+                          <label className="block">
+                            <span className="label-xs">Audio tugashi (sekund)</span>
+                            <input type="number" min={0} step={0.1} disabled={isLocked}
+                              value={part.audio_end_seconds ?? ''}
+                              onChange={e => updatePart(pIdx, { audio_end_seconds: e.target.value === '' ? null : Number(e.target.value) })}
+                              placeholder="Masalan: 245" className="field" />
+                          </label>
+                          <p className="col-span-2 text-xs text-muted-foreground">Umumiy audio ichida ushbu partga tegishli segment chegaralarini sekundlarda kiriting. Segmentlar bir-birini qoplamasligi va to'g'ri ketma-ketlikda bo'lishi kerak.</p>
+                        </div>
                       )}
-                    </div>
-                  </label>
-                  {test.audio_mode === 'EXAM' && (
-                    <div className="grid grid-cols-2 gap-3 sm:col-span-2">
                       <label className="block">
-                        <span className="label-xs">Audio boshlanishi (sekund)</span>
-                        <input type="number" min={0} step={0.1} disabled={isLocked}
-                          value={part.audio_start_seconds ?? ''}
-                          onChange={e => updatePart(pIdx, { audio_start_seconds: e.target.value === '' ? null : Number(e.target.value) })}
-                          placeholder="Masalan: 0" className="field" />
+                        <span className="label-xs">Topshiriq turi (task_type)</span>
+                        <input
+                          disabled={isLocked}
+                          value={part.task_type ?? ''}
+                          onChange={e => updatePart(pIdx, { task_type: e.target.value })}
+                          placeholder="MULTIPLE_CHOICE / GAP_FILL / MATCHING / MAP_DIAGRAM"
+                          className="field"
+                        />
                       </label>
-                      <label className="block">
-                        <span className="label-xs">Audio tugashi (sekund)</span>
-                        <input type="number" min={0} step={0.1} disabled={isLocked}
-                          value={part.audio_end_seconds ?? ''}
-                          onChange={e => updatePart(pIdx, { audio_end_seconds: e.target.value === '' ? null : Number(e.target.value) })}
-                          placeholder="Masalan: 245" className="field" />
+                      <label className="block sm:col-span-2">
+                        <span className="label-xs">Ko'rsatma (instruction)</span>
+                        <input
+                          disabled={isLocked}
+                          value={part.instruction ?? ''}
+                          onChange={e => updatePart(pIdx, { instruction: e.target.value })}
+                          className="field"
+                        />
                       </label>
-                      <p className="col-span-2 text-xs text-muted-foreground">Umumiy audio ichida ushbu partga tegishli segment chegaralarini sekundlarda kiriting. Segmentlar bir-birini qoplamasligi va to'g'ri ketma-ketlikda bo'lishi kerak.</p>
-                    </div>
-                  )}
-                  <label className="block">
-                    <span className="label-xs">Topshiriq turi (task_type)</span>
-                    <input
-                      disabled={isLocked}
-                      value={part.task_type ?? ''}
-                      onChange={e => updatePart(pIdx, { task_type: e.target.value })}
-                      placeholder="MULTIPLE_CHOICE / GAP_FILL / MATCHING / MAP_DIAGRAM"
-                      className="field"
-                    />
-                  </label>
-                  <label className="block sm:col-span-2">
-                    <span className="label-xs">Ko'rsatma (instruction)</span>
-                    <input
-                      disabled={isLocked}
-                      value={part.instruction ?? ''}
-                      onChange={e => updatePart(pIdx, { instruction: e.target.value })}
-                      className="field"
-                    />
-                  </label>
-                  <label className="block sm:col-span-2">
-                    <span className="label-xs">Kontekst / stenogramma tayanchi (ixtiyoriy)</span>
-                    <textarea
-                      disabled={isLocked}
-                      rows={3}
-                      value={part.context ?? ''}
-                      onChange={e => updatePart(pIdx, { context: e.target.value })}
-                      className="field resize-y"
-                    />
-                  </label>
-                  <div className="sm:col-span-2">
-                    <MapImageField
-                      disabled={isLocked}
-                      value={part.map_image ?? ''}
-                      onChange={url => updatePart(pIdx, { map_image: url })}
-                    />
-                  </div>
-                </div>
-                {!isLocked && (
-                  <button
-                    onClick={() => removePart(pIdx)}
-                    className="rounded-lg p-1.5 text-red-500 hover:bg-red-50 shrink-0"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                )}
-              </div>
-
-              {/* ── Part-level umumiy variantlar (MATCHING / MAP_DIAGRAM) ── */}
-              {showPartOptions && (
-                <div className="rounded-lg border bg-secondary/40 p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-semibold text-foreground">
-                        Umumiy variantlar ({(part.options ?? []).length} ta)
-                      </h3>
-                      <p className="text-xs text-foreground mt-0.5">
-                        MATCHING / MAP savollarda barcha savollar shu ro'yxatdan javob tanlaydi (A, B, C...).
-                        Lock uchun kamida 2 ta variant kerak.
-                      </p>
+                      <label className="block sm:col-span-2">
+                        <span className="label-xs">Kontekst / stenogramma tayanchi (ixtiyoriy)</span>
+                        <textarea
+                          disabled={isLocked}
+                          rows={3}
+                          value={part.context ?? ''}
+                          onChange={e => updatePart(pIdx, { context: e.target.value })}
+                          className="field resize-y"
+                        />
+                      </label>
+                      <div className="sm:col-span-2">
+                        <MapImageField
+                          disabled={isLocked}
+                          value={part.map_image ?? ''}
+                          onChange={url => updatePart(pIdx, { map_image: url })}
+                        />
+                      </div>
                     </div>
                     {!isLocked && (
                       <button
-                        onClick={() => addPartOption(pIdx)}
-                        className="flex items-center gap-1 text-xs font-semibold text-foreground hover:underline shrink-0"
+                        onClick={() => removePart(pIdx)}
+                        className="rounded-lg p-1.5 text-error hover:bg-error/10 shrink-0"
                       >
-                        <Plus className="size-3" /> variant qo'shish
+                        <Trash2 className="size-4" />
                       </button>
                     )}
                   </div>
 
-                  {(part.options ?? []).length === 0 && !isLocked && (
-                    <p className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 rounded px-3 py-2">
-                      <AlertTriangle className="size-3.5 shrink-0" />
-                      Hali variantlar yo'q — lock qilishdan oldin qo'shing (masalan: A–F yoki A–H)
-                    </p>
-                  )}
-
-                  <div className="space-y-1.5">
-                    {(part.options ?? []).map((opt, oIdx) => {
-                      const optKey = (opt as any)._key ?? (opt as any).id ?? oIdx
-                      return (
-                        <div key={optKey} className="flex items-center gap-2">
-                          <span className="w-6 shrink-0 text-center text-xs font-bold text-muted-foreground rounded border bg-muted px-1 py-0.5">
-                            {String.fromCharCode(65 + oIdx)}
-                          </span>
-                          <input
-                            disabled={isLocked}
-                            value={typeof opt === 'string' ? opt : (opt as any).value ?? ''}
-                            placeholder={`Variant ${String.fromCharCode(65 + oIdx)}`}
-                            onChange={e => updatePartOption(pIdx, oIdx, e.target.value)}
-                            className="flex-1 rounded border px-2 py-1 text-sm"
-                          />
-                          {!isLocked && (
-                            <button
-                              onClick={() => removePartOption(pIdx, oIdx)}
-                              className="rounded p-1 text-red-500 hover:bg-red-50 shrink-0"
-                            >
-                              <Trash2 className="size-3" />
-                            </button>
-                          )}
+                  {/* ── Part-level umumiy variantlar (MATCHING / MAP_DIAGRAM) ── */}
+                  {showPartOptions && (
+                    <div className="rounded-lg border bg-secondary/40 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-semibold text-foreground">
+                            Umumiy variantlar ({(part.options ?? []).length} ta)
+                          </h3>
+                          <p className="text-xs text-foreground mt-0.5">
+                            MATCHING / MAP savollarda barcha savollar shu ro'yxatdan javob tanlaydi (A, B, C...).
+                            Lock uchun kamida 2 ta variant kerak.
+                          </p>
                         </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Savollar ── */}
-              <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold">Savollar ({part.questions.length})</h3>
-                  {!isLocked && (
-                    <button
-                      onClick={() => addQuestion(pIdx)}
-                      className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-                    >
-                      <Plus className="size-3" /> Savol qo'shish
-                    </button>
-                  )}
-                </div>
-
-                {part.questions.map((q, qIdx) => {
-                  // FIX: barqaror key — nusxalanish oldini oladi
-                  const qKey = (q as any)._key ?? `${pIdx}-${qIdx}`
-                  const isPartLevelType = PART_LEVEL_OPTION_TYPES.has(q.type?.toUpperCase() ?? '')
-
-                  return (
-                    <div key={qKey} className="rounded-lg border bg-card p-3 space-y-2">
-                      {/* Savol header */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        <label className="flex items-center gap-1 text-xs text-muted-foreground">
-                          #
-                          <input
-                            disabled={isLocked}
-                            type="number"
-                            value={q.question_number}
-                            onChange={e => updateQuestion(pIdx, qIdx, { question_number: Number(e.target.value) })}
-                            className="w-14 rounded border px-1.5 py-1"
-                          />
-                        </label>
-                        <input
-                          disabled={isLocked}
-                          list="listening-question-types"
-                          value={q.type}
-                          onChange={e => updateQuestion(pIdx, qIdx, { type: e.target.value })}
-                          placeholder="Turi (masalan MULTIPLE_CHOICE)"
-                          className="field !mt-0 max-w-[220px]"
-                        />
                         {!isLocked && (
                           <button
-                            onClick={() => removeQuestion(pIdx, qIdx)}
-                            className="ml-auto rounded p-1 text-red-500 hover:bg-red-50"
+                            onClick={() => addPartOption(pIdx)}
+                            className="flex items-center gap-1 text-xs font-semibold text-foreground hover:underline shrink-0"
                           >
-                            <Trash2 className="size-3.5" />
+                            <Plus className="size-3" /> variant qo'shish
                           </button>
                         )}
                       </div>
 
-                      {/* Savol matni */}
-                      <input
-                        disabled={isLocked}
-                        value={(q as any).question ?? (q as any).text ?? ''}
-                        onChange={e => updateQuestion(pIdx, qIdx, { question: e.target.value })}
-                        placeholder="Savol matni"
-                        className="field"
-                      />
+                      {(part.options ?? []).length === 0 && !isLocked && (
+                        <p className="flex items-center gap-1.5 text-xs text-warning bg-warning/10 rounded px-3 py-2">
+                          <AlertTriangle className="size-3.5 shrink-0" />
+                          Hali variantlar yo'q — lock qilishdan oldin qo'shing (masalan: A–F yoki A–H)
+                        </p>
+                      )}
 
-                      {/* To'g'ri javob */}
-                      <label className="block">
-                        <span className="label-xs">To'g'ri javob</span>
-                        <input
-                          disabled={isLocked}
-                          value={q.correct_answer ?? ''}
-                          onChange={e => updateQuestion(pIdx, qIdx, { correct_answer: e.target.value })}
-                          placeholder={isPartLevelType ? 'Masalan: A yoki F' : 'Javob'}
-                          className="field"
-                        />
-                      </label>
+                      <div className="space-y-1.5">
+                        {(part.options ?? []).map((opt, oIdx) => {
+                          const optKey = (opt as any)._key ?? (opt as any).id ?? oIdx
+                          return (
+                            <div key={optKey} className="flex items-center gap-2">
+                              <span className="w-6 shrink-0 text-center text-xs font-bold text-muted-foreground rounded border bg-muted px-1 py-0.5">
+                                {String.fromCharCode(65 + oIdx)}
+                              </span>
+                              <input
+                                disabled={isLocked}
+                                value={typeof opt === 'string' ? opt : (opt as any).value ?? ''}
+                                placeholder={`Variant ${String.fromCharCode(65 + oIdx)}`}
+                                onChange={e => updatePartOption(pIdx, oIdx, e.target.value)}
+                                className="flex-1 rounded border px-2 py-1 text-sm"
+                              />
+                              {!isLocked && (
+                                <button
+                                  onClick={() => removePartOption(pIdx, oIdx)}
+                                  className="rounded p-1 text-error hover:bg-error/10 shrink-0"
+                                >
+                                  <Trash2 className="size-3" />
+                                </button>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-                      {/* Savol-darajasi variantlar — faqat MATCHING/MAP_DIAGRAM bo'lmagan turlar uchun */}
-                      {!isPartLevelType && (
-                        <div>
-                          <div className="flex items-center justify-between">
-                            <span className="label-xs !mt-0">
-                              Variantlar (ko'p tanlovli savollar uchun)
-                            </span>
+                  {/* ── Savollar ── */}
+                  <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold">Savollar ({part.questions.length})</h3>
+                      {!isLocked && (
+                        <button
+                          onClick={() => addQuestion(pIdx)}
+                          className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                        >
+                          <Plus className="size-3" /> Savol qo'shish
+                        </button>
+                      )}
+                    </div>
+
+                    {part.questions.map((q, qIdx) => {
+                      // FIX: barqaror key — nusxalanish oldini oladi
+                      const qKey = (q as any)._key ?? `${pIdx}-${qIdx}`
+                      const isPartLevelType = PART_LEVEL_OPTION_TYPES.has(q.type?.toUpperCase() ?? '')
+
+                      return (
+                        <div key={qKey} className="rounded-lg border bg-card p-3 space-y-2">
+                          {/* Savol header */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <label className="flex items-center gap-1 text-xs text-muted-foreground">
+                              #
+                              <input
+                                disabled={isLocked}
+                                type="number"
+                                value={q.question_number}
+                                onChange={e => updateQuestion(pIdx, qIdx, { question_number: Number(e.target.value) })}
+                                className="w-14 rounded border px-1.5 py-1"
+                              />
+                            </label>
+                            <input
+                              disabled={isLocked}
+                              list="listening-question-types"
+                              value={q.type}
+                              onChange={e => updateQuestion(pIdx, qIdx, { type: e.target.value })}
+                              placeholder="Turi (masalan MULTIPLE_CHOICE)"
+                              className="field !mt-0 max-w-[220px]"
+                            />
                             {!isLocked && (
                               <button
-                                onClick={() => addOption(pIdx, qIdx)}
-                                className="text-xs font-semibold text-primary hover:underline"
+                                onClick={() => removeQuestion(pIdx, qIdx)}
+                                className="ml-auto rounded p-1 text-error hover:bg-error/10"
                               >
-                                + variant
+                                <Trash2 className="size-3.5" />
                               </button>
                             )}
                           </div>
-                          <div className="space-y-1.5">
-                            {(q.options ?? []).map((opt, oIdx) => {
-                              const opKey = (opt as any)._key ?? (opt as any).id ?? oIdx
-                              return (
-                                <div key={opKey} className="flex items-center gap-1.5">
-                                  <span className="w-5 shrink-0 text-center text-xs font-bold text-muted-foreground">
-                                    {String.fromCharCode(65 + oIdx)}
-                                  </span>
-                                  <input
-                                    disabled={isLocked}
-                                    value={typeof opt === 'string' ? opt : (opt as any).value ?? ''}
-                                    placeholder={`Variant ${oIdx + 1}`}
-                                    onChange={e => updateOption(pIdx, qIdx, oIdx, e.target.value)}
-                                    className="flex-1 rounded border px-2 py-1 text-sm"
-                                  />
-                                  {!isLocked && (
-                                    <button
-                                      onClick={() => removeOption(pIdx, qIdx, oIdx)}
-                                      className="rounded p-1 text-red-500 hover:bg-red-50"
-                                    >
-                                      <Trash2 className="size-3" />
-                                    </button>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
+
+                          {/* Savol matni */}
+                          <input
+                            disabled={isLocked}
+                            value={(q as any).question ?? (q as any).text ?? ''}
+                            onChange={e => updateQuestion(pIdx, qIdx, { question: e.target.value })}
+                            placeholder="Savol matni"
+                            className="field"
+                          />
+
+                          {/* To'g'ri javob */}
+                          <label className="block">
+                            <span className="label-xs">To'g'ri javob</span>
+                            <input
+                              disabled={isLocked}
+                              value={q.correct_answer ?? ''}
+                              onChange={e => updateQuestion(pIdx, qIdx, { correct_answer: e.target.value })}
+                              placeholder={isPartLevelType ? 'Masalan: A yoki F' : 'Javob'}
+                              className="field"
+                            />
+                          </label>
+
+                          {/* Savol-darajasi variantlar — faqat MATCHING/MAP_DIAGRAM bo'lmagan turlar uchun */}
+                          {!isPartLevelType && (
+                            <div>
+                              <div className="flex items-center justify-between">
+                                <span className="label-xs !mt-0">
+                                  Variantlar (ko'p tanlovli savollar uchun)
+                                </span>
+                                {!isLocked && (
+                                  <button
+                                    onClick={() => addOption(pIdx, qIdx)}
+                                    className="text-xs font-semibold text-primary hover:underline"
+                                  >
+                                    + variant
+                                  </button>
+                                )}
+                              </div>
+                              <div className="space-y-1.5">
+                                {(q.options ?? []).map((opt, oIdx) => {
+                                  const opKey = (opt as any)._key ?? (opt as any).id ?? oIdx
+                                  return (
+                                    <div key={opKey} className="flex items-center gap-1.5">
+                                      <span className="w-5 shrink-0 text-center text-xs font-bold text-muted-foreground">
+                                        {String.fromCharCode(65 + oIdx)}
+                                      </span>
+                                      <input
+                                        disabled={isLocked}
+                                        value={typeof opt === 'string' ? opt : (opt as any).value ?? ''}
+                                        placeholder={`Variant ${oIdx + 1}`}
+                                        onChange={e => updateOption(pIdx, qIdx, oIdx, e.target.value)}
+                                        className="flex-1 rounded border px-2 py-1 text-sm"
+                                      />
+                                      {!isLocked && (
+                                        <button
+                                          onClick={() => removeOption(pIdx, qIdx, oIdx)}
+                                          className="rounded p-1 text-error hover:bg-error/10"
+                                        >
+                                          <Trash2 className="size-3" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* MATCHING / MAP_DIAGRAM uchun izoh */}
+                          {isPartLevelType && (part.options ?? []).length > 0 && (
+                            <p className="text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1">
+                              Variantlar yuqorida Part darajasida ({(part.options ?? []).length} ta) ko'rsatilgan
+                            </p>
+                          )}
                         </div>
-                      )}
+                      )
+                    })}
 
-                      {/* MATCHING / MAP_DIAGRAM uchun izoh */}
-                      {isPartLevelType && (part.options ?? []).length > 0 && (
-                        <p className="text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1">
-                          Variantlar yuqorida Part darajasida ({(part.options ?? []).length} ta) ko'rsatilgan
-                        </p>
-                      )}
-                    </div>
-                  )
-                })}
-
-                {part.questions.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Hali savollar yo'q.</p>
-                )}
-              </div>
-              </div>
+                    {part.questions.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Hali savollar yo'q.</p>
+                    )}
+                  </div>
+                </div>
               )}
             </section>
           )

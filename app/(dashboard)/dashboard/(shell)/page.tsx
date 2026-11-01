@@ -5,13 +5,15 @@ import Link from 'next/link'
 import { BookOpen, Headphones, Mic, Pencil, ArrowUpRight, CreditCard, RefreshCw, Lightbulb, Zap } from 'lucide-react'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useApi } from '@/lib/api/use-api'
-import type { BillingLimits } from '@/lib/api/types'
+import type { BillingLimits, OnboardingState } from '@/lib/api/types'
+import { PlanCalendarWidget } from '@/components/dashboard/plan-calendar-widget'
+import { AiReminder } from '@/components/dashboard/ai-reminder'
 
 /* ───────────── Palette ─────────────
    Asosiy: LIME (urg‘u) + foreground (to‘q) + oq/neytral.
    Ko‘nikmalar faqat ikonka rangi sifatida o‘z rangiga ega — sahifa "kamalak"ga aylanmaydi. */
 
-const LIME = '#E4F70A'
+const LIME = '#C8FF00'
 
 const PRACTICE_SKILLS = [
   { href: '/dashboard/reading', label: 'Reading', description: 'Matn o‘qing, savollarga javob bering', icon: BookOpen, tint: '#E6EEFF', accent: '#2563EB' },
@@ -119,6 +121,7 @@ function UsageBar({ label, used, limit }: { label: string; used: number; limit: 
 export default function DashboardPage() {
   const { user } = useAuth()
   const limits = useApi<BillingLimits>('/billing/me/limits')
+  const onboarding = useApi<OnboardingState>('/onboarding')
   const name = user?.profile?.full_name || ''
   const firstName = name.replace(/[^\p{L}\p{N}\s'‘’-]/gu, '').trim().split(/\s+/)[0]
 
@@ -306,6 +309,13 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {/* ───── Kalendar / AI reja ───── */}
+      <PlanCalendarWidget
+        plan={onboarding.data?.plan ?? null}
+        startedAt={onboarding.data?.plan_generated_at ?? null}
+        loading={onboarding.loading && !onboarding.data}
+      />
+
       {/* ───── Maslahat + Tarif ───── */}
       <section className="grid gap-3 sm:gap-4 lg:grid-cols-2">
         <div className="relative overflow-hidden rounded-3xl bg-[#16603A] p-5 text-white sm:rounded-[32px] sm:p-8">
@@ -337,6 +347,12 @@ export default function DashboardPage() {
           </Link>
         </div>
       </section>
+
+      <AiReminder
+        plan={onboarding.data?.plan ?? null}
+        loading={onboarding.loading && !onboarding.data}
+        hasOnboarding={!!onboarding.data}
+      />
     </div>
   )
 }

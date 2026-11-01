@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from 'react'
 import { billingApi } from '@/lib/api'
+import type { AiQuota } from '@/lib/api/types'
 
 let cached: { at: number; canGrade: boolean } | null = null
 const TTL_MS = 60_000
@@ -44,6 +45,27 @@ export function useSpeakingGrading() {
       cached = { at: Date.now(), canGrade }
       if (alive) setState({ loading: false, canGrade })
     })
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  return state
+}
+
+/**
+ * Umumiy AI kreditlar (GET /billing/me/ai-quota): Writing va Speaking bitta pooldan.
+ * Kvota backendda tekshiriladi; bu hook faqat UI uchun qolgan limitni ko'rsatadi.
+ */
+export function useAiQuota() {
+  const [state, setState] = useState<{ loading: boolean; quota: AiQuota | null }>({ loading: true, quota: null })
+
+  useEffect(() => {
+    let alive = true
+    billingApi
+      .aiQuota()
+      .then((quota) => alive && setState({ loading: false, quota }))
+      .catch(() => alive && setState({ loading: false, quota: null }))
     return () => {
       alive = false
     }

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ArrowLeft, Check, CheckCircle2, Copy, XCircle } from 'lucide-react'
 import { apiUrl } from '@/lib/api/config'
-import { getReadingExamByIdAPI } from '@/lib/cefr-api/reading'
+import { getReadingExamByIdAPI } from '@/lib/practice/api/reading'
 import { ErrorBox, Loading } from '@/components/dashboard/ui'
 import {
   Circle, LIME, SKILLS, answerText, authFetch, errorMessage, fmtDay, parseSkill,

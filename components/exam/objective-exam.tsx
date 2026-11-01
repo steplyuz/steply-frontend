@@ -17,7 +17,7 @@ import { FinishDialog } from './exam-dialogs'
 import { ExamIntro } from './exam-intro'
 import { QuestionInput, type ExamQuestion } from './question-input'
 import { TONES, type Tone } from '@/lib/brand'
-import { formatClock, useCountdown } from '@/lib/use-countdown'
+import { formatClock, useCountdown } from '@/lib/exam/use-countdown'
 import { getErrorMessage } from '@/lib/api/client'
 import type { AttemptAnswerInput, AttemptState, ExamResultSummary } from '@/lib/api/types'
 

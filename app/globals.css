@@ -56,21 +56,21 @@
   --card-foreground: #0b0b0d;
 
   /* Brand — primary lime, only for CTAs / active state / accents */
-  --primary: #e4f70a;
-  --primary-hover: #d2e600;
-  --primary-active: #c2d500;
+  --primary: #C8FF00;
+  --primary-hover: #B8ED00;
+  --primary-active: #AADB00;
   --primary-foreground: #0b0b0d;
   /* Darkened lime for icons/text that need brand meaning on a light
      background — pure lime fails contrast there, see design rules. */
-  --primary-strong: #7a8a00;
+  --primary-strong: #587800;
 
   /* Soft badge/icon-circle surface tinted with the brand color
      (used across the app as "bg-secondary text-primary") */
-  --secondary: #f0f3d7;
+  --secondary: #F0F8D2;
   --secondary-foreground: #0a0a0c;
 
   /* Accent */
-  --accent: #e4f70a;
+  --accent: #C8FF00;
   --accent-foreground: #0b0b0d;
 
   /* Muted surfaces — dashboard sections, secondary blocks */
@@ -82,7 +82,7 @@
   --border-strong: #d1d5db;
 
   /* Focus ring */
-  --ring: #e4f70a;
+  --ring: #C8FF00;
 
   /* Status */
   --success: #15803d;
@@ -97,7 +97,7 @@
 /* ================================================================
    ADMIN THEME
    ------------------------------------------------------------
-   Foydalanuvchi (candidate) ilovasi lime (#E4F70A) aksentda qoladi.
+   Foydalanuvchi (candidate) ilovasi lime (#C8FF00) aksentda qoladi.
    Admin panel esa o'z aksent rangi (indigo) va sarlavha shrifti bilan
    vizual jihatdan alohida "boshqaruv markazi" hissi beradi — fon
    baribir och (--background/--card) qoladi, faqat aksent va sarlavha
@@ -141,12 +141,12 @@ html {
 body {
   @apply bg-background text-foreground font-sans antialiased;
 
-  selection-background-color: #e4f70a;
+  selection-background-color: #C8FF00;
   selection-color: #151515;
 }
 
 ::selection {
-  background: #e4f70a;
+  background: #C8FF00;
   color: #151515;
 }
 
@@ -230,8 +230,8 @@ body {
   .lime-spotlight {
     background: radial-gradient(
       circle,
-      rgba(228, 247, 10, 0.12) 0%,
-      rgba(228, 247, 10, 0.045) 38%,
+      rgba(200, 255, 0, 0.12) 0%,
+      rgba(200, 255, 0, 0.045) 38%,
       rgba(250, 250, 247, 0) 72%
     );
   }
@@ -239,8 +239,8 @@ body {
   /* Very subtle lime glow */
   .lime-glow {
     box-shadow:
-      0 0 0 1px rgba(228, 247, 10, 0.15),
-      0 10px 35px rgba(228, 247, 10, 0.08);
+      0 0 0 1px rgba(200, 255, 0, 0.15),
+      0 10px 35px rgba(200, 255, 0, 0.08);
   }
 
   /* ============================================================
@@ -281,7 +281,7 @@ body {
   }
 
   .text-brand {
-    color: #e4f70a;
+    color: #C8FF00;
   }
 
   /* ============================================================
@@ -292,7 +292,7 @@ body {
     width: 6px;
     height: 6px;
     border-radius: 9999px;
-    background: #e4f70a;
+    background: #C8FF00;
   }
 }
 

@@ -185,11 +185,11 @@ body {
         .mini-card-body {
             --q-fg: var(--bs-body-color, #374151);
             --q-border: var(--bs-border-color, #d1d5db);
-            --q-primary: var(--bs-primary, #E4F70A);
+            --q-primary: var(--bs-primary, #C8FF00);
             --q-success: var(--bs-success, #10b981);
             --q-success-subtle: var(--bs-success-bg-subtle, rgba(16,185,129,.15));
             --q-success-border: var(--bs-success-border-subtle, rgba(16,185,129,.35));
-            --q-primary-subtle: var(--bs-primary-bg-subtle, rgba(228,247,10,.18));
+            --q-primary-subtle: var(--bs-primary-bg-subtle, rgba(200, 255, 0,.18));
             --q-primary-border: var(--bs-primary-border-subtle, rgba(210,230,0,.45));
             --q-shadow: 0 2px 8px rgba(0,0,0,.06);
             --q-shadow-hover: 0 6px 16px rgba(0,0,0,.10);
@@ -338,8 +338,8 @@ body {
 /* ---- Listening/Exampart.htm style#1 ---- */
 /* ====== THEME TOKENS ====== */
         :root {
-            --md-primary: #E4F70A; /* brand */
-            --md-secondary: #D2E600; /* brand2 */
+            --md-primary: #C8FF00; /* brand */
+            --md-secondary: #B8ED00; /* brand2 */
             --md-muted: #6b7280; /* gray-500 */
             --md-surface: #ffffff;
             --md-on-surface: #0B0B0D;
@@ -934,7 +934,7 @@ body {
             --md-outline: #E6E7E2; /* gray-200 */
             --md-danger: #f87171; /* red-500 */
             --md-danger-ink: #fff1f2; /* rose-50 */
-            --md-primary: #E4F70A; /* brand */
+            --md-primary: #C8FF00; /* brand */
             --md-shadow: 0 8px 28px rgba(0,0,0,.14), 0 6px 10px rgba(0,0,0,.08);
             --md-radius: 18px;
         }
@@ -946,7 +946,7 @@ body {
                 --md-outline: #1f2937;
                 --md-danger: #f87171;
                 --md-danger-ink: #2b0f12;
-                --md-primary: #D2E600;
+                --md-primary: #B8ED00;
                 --md-shadow: 0 12px 32px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.35);
             }
         }
@@ -1104,13 +1104,13 @@ body {
         }
 
         .md3-brand:hover {
-            color: #E4F70A;
+            color: #C8FF00;
         }
 
         .md3-brand-icon {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, #E4F70A 0%, #D2E600 100%);
+            background: linear-gradient(135deg, #C8FF00 0%, #B8ED00 100%);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -1135,7 +1135,7 @@ body {
         }
 
         .md3-home-btn:hover {
-            background: linear-gradient(135deg, #E4F70A 0%, #D2E600 100%);
+            background: linear-gradient(135deg, #C8FF00 0%, #B8ED00 100%);
             border-color: transparent;
             color: white;
             box-shadow: 0 2px 6px rgba(10, 107, 91, 0.2);
@@ -1159,8 +1159,8 @@ body {
 
 /* ---- Privacy.htm style#1 ---- */
 :root {
-        --md-primary: #E4F70A;
-        --md-secondary: #D2E600;
+        --md-primary: #C8FF00;
+        --md-secondary: #B8ED00;
         --md-muted: #6b7280;
     }
 
@@ -1258,7 +1258,7 @@ body {
         border-radius: 999px;
         border: 1px solid transparent;
         background: transparent;
-        color: #E4F70A;
+        color: #C8FF00;
         cursor: pointer;
         position: relative;
         overflow: hidden;
@@ -1278,7 +1278,7 @@ body {
 
         .lang-chip.is-active {
             color: #fff;
-            background: linear-gradient(135deg,#E4F70A,#D2E600);
+            background: linear-gradient(135deg,#C8FF00,#B8ED00);
             box-shadow: 0 6px 18px rgba(10,107,91,.28);
         }
 
@@ -1332,11 +1332,11 @@ body {
         .mini-card-body {
             --q-fg: var(--bs-body-color, #374151);
             --q-border: var(--bs-border-color, #d1d5db);
-            --q-primary: var(--bs-primary, #E4F70A);
+            --q-primary: var(--bs-primary, #C8FF00);
             --q-success: var(--bs-success, #10b981);
             --q-success-subtle: var(--bs-success-bg-subtle, rgba(16,185,129,.15));
             --q-success-border: var(--bs-success-border-subtle, rgba(16,185,129,.35));
-            --q-primary-subtle: var(--bs-primary-bg-subtle, rgba(228,247,10,.18));
+            --q-primary-subtle: var(--bs-primary-bg-subtle, rgba(200, 255, 0,.18));
             --q-primary-border: var(--bs-primary-border-subtle, rgba(210,230,0,.45));
             --q-shadow: 0 2px 8px rgba(0,0,0,.06);
             --q-shadow-hover: 0 6px 16px rgba(0,0,0,.10);
@@ -1485,8 +1485,8 @@ body {
 /* ---- Reading 2/Examing.htm style#1 ---- */
 /* ====== THEME TOKENS ====== */
         :root {
-            --md-primary: #E4F70A; /* brand */
-            --md-secondary: #D2E600; /* brand2 */
+            --md-primary: #C8FF00; /* brand */
+            --md-secondary: #B8ED00; /* brand2 */
             --md-muted: #6b7280; /* gray-500 */
             --md-surface: #ffffff;
             --md-on-surface: #0B0B0D;
@@ -1996,7 +1996,7 @@ body {
             --md-outline: #E6E7E2; /* gray-200 */
             --md-danger: #f87171; /* red-500 */
             --md-danger-ink: #fff1f2; /* rose-50 */
-            --md-primary: #E4F70A; /* brand */
+            --md-primary: #C8FF00; /* brand */
             --md-shadow: 0 8px 28px rgba(0,0,0,.14), 0 6px 10px rgba(0,0,0,.08);
             --md-radius: 18px;
         }
@@ -2008,7 +2008,7 @@ body {
                 --md-outline: #1f2937;
                 --md-danger: #f87171;
                 --md-danger-ink: #2b0f12;
-                --md-primary: #D2E600;
+                --md-primary: #B8ED00;
                 --md-shadow: 0 12px 32px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.35);
             }
         }
@@ -2147,8 +2147,8 @@ body {
 /* ---- Speaking/EnterSpeaking.htm style#3 ---- */
 /* ===== Tokens ===== */
     :root {
-        --md-primary: #E4F70A; /* brand */
-        --md-secondary: #D2E600; /* brand2 */
+        --md-primary: #C8FF00; /* brand */
+        --md-secondary: #B8ED00; /* brand2 */
         --md-muted: #6b7280; /* gray-500 */
         --md-surface: #ffffff;
         --md-on-surface: #0B0B0D;
@@ -2465,8 +2465,8 @@ body {
 
 /* ---- Speaking/EnterSpeaking.htm style#4 ---- */
 :root {
-            --md-primary: #E4F70A;
-            --md-secondary: #D2E600;
+            --md-primary: #C8FF00;
+            --md-secondary: #B8ED00;
             --md-surface: #fff;
             --md-on-surface: #111827;
             --md-muted: #6b7280;
@@ -2633,8 +2633,8 @@ body {
             --q-primary-200: #a3d7cf;
             --q-primary-300: #75c3b7;
             --q-primary-400: #47af9f;
-            --q-primary-500: #D2E600;
-            --q-primary-600: #E4F70A;
+            --q-primary-500: #B8ED00;
+            --q-primary-600: #C8FF00;
             --q-primary-700: #085548;
             --q-primary-800: #063f36;
             --q-primary-900: #042a24;
@@ -2672,8 +2672,8 @@ body {
             --q-info-200: #a3d7cf;
             --q-info-300: #75c3b7;
             --q-info-400: #47af9f;
-            --q-info-500: #D2E600;
-            --q-info-600: #E4F70A;
+            --q-info-500: #B8ED00;
+            --q-info-600: #C8FF00;
             --q-info-700: #085548;
             /* Neutral Colors */
             --q-gray-50: #f9fafb;
@@ -3477,8 +3477,8 @@ body {
 /* ---- Writing/Enterwriting.htm style#3 ---- */
 /* ===== Tokens ===== */
     :root {
-        --md-primary: #E4F70A; /* brand */
-        --md-secondary: #D2E600; /* brand2 */
+        --md-primary: #C8FF00; /* brand */
+        --md-secondary: #B8ED00; /* brand2 */
         --md-muted: #6b7280; /* gray-500 */
         --md-surface: #ffffff;
         --md-on-surface: #0B0B0D;
@@ -3756,8 +3756,8 @@ body {
 
 /* ---- Writing/Enterwriting.htm style#5 ---- */
 :root {
-            --md-primary: #E4F70A;
-            --md-secondary: #D2E600;
+            --md-primary: #C8FF00;
+            --md-secondary: #B8ED00;
             --md-surface: #fff;
             --md-on-surface: #111827;
             --md-muted: #6b7280;
@@ -3930,8 +3930,8 @@ body {
             --q-primary-200: #a3d7cf;
             --q-primary-300: #75c3b7;
             --q-primary-400: #47af9f;
-            --q-primary-500: #D2E600;
-            --q-primary-600: #E4F70A;
+            --q-primary-500: #B8ED00;
+            --q-primary-600: #C8FF00;
             --q-primary-700: #085548;
             --q-primary-800: #063f36;
             --q-primary-900: #042a24;
@@ -3973,8 +3973,8 @@ body {
             --q-info-200: #a3d7cf;
             --q-info-300: #75c3b7;
             --q-info-400: #47af9f;
-            --q-info-500: #D2E600;
-            --q-info-600: #E4F70A;
+            --q-info-500: #B8ED00;
+            --q-info-600: #C8FF00;
             --q-info-700: #085548;
 
             /* Neutral Colors */
@@ -5281,8 +5281,8 @@ body {
 /* ---- oqish bolimi/Enterreading.htm style#3 ---- */
 /* ===== Tokens ===== */
     :root {
-        --md-primary: #E4F70A; /* brand */
-        --md-secondary: #D2E600; /* brand2 */
+        --md-primary: #C8FF00; /* brand */
+        --md-secondary: #B8ED00; /* brand2 */
         --md-muted: #6b7280; /* gray-500 */
         --md-surface: #ffffff;
         --md-on-surface: #0B0B0D;

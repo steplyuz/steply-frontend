@@ -1,14 +1,14 @@
 'use client'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SkillPractice } from '@/components/dashboard/skill-practice'
-import { readingPracticeMinutes } from '@/lib/exam-lock'
+import { readingPracticeMinutes } from '@/lib/exam/lock'
 
 export default function ReadingPage() {
   return (
     <SkillPractice
       title="Reading"
       desc="Practice testlar va natijalaringiz"
-      listPath="/reading-tests"
+      skill="reading"
       resultsPath="/reading-tests/me/results"
       testBaseHref="/dashboard/reading"
       toTest={(t: any) => ({

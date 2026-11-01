@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import type { ListeningExam } from "@/lib/cefr-types/listening"
+import type { ListeningExam } from "@/lib/exam/types/listening"
 
 export type ListeningStatus = "reading" | "playing" | "ending" | "finished"
 

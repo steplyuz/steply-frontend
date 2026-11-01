@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react"
 import { createPortal } from "react-dom"
 import { ChevronDown, Check, LayoutList, X } from "lucide-react"
-import type { Question } from "@/lib/cefr-types/reading"
+import type { Question } from "@/lib/exam/types/reading"
 
 interface QuestionRendererProps {
     question: Question
@@ -373,7 +373,7 @@ export function SelectRenderer({
                         >
                             <div
                                 className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border text-[10px] font-bold transition-colors
-                                    ${isSelected ? "border-[#E4F70A] bg-[#E4F70A] text-foreground" : "border-border bg-background text-muted-foreground"}`}
+                                    ${isSelected ? "border-[#C8FF00] bg-[#C8FF00] text-foreground" : "border-border bg-background text-muted-foreground"}`}
                             >
                                 {isSelected ? <Check size={11} strokeWidth={3} /> : key}
                             </div>

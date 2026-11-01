@@ -6,6 +6,7 @@ import {
     Minus, Plus, TextCursorInput, Video, Volume2, VolumeX, X,
 } from "lucide-react"
 import { CameraFeed } from "@/components/exam-prep/camera-feed"
+import { formatClock } from '@/lib/format'
 
 export interface SidebarQuestion {
     id: string
@@ -59,9 +60,6 @@ function MiniCard({ icon: Icon, title, right, children, className = "" }: {
 /** Oxirgi shuncha soniya qolganda taymer qizil bo'ladi */
 const URGENT_SECONDS = 15
 
-const formatClock = (totalSeconds: number) =>
-    `${Math.floor(totalSeconds / 60)}:${String(totalSeconds % 60).padStart(2, "0")}`
-
 export default function ListeningExamSidebar({
     questions, answered, currentQuestion, partNumber, timeLeft, audioCurrent, audioDuration, volume, cameraEnabled = false,
     onSelectQuestion, onFinish, onIncreaseFontSize, onDecreaseFontSize, onVolumeChange,
@@ -111,7 +109,7 @@ export default function ListeningExamSidebar({
                             <Minus className="size-4" />
                         </button>
                         <button type="button" onClick={onIncreaseFontSize} aria-label="Matnni kattalashtirish"
-                            className="flex size-8 items-center justify-center rounded-lg bg-[#E4F70A] text-foreground transition hover:brightness-105 active:scale-95">
+                            className="flex size-8 items-center justify-center rounded-lg bg-[#C8FF00] text-foreground transition hover:brightness-105 active:scale-95">
                             <Plus className="size-4" />
                         </button>
                     </div>
@@ -206,7 +204,7 @@ export default function ListeningExamSidebar({
                             type="button"
                             onClick={() => setIsOpen(true)}
                             aria-label="Savollar ro'yxatini ochish"
-                            className="flex size-9 items-center justify-center rounded-full bg-[#E4F70A] text-foreground transition-transform active:scale-90"
+                            className="flex size-9 items-center justify-center rounded-full bg-[#C8FF00] text-foreground transition-transform active:scale-90"
                         >
                             <Menu size={18} />
                         </button>

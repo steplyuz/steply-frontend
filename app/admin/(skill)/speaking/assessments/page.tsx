@@ -77,7 +77,7 @@ export default function Page() {
       </div>
 
       {error && (
-        <p className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+        <p className="mt-6 rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">{error}</p>
       )}
 
       {submissions === null && (
@@ -121,8 +121,8 @@ export default function Page() {
                   <td className="px-5 py-3">
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                       sub.status === 'graded'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-amber-100 text-amber-700'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-warning/10 text-warning'
                     }`}>
                       {sub.status === 'graded' ? 'Baholandi' : 'Kutilmoqda'}
                     </span>

@@ -17,6 +17,11 @@ import type { WritingExam, WritingTask } from '@/lib/api/types'
 import { ApiRequestError } from '@/lib/api/client'
 import { useAuth } from '@/lib/auth/auth-context'
 import { LockControls } from '@/components/admin/lock-controls'
+import { adminInput } from '@/components/admin/ui/styles'
+import { TestSettings } from '@/components/admin/test-settings'
+
+// Reading / Listening bilan bir xil ro'yxat — barcha skill testlarida CEFR darajasi shu to'plamdan tanlanadi.
+const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Multilevel']
 
 export default function EditWritingTestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -50,6 +55,45 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
   }, [id])
 
   useEffect(() => { void loadData() }, [loadData])
+
+  const [taskSaving, setTaskSaving] = useState<number | null>(null)
+
+  /** Topshiriq maydonlari (id, format va vaqt maydonlari yuborilmaydi). */
+  const taskPayload = (task: WritingTask) => ({
+    part_number: task.part_number,
+    sub_part: task.sub_part ?? null,
+    topic: task.topic,
+    instruction: task.instruction,
+    context_text: task.context_text ?? null,
+    question: task.question ?? null,
+    word_limit: task.word_limit ?? null,
+    format_id: task.format_id ?? null,
+  })
+
+  /** Bitta topshiriqni alohida saqlaydi: mavjudi PUT /tasks/{id}, yangisi POST /tasks. Boshqalar o'zgarmaydi. */
+  const saveTask = async (i: number) => {
+    if (!exam) return
+    const task = tasks[i]
+    if ((task.topic ?? '').trim().length < 5 || (task.instruction ?? '').trim().length < 5) {
+      setError(`${i + 1}-topshiriq: mavzu va ko'rsatma kamida 5 belgidan iborat bo'lishi kerak.`)
+      return
+    }
+    try {
+      setTaskSaving(i)
+      setError(null)
+      const updated = task.id != null
+        ? await writingApi.updateTask(id, task.id, taskPayload(task))
+        : await writingApi.addTask(id, taskPayload(task))
+      setExam(updated)
+      setTasks(updated.tasks || [])
+      setLastSaved(new Date())
+      setDirty(false)
+    } catch (e) {
+      setError(e instanceof ApiRequestError ? `${i + 1}-topshiriq: ${e.message}` : `${i + 1}-topshiriq saqlanmadi`)
+    } finally {
+      setTaskSaving(null)
+    }
+  }
 
   const handleSave = async () => {
     if (!exam) return
@@ -166,7 +210,7 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
             </div>
             <span
               className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                exam.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                exam.is_active ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
               }`}
             >
               {exam.is_active ? 'Faol (Active)' : 'Qoralama (Draft)'}
@@ -174,11 +218,11 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
           </div>
 
           <div className="flex items-center gap-3">
-            {error && <span className="text-sm font-medium text-red-600 truncate max-w-[200px]">{error}</span>}
+            {error && <span className="text-sm font-medium text-error truncate max-w-[200px]">{error}</span>}
             <LockControls onLock={() => writingApi.lock(id)} onUnlock={() => writingApi.unlock(id)} />
             {lastSaved && (
               <span className="text-xs text-muted-foreground hidden sm:inline">
-                {dirty ? <span className="text-amber-600">Saqlanmagan...</span> : `Saqlandi: ${lastSaved.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}`}
+                {dirty ? <span className="text-warning">Saqlanmagan...</span> : `Saqlandi: ${lastSaved.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}`}
               </span>
             )}
 
@@ -216,49 +260,12 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
       {/* Main content */}
       <main className="container-shell py-8">
         <div className="mx-auto max-w-4xl space-y-6">
-          {/* Metadata Section */}
-          <section className="space-y-4 rounded-xl border border-border bg-card p-5">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Test Sozlamalari</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-muted-foreground uppercase">Sarlavha</span>
-                <input
-                  type="text"
-                  value={exam.title}
-                  onChange={e => updateExam('title', e.target.value)}
-                  className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-muted-foreground uppercase">Davomiyligi (daqiqa)</span>
-                <input
-                  type="number"
-                  min={10}
-                  value={exam.duration_minutes}
-                  onChange={e => updateExam('duration_minutes', Number(e.target.value))}
-                  className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                />
-              </label>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              {([
-                ['is_demo', 'Demo'],
-                ['is_free', 'Bepul'],
-                ['is_practice', 'Mashq (practice) testi'],
-                ['is_active', 'Faol'],
-              ] as const).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={!!exam[key]}
-                    onChange={e => updateExam(key, e.target.checked)}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </section>
+          {/* Test Sozlamalari */}
+          <TestSettings
+            skill="writing"
+            value={exam}
+            onChange={(key, val) => updateExam(key, val as never)}
+          />
 
           {/* Tasks Section */}
           {mode === 'json' ? (
@@ -294,8 +301,16 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
                       <span className="text-[13px] font-bold text-foreground">Task {task.part_number}</span>
                     </div>
                     <button
+                      type="button"
+                      onClick={() => void saveTask(i)}
+                      disabled={taskSaving !== null || saving}
+                      className="ml-auto mr-3 rounded-lg border border-border px-3 py-1 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+                    >
+                      {taskSaving === i ? 'Saqlanmoqda...' : task.id != null ? 'Topshiriqni saqlash' : 'Qo\'shish'}
+                    </button>
+                    <button
                       onClick={() => removeTask(i)}
-                      className="text-muted-foreground transition hover:text-red-600"
+                      className="text-muted-foreground transition hover:text-error"
                       title="O'chirish"
                     >
                       <Trash2 className="size-4" />
@@ -309,7 +324,7 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
                         value={task.topic}
                         onChange={e => updateTask(i, { topic: e.target.value })}
                         placeholder="Masalan: Environment"
-                        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+                        className={adminInput}
                       />
                     </div>
                     
@@ -319,7 +334,7 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
                         value={task.instruction}
                         onChange={e => updateTask(i, { instruction: e.target.value })}
                         placeholder="Masalan: You should spend about 20 minutes on this task..."
-                        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary focus:ring-1 focus:ring-primary min-h-[80px]"
+                        className={adminInput}
                       />
                     </div>
 
@@ -329,7 +344,7 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
                         value={task.question || ''}
                         onChange={e => updateTask(i, { question: e.target.value })}
                         placeholder="Masalan: To what extent do you agree or disagree?"
-                        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary focus:ring-1 focus:ring-primary min-h-[120px]"
+                        className={adminInput}
                       />
                     </div>
                   </div>

@@ -2,6 +2,7 @@
 
 import React, { memo, useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { Clock3, Flag } from 'lucide-react'
+import { formatClock } from '@/lib/format'
 
 interface WritingHeaderProps {
   initialSeconds: number
@@ -92,11 +93,7 @@ const WritingHeader = memo(function WritingHeader({
     return () => window.clearInterval(t)
   }, [isSubmitting, saveTime])
 
-  const formatted = useMemo(() => {
-    const mins = Math.floor(timeRemaining / 60)
-    const secs = timeRemaining % 60
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
-  }, [timeRemaining])
+  const formatted = useMemo(() => formatClock(timeRemaining), [timeRemaining])
 
   const isDanger = timeRemaining <= 60
 

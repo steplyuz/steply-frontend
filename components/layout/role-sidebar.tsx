@@ -2,37 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  BookOpen,
-  CheckCircle2,
-  Headphones,
-  LayoutDashboard,
-  Mic2,
-  X,
-  PenLine,
-  Users,
-  CreditCard,
-  GraduationCap,
-  ChartNoAxesCombined,
-} from 'lucide-react'
+import { X } from 'lucide-react'
 
 import { useAuth } from '@/lib/auth/auth-context'
+import { ADMIN_SIDEBAR_WIDTH, getNavSections, isNavItemActive } from './admin-nav'
 
 interface Props {
   open: boolean
   onClose: () => void
   basePath?: string
-}
-
-function isPathActive(
-  pathname: string,
-  href: string,
-  exact = false,
-) {
-  if (exact) {
-    return pathname === href
-  }
-  return pathname === href || pathname.startsWith(`${href}/`)
 }
 
 export function RoleSidebar({
@@ -44,62 +22,7 @@ export function RoleSidebar({
   const { user } = useAuth()
   const role = user?.global_role || ''
 
-  // Nav configuration based on role
-  interface NavSection {
-    title: string
-    items: { href: string; label: string; icon: React.ElementType }[]
-  }
-
-  const getNavSections = (): NavSection[] => {
-    switch (role) {
-      case 'super_admin':
-      case 'admin':
-        return [
-          {
-            title: 'Boshqaruv',
-            items: [
-              { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-              { href: '/admin/users', label: 'Foydalanuvchilar', icon: Users },
-              { href: '/admin/mock-exams', label: 'Mock imtihonlar', icon: GraduationCap },
-              { href: '/admin/analysis', label: 'Analysis videolari', icon: ChartNoAxesCombined },
-            ],
-          },
-          {
-            title: 'Testlar bazasi',
-            items: [
-              { href: '/admin/reading', label: 'Reading', icon: BookOpen },
-              { href: '/admin/listening', label: 'Listening', icon: Headphones },
-              { href: '/admin/writing', label: 'Writing', icon: PenLine },
-              { href: '/admin/writing/grading', label: 'Writing Baholash', icon: CheckCircle2 },
-              { href: '/admin/speaking/questions', label: 'Speaking Savollar', icon: Mic2 },
-              { href: '/admin/speaking/assessments', label: 'Speaking Baholash', icon: CheckCircle2 },
-            ],
-          },
-          {
-            title: 'Moliya',
-            items: [
-              { href: '/admin/billing', label: 'Obunalar (Billing)', icon: CreditCard },
-            ],
-          },
-        ]
-      case 'teacher':
-        return [
-          {
-            title: 'Baholash',
-            items: [
-              { href: '/teacher-expert', label: 'Dashboard', icon: LayoutDashboard },
-              { href: '/teacher-expert/writing', label: 'Writing Baholash', icon: PenLine },
-              { href: '/teacher-expert/speaking', label: 'Speaking Baholash', icon: Mic2 },
-              { href: '/teacher-expert/history', label: 'Bajarilganlar', icon: CheckCircle2 },
-            ],
-          },
-        ]
-      default:
-        return []
-    }
-  }
-
-  const navSections = getNavSections()
+  const navSections = getNavSections(role)
 
   return (
     <>
@@ -115,9 +38,10 @@ export function RoleSidebar({
       />
 
       <aside
+        style={{ width: ADMIN_SIDEBAR_WIDTH }}
         className={[
-          'fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col',
-          'border-r border-border bg-muted',
+          'fixed inset-y-0 left-0 z-50 flex flex-col',
+          'border-r border-border bg-card',
           'transition-transform duration-300 ease-out',
           open ? 'translate-x-0' : '-translate-x-full',
           'lg:translate-x-0',
@@ -154,7 +78,7 @@ export function RoleSidebar({
                       href={item.href}
                       label={item.label}
                       icon={item.icon}
-                      active={isPathActive(pathname, item.href, item.href === basePath)}
+                      active={isNavItemActive(pathname, item.href, navSections)}
                       onClick={onClose}
                     />
                   ))}

@@ -8,7 +8,7 @@
  *   INK     = '#0B0B0D'   — Steply asosiy matni
  *   PAPER   = '#FFFFFF'   — topbar foni
  *   CANVAS  = '#F7F7F5'   — sahifa foni
- *   LIME    = '#E4F70A'   — Steply aksenti
+ *   LIME    = '#C8FF00'   — Steply aksenti
  *
  * Ko'nikma ranglari (TONES):
  *   blue   '#2563EB'  → Reading
@@ -49,10 +49,11 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth/auth-context'
+import { formatClock } from '@/lib/format'
 
 // ─── BRAND TOKENS ──────────────────────────────────────────────────────────
 const INK    = '#0B0B0D'
-const PRIMARY_EXAM = '#E4F70A'
+const PRIMARY_EXAM = '#C8FF00'
 const PAPER  = '#FFFFFF'
 const CANVAS = '#F7F7F5'
 
@@ -74,7 +75,7 @@ const TONE_ICONS: Record<Tone, ReactNode> = {
 }
 
 const FOCUS =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E4F70A] focus-visible:ring-offset-2'
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8FF00] focus-visible:ring-offset-2'
 
 // ─── FULLSCREEN ────────────────────────────────────────────────────────────
 const HINT_KEY = 'steply:exam-fullscreen-hint-dismissed'
@@ -111,7 +112,7 @@ export function ExamFullscreenButton() {
       onClick={toggle}
       aria-pressed={active}
       aria-label={active ? "To'liq ekrandan chiqish" : "To'liq ekran"}
-      className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition hover:bg-[#E4F70A]/5 ${FOCUS}`}
+      className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition hover:bg-[#C8FF00]/5 ${FOCUS}`}
       style={{ backgroundColor: PAPER, borderColor: 'rgba(11,11,13,.1)', color: 'rgba(11,11,13,.6)' }}
     >
       <Icon size={16} />
@@ -155,7 +156,7 @@ function FullscreenHint() {
         type="button"
         onClick={dismiss}
         aria-label="Yopish"
-        className={`flex size-7 items-center justify-center rounded-lg transition hover:bg-[#E4F70A]/5 ${FOCUS}`}
+        className={`flex size-7 items-center justify-center rounded-lg transition hover:bg-[#C8FF00]/5 ${FOCUS}`}
         style={{ color: 'rgba(11,11,13,.4)' }}
       >
         <X size={14} />
@@ -180,7 +181,7 @@ export function ExamShell({ children }: { children: ReactNode }) {
     <div className="min-h-dvh" style={{ backgroundColor: CANVAS }}>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-[#E4F70A] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-foreground"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-[#C8FF00] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-foreground"
       >
         Asosiy qismga o&#39;tish
       </a>
@@ -255,7 +256,7 @@ export function ExamTopBar(props: {
         <Link
           href={backHref}
           aria-label="Orqaga"
-          className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition hover:bg-[#E4F70A]/5 ${FOCUS}`}
+          className={`flex size-9 shrink-0 items-center justify-center rounded-lg border transition hover:bg-[#C8FF00]/5 ${FOCUS}`}
           style={{ backgroundColor: '#fff', borderColor: 'rgba(11,11,13,.12)', color: 'rgba(11,11,13,.65)' }}
         >
           <ArrowLeft size={16} />
@@ -352,7 +353,7 @@ export function ExamTopBar(props: {
             className="h-full transition-[width] duration-500 ease-out motion-reduce:transition-none"
             style={{
               width: `${Math.min(100, Math.max(0, progress))}%`,
-              backgroundColor: '#E4F70A',
+              backgroundColor: '#C8FF00',
             }}
           />
         </div>
@@ -375,9 +376,7 @@ export function ExamTimerChip({
 }) {
   if (seconds === null) return null
 
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  const label = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+  const label = formatClock(seconds)
   const isWarning = seconds <= warning
   const accent = isWarning ? '#DC2626' : TONES[tone]
 

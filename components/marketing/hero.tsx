@@ -166,7 +166,7 @@ export function HeroActions() {
       <motion.div whileTap={tap} className="flex">
         <Link
           href="/mock"
-          className="group relative inline-flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-[0_12px_30px_-14px_rgba(228,247,10,0.75)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_34px_-14px_rgba(228,247,10,0.65)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-12 sm:px-6"
+          className="group relative inline-flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-[0_12px_30px_-14px_rgba(200,255,0,0.75)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_34px_-14px_rgba(200,255,0,0.65)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:min-h-12 sm:px-6"
         >
           {/* shimmer */}
           <span

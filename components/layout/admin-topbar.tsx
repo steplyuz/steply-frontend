@@ -4,66 +4,14 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import {
-  Bell,
   ChevronRight,
   Loader2,
   LogOut,
   Menu,
-  Search,
 } from 'lucide-react'
 
 import { useAuth } from '@/lib/auth/auth-context'
-
-/* ─────────────────────────────────────────────────────────────
-   ROUTE LABELS
-   Topbar breadcrumb uchun yo'l → sarlavha xaritasi.
-   Yangi sahifa qo'shilganda shu yerga ham qo'shing.
-───────────────────────────────────────────────────────────── */
-const ROUTE_LABELS: Record<string, string> = {
-  '/admin':                         'Boshqaruv paneli',
-  '/admin/reading':                 'Reading testlar',
-  '/admin/listening':               'Listening testlar',
-  '/admin/writing':                 'Writing testlar',
-  '/admin/writing/grading':         'Writing baholash',
-  '/admin/speaking/questions':      'Speaking testlar',
-  '/admin/speaking/assessments':    'Speaking baholash',
-  '/admin/users':                   'Foydalanuvchilar',
-  '/admin/billing':                 "Obunalar va To'lovlar",
-  '/admin/analysis':                'Analysis videolari',
-}
-
-/* ─────────────────────────────────────────────────────────────
-   SECTION LABELS
-   Breadcrumb'ning o'rta bo'limi (bo'lim nomi).
-───────────────────────────────────────────────────────────── */
-const SECTION_MAP: Array<{ prefix: string; label: string }> = [
-  { prefix: '/admin/speaking',    label: 'Speaking' },
-  { prefix: '/admin/reading',     label: 'Reading' },
-  { prefix: '/admin/listening',   label: 'Listening' },
-  { prefix: '/admin/writing',     label: 'Writing' },
-  { prefix: '/admin/users',       label: 'Tizim' },
-  { prefix: '/admin/billing',     label: 'Tizim' },
-  { prefix: '/admin/analysis',    label: 'Testlar bazasi' },
-]
-
-function getPageTitle(pathname: string): string {
-  // Aniq moslik
-  if (ROUTE_LABELS[pathname]) return ROUTE_LABELS[pathname]
-
-  // Prefix asosida
-  if (pathname.startsWith('/admin/reading/'))  return 'Reading — Tahrirlash'
-  if (pathname.startsWith('/admin/listening/')) return 'Listening — Tahrirlash'
-  if (pathname.startsWith('/admin/writing/'))  return 'Writing — Baholash'
-  if (pathname.startsWith('/admin/speaking/assessments/')) return 'Baholash — Batafsil'
-
-  return 'Admin'
-}
-
-function getSection(pathname: string): string | null {
-  if (pathname === '/admin') return null
-  const match = SECTION_MAP.find((s) => pathname.startsWith(s.prefix))
-  return match?.label ?? null
-}
+import { getBreadcrumb, getNavSections } from './admin-nav'
 
 /* ─────────────────────────────────────────────────────────────
    COMPONENT
@@ -89,8 +37,7 @@ export function AdminTopbar({ onMenuClick }: Props) {
     }
   }
 
-  const title   = getPageTitle(pathname)
-  const section = getSection(pathname)
+  const { section, title, detail } = getBreadcrumb(pathname, getNavSections(user?.global_role || ''))
 
   const displayName =
     user?.profile?.full_name ||
@@ -120,10 +67,10 @@ export function AdminTopbar({ onMenuClick }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
             <Link
-              href="/admin"
+              href={isEvaluator ? '/teacher-expert' : '/admin'}
               className="hidden shrink-0 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
             >
-              Admin
+              {isEvaluator ? 'Baholash' : 'Admin'}
             </Link>
 
             {section && (
@@ -135,13 +82,22 @@ export function AdminTopbar({ onMenuClick }: Props) {
               </>
             )}
 
-            {section && (
-              <ChevronRight className="hidden size-3.5 shrink-0 text-muted-foreground md:block" />
-            )}
-
-            <h1 className="truncate text-sm font-semibold tracking-[-0.01em] text-foreground">
+            <ChevronRight className="hidden size-3.5 shrink-0 text-muted-foreground sm:block" />
+            <h1
+              className={[
+                'truncate text-sm tracking-[-0.01em]',
+                detail ? 'font-medium text-muted-foreground' : 'font-semibold text-foreground',
+              ].join(' ')}
+            >
               {title}
             </h1>
+
+            {detail && (
+              <>
+                <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate text-sm font-semibold tracking-[-0.01em] text-foreground">{detail}</span>
+              </>
+            )}
           </div>
 
           {/* Mobile context */}
@@ -155,28 +111,6 @@ export function AdminTopbar({ onMenuClick }: Props) {
 
         {/* ── Right actions ────────────────────────────────── */}
         <div className="ml-3 flex shrink-0 items-center gap-1.5">
-          {/* Search */}
-          <button
-            type="button"
-            aria-label="Qidirish"
-            className="group inline-flex size-9 items-center justify-center rounded-xl text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground active:scale-95"
-          >
-            <Search className="size-[17px] transition-transform duration-200 group-hover:scale-105" />
-          </button>
-
-          {/* Notifications */}
-          <button
-            type="button"
-            aria-label="Bildirishnomalar"
-            className="group relative inline-flex size-9 items-center justify-center rounded-xl text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground active:scale-95"
-          >
-            <Bell className="size-[17px] transition-transform duration-200 group-hover:scale-105" />
-            <span
-              aria-hidden
-              className="absolute right-[7px] top-[6px] size-1.5 rounded-full bg-primary ring-2 ring-background"
-            />
-          </button>
-
           {/* Divider */}
           <div aria-hidden className="mx-1 hidden h-7 w-px bg-border sm:block" />
 

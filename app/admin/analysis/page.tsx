@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Loader2, Trash2, Upload, Video } from 'lucide-react'
 import { useApi } from '@/lib/api/use-api'
 import { apiRequest, apiUpload } from '@/lib/api/client'
-import { errMsg } from '@/lib/api/dashboard'
+import { errMsg } from '@/lib/api/legacy'
 import { Empty, ErrorBox, Loading, PageHeader, Section, input } from '@/components/dashboard/ui'
 
 type AnalysisVideo = { id: number; skill: 'READING' | 'LISTENING' | 'WRITING' | 'SPEAKING'; test_id: string; title: string; created_at: string }
@@ -80,8 +80,8 @@ export default function AdminAnalysisPage() {
           <label className="space-y-1.5 text-sm font-medium sm:col-span-2">Video fayli (MP4, WebM yoki MOV, maksimal 500 MB)
             <input id="analysis-video-file" className={`${input} file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1.5`} type="file" accept="video/mp4,video/webm,video/quicktime" onChange={e => setFile(e.target.files?.[0] ?? null)} />
           </label>
-          {error && <div role="alert" className="text-sm text-red-600 sm:col-span-2">{error}</div>}
-          {message && <div role="status" className="text-sm text-emerald-700 sm:col-span-2">{message}</div>}
+          {error && <div role="alert" className="text-sm text-error sm:col-span-2">{error}</div>}
+          {message && <div role="status" className="text-sm text-success sm:col-span-2">{message}</div>}
           <div className="sm:col-span-2"><button disabled={busy || !file || !testId.trim() || !title.trim()} type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-foreground px-4 text-sm font-semibold text-background disabled:opacity-50">{busy ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />} Videoni saqlash</button></div>
         </form>
       </Section>
@@ -93,7 +93,7 @@ export default function AdminAnalysisPage() {
               <article key={item.id} className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:items-center">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted"><Video className="size-5" /></span>
                 <div className="min-w-0 flex-1"><h3 className="font-semibold">{item.title}</h3><p className="mt-1 text-sm text-muted-foreground">{item.skill} · Test ID: {item.test_id}</p><p className="mt-1 text-xs text-muted-foreground">ID: {item.id} · {new Date(item.created_at).toLocaleDateString('uz-UZ')}</p></div>
-                <button type="button" disabled={busy} onClick={() => deleteVideo(item.id)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-200 px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"><Trash2 className="size-4" /> O‘chirish</button>
+                <button type="button" disabled={busy} onClick={() => deleteVideo(item.id)} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-error/30 px-3 text-sm font-semibold text-error hover:bg-error/10 disabled:opacity-50"><Trash2 className="size-4" /> O‘chirish</button>
               </article>
             ))}
           </div>

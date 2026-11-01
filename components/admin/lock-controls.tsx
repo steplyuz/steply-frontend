@@ -55,7 +55,7 @@ export function LockControls({ onLock, onUnlock }: Props) {
         <Unlock className="size-3.5" /> Lock OFF
       </button>
       {message && (
-        <span className={`max-w-[240px] truncate text-xs font-medium ${message.ok ? 'text-emerald-700' : 'text-red-600'}`}
+        <span className={`max-w-[240px] truncate text-xs font-medium ${message.ok ? 'text-success' : 'text-error'}`}
           title={message.text}>
           {message.text}
         </span>

@@ -1,6 +1,7 @@
 "use client"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { initials } from "@/lib/brand"
 import { resolveMediaUrl } from "@/lib/media"
 export interface CandidateUser {
   full_name?: string | null
@@ -11,12 +12,6 @@ export interface CandidateUser {
     full_name?: string | null
     avatar_url?: string | null
   } | null
-}
-
-function initials(name?: string | null) {
-  const v = (name ?? "").trim()
-  if (!v) return "U"
-  return v.split(/\s+/).slice(0, 2).map((n) => n[0]).join("").toUpperCase()
 }
 
 /**
@@ -39,7 +34,7 @@ export function CandidateBadge({ user }: { user: CandidateUser | null }) {
       </div>
       <Avatar className="size-11 border-2 border-white shadow-sm ring-1 ring-border">
         {photo && <AvatarImage src={photo} alt={name} />}
-        <AvatarFallback className="bg-[#17776A] text-xs font-bold text-white">{initials(name)}</AvatarFallback>
+        <AvatarFallback className="bg-[#0B0B0D] text-xs font-bold text-[#C8FF00]">{initials(name)}</AvatarFallback>
       </Avatar>
     </div>
   )

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { SkillPractice } from '@/components/dashboard/skill-practice'
-import { post, errMsg } from '@/lib/api/dashboard'
+import { post, errMsg } from '@/lib/api/legacy'
 import { btn } from '@/components/dashboard/ui'
 
 function AiCheck({ id, reload }: { id: number; reload: () => void }) {
@@ -36,12 +36,12 @@ export default function WritingPage() {
     <SkillPractice
       title="Writing"
       desc="Yozma topshiriqlar va baholash natijalari"
-      listPath="/writing-tests"
+      skill="writing"
       resultsPath="/writing-tests/me/results"
       testBaseHref="/dashboard/writing"
       toTest={(t: any) => ({
         id: t.id, title: t.title, free: t.is_free,
-        meta: [t.cefr_level, `${t.duration_minutes} daqiqa`, `${t.tasks?.length ?? 0} topshiriq`],
+        meta: [t.cefr_level, t.duration_minutes ? `${t.duration_minutes} daqiqa` : null, `${t.total_questions ?? 0} topshiriq`],
       })}
       toResult={(r: any) => ({
         id: r.id, date: r.created_at, score: r.is_finalized ? String(r.scaled_score ?? '—') : '—',

@@ -14,10 +14,10 @@ const ROLE_LABELS: Record<GlobalRole, string> = {
 }
 
 const ROLE_COLORS: Record<GlobalRole, string> = {
-  admin:          'bg-amber-50 text-amber-700 border-amber-200',
+  admin:          'bg-warning/10 text-warning border-warning/30',
   super_admin:    'bg-violet-50 text-violet-700 border-violet-200',
   teacher: 'bg-purple-50 text-purple-700 border-purple-200',
-  student:        'bg-emerald-50 text-emerald-700 border-emerald-200',
+  student:        'bg-success/10 text-success border-success/30',
 }
 
 // ─── Change Role Modal ────────────────────────────────────────────────────────
@@ -67,7 +67,7 @@ function ChangeRoleModal({
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+            <p className="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">{error}</p>
           )}
 
           <div className="space-y-2">
@@ -221,7 +221,7 @@ export default function AdminUsersPage() {
         ))}
       </div>
 
-      {error && <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      {error && <p className="rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">{error}</p>}
 
       {/* Table */}
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
@@ -264,9 +264,9 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                      u.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                      u.is_active ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
                     }`}>
-                      <span className={`size-1.5 rounded-full ${u.is_active ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                      <span className={`size-1.5 rounded-full ${u.is_active ? 'bg-success' : 'bg-error'}`} />
                       {u.is_active ? 'Faol' : 'Bloklangan'}
                     </span>
                   </td>
@@ -288,8 +288,8 @@ export default function AdminUsersPage() {
                         onClick={() => handleToggleActive(u)}
                         className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                           u.is_active
-                            ? 'border-red-200 text-red-600 hover:bg-red-50'
-                            : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'
+                            ? 'border-error/30 text-error hover:bg-error/10'
+                            : 'border-success/30 text-success hover:bg-success/10'
                         }`}
                         title={u.is_active ? 'Bloklash' : 'Faollashtirish'}
                       >

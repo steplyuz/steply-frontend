@@ -5,7 +5,7 @@ import { BookOpen, ChevronDown, ChevronLeft, ChevronRight, Check, CheckCircle2, 
 import QuestionRenderer, { GapFillFillRenderer } from "@/components/cefr-exam/reading/reading-question-renderer"
 import HighlightText, { type TextHighlight } from "@/components/highlight-text"
 import { resolveAssetUrl } from "@/lib/api/config"
-import type { ReadingExam, Question } from "@/lib/cefr-types/reading"
+import type { ReadingExam, Question } from "@/lib/exam/types/reading"
 
 interface ReadingExamContentProps {
     examData: ReadingExam
@@ -519,7 +519,7 @@ export default function ReadingExamContent({
                             title={`${idx + 1}-qism · ${stat.done}/${stat.total}${stat.from !== null ? ` · ${stat.from}–${stat.to}` : ""}`}
                             className={`flex h-9 min-w-10 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border px-3.5 text-sm font-semibold transition-all duration-200
                                 ${active
-                                    ? "border-[#E4F70A] bg-[#E4F70A] text-foreground shadow-[0_4px_10px_rgba(0,0,0,0.12)]"
+                                    ? "border-[#C8FF00] bg-[#C8FF00] text-foreground shadow-[0_4px_10px_rgba(0,0,0,0.12)]"
                                     : stat.complete
                                         ? "border-emerald-500/40 bg-emerald-500/10 text-foreground hover:border-foreground hover:bg-foreground/[0.08]"
                                         : "border-border bg-white text-foreground hover:border-foreground hover:bg-foreground/[0.08]"}`}

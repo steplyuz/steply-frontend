@@ -10,7 +10,7 @@ import { ApiRequestError } from "@/lib/api/client"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LIME = "#E4F70A"
+const LIME = "#C8FF00"
 const LIME_TEXT = "#7A9A00"
 const S_PATH =
   "M23 48L12 66L12 68L8 75L4 87L3 95L2 96L2 101L1 102L1 113L0 114L1 131L2 132L2 137L7 155L17 176L22 184L34 198L47 209L61 218L65 219L70 222L87 227L92 227L93 228L316 228L317 229L324 229L330 232L339 242L341 248L341 261L337 270L329 278L324 280L58 280L57 281L45 282L32 287L20 295L13 302L6 312L6 314L1 325L1 330L0 331L0 361L4 366L6 367L300 367L301 368L308 368L309 367L316 367L317 368L324 368L325 367L346 367L347 366L352 366L353 365L357 365L364 363L385 353L399 343L412 330L420 320L421 317L425 312L434 293L439 275L439 270L441 263L441 239L440 238L440 232L439 231L438 222L430 200L428 198L428 196L420 183L407 168L399 161L386 152L376 147L362 142L354 141L353 140L346 140L345 139L115 139L107 135L101 128L97 118L97 109L98 108L98 105L103 96L108 91L114 88L375 88L376 87L386 87L387 86L394 85L402 81L404 81L415 74L426 63L433 51L437 38L437 6L434 2L430 0L108 0L107 1L100 1L99 2L87 4L73 10L71 10L61 15L41 29Z"
@@ -37,7 +37,7 @@ function useEntrance<T extends HTMLElement>(keyframes: Keyframe[], options: Keyf
 const fieldClass =
   "h-[52px] w-full rounded-xl border border-border-strong bg-white pl-14 pr-4 text-[15px] font-medium text-foreground " +
   "outline-none transition-[border-color,box-shadow] placeholder:text-[#B0B1B9] " +
-  "focus:border-foreground focus:ring-4 focus:ring-[#E4F70A]/60 disabled:opacity-60"
+  "focus:border-foreground focus:ring-4 focus:ring-[#C8FF00]/60 disabled:opacity-60"
 
 const primaryButtonClass =
   "group mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4F53C] px-5 " +
@@ -201,7 +201,7 @@ function ForgotForm() {
   if (done) {
     return (
       <div className="text-center">
-        <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-[#E4F70A]/30">
+        <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-[#C8FF00]/30">
           <Check className="size-7 text-[#7A9A00]" aria-hidden />
         </div>
         <p className="text-[15px] font-medium text-foreground">Parol yangilandi!</p>

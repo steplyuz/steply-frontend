@@ -11,17 +11,21 @@ export interface ApplySession {
   payment_details?: string | null
 }
 
-/** POST /apply/{registration_slug} */
+/**
+ * POST /apply/{registration_slug}.
+ * Diqqat: backend jinsni `M` / `F` ko'rinishida kutadi (male/female emas) va
+ * `address` maydonidan viloyatni aniqlaydi — qiymat sifatida Region kodi (masalan `samarkand`) yuboriladi.
+ */
 export interface ApplyInput {
   first_name: string
   last_name: string
   patronymic?: string | null
-  address?: string | null
-  gender: 'male' | 'female'
-  birth_date?: string | null
+  address: string
+  gender: 'M' | 'F'
+  birth_date: string
   passport_series?: string | null
-  phone?: string | null
-  photo_url?: string | null
+  phone: string
+  photo_url: string
   captcha_token?: string | null
 }
 

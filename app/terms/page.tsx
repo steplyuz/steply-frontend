@@ -57,7 +57,7 @@ export default function TermsPage() {
 
             <div className="mt-8 max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-sm">
-                <ShieldCheck className="size-4 text-primary" />
+                <ShieldCheck className="size-4 text-primary-strong" />
                 Huquqiy ma’lumot
               </div>
 
@@ -113,7 +113,7 @@ export default function TermsPage() {
             </div>
 
             <div className="mt-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
-              <ShieldCheck className="size-5 text-primary" />
+              <ShieldCheck className="size-5 text-primary-strong" />
               <p className="mt-3 text-sm font-bold">Savolingiz bormi?</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 Shartlar yoki platformadan foydalanish bo‘yicha biz bilan
@@ -121,7 +121,7 @@ export default function TermsPage() {
               </p>
               <Link
                 href="/contact"
-                className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-primary-strong hover:underline"
               >
                 Aloqa sahifasi
                 <ArrowRight className="size-4" />
@@ -433,7 +433,7 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-start gap-4">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-extrabold text-primary">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-extrabold text-primary-strong">
         {number}
       </span>
       <div className="min-w-0">

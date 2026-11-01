@@ -15,11 +15,12 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState, type ElementType, type ReactNode } from 'react'
 import { ChevronRight, Download, FileDown, Pencil, Plus, ShieldAlert, Trash2, Upload } from 'lucide-react'
 import { useAuth } from '@/lib/auth/auth-context'
-import { ApiRequestError } from '@/lib/api/client'
 import { authenticatedDownload } from '@/lib/api/download'
+import { errMsg } from '@/lib/api/legacy'
 import {
-  AdminButton, AdminEmpty, AdminError, AdminPageShell, StatusBadge,
+  AdminButton, AdminEmpty, AdminError, AdminPageShell, AdminSearch, StatusBadge,
 } from '@/components/layout/admin-page-shell'
+import { AdminFilterTabs } from '@/components/admin/ui'
 
 export interface CreateField {
   name: string
@@ -60,7 +61,7 @@ export interface TestLibraryConfig<T> {
   icon: ElementType
   load: () => Promise<T[]>
   toRow: (item: T) => LibraryRow
-  remove: (id: string, opts?: { force?: boolean }) => Promise<unknown>
+  remove: (id: string) => Promise<unknown>
   importJson: (file: File) => Promise<unknown>
   /** Bo'sh test yaratish: forma qiymatlari -> API chaqiruvi */
   create: (values: Record<string, string | number>) => Promise<unknown>
@@ -86,8 +87,6 @@ export interface TestLibraryConfig<T> {
   categoryOf?: (item: T) => string
 }
 
-const errMsg = (err: unknown, fallback: string) =>
-  err instanceof ApiRequestError ? err.message : err instanceof Error ? err.message : fallback
 
 const rowBtn =
   'inline-flex h-8 items-center gap-1 rounded-xl border border-border px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground hover:bg-muted hover:text-foreground disabled:opacity-40'
@@ -96,10 +95,11 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
   const c = config
   const { user, isLoading } = useAuth()
   const isAdmin = user?.global_role === 'admin' || user?.global_role === 'super_admin'
-  const isSuperAdmin = user?.global_role === 'super_admin'
 
   const [items, setItems] = useState<T[] | null>(null)
   const [category, setCategory] = useState<string>('all')
+  const [query, setQuery] = useState('')
+  const [status, setStatus] = useState<'all' | 'active' | 'inactive'>('all')
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -171,31 +171,18 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
   }
 
   async function handleRemove(row: LibraryRow) {
-    if (!confirm(`"${row.title}" (${row.id}) ${c.noun} testini butunlay o'chirishni tasdiqlaysizmi?`)) return
+    if (!confirm(`"${row.title}" (${row.id}) ${c.noun} testini o'chirishni tasdiqlaysizmi?\n\nUnga bog'liq barcha natijalar, urinishlar va yozuvlar ham o'chadi.`)) return
     const dropRow = () => setItems(prev => prev?.filter(t => c.toRow(t).id !== row.id) ?? null)
     setBusy(b => ({ ...b, [row.id]: true })); setError(null)
     try {
       await c.remove(row.id)
       dropRow()
     } catch (err) {
-      const conflict = err instanceof ApiRequestError && err.status === 409
-      if (conflict && isSuperAdmin) {
-        // 409 = natija/urinish bor. Super admin uchun aniq tasdiq bilan majburiy o'chirish (force=true).
-        const msg = errMsg(err, "O'chirib bo'lmadi")
-        if (confirm(`${msg}\n\nSuper admin sifatida natija va urinishlar bilan BIRGA majburiy o'chirilsinmi? Bu qaytarilmaydi.`)) {
-          try {
-            await c.remove(row.id, { force: true })
-            dropRow()
-          } catch (forceErr) {
-            setError(errMsg(forceErr, "Majburiy o'chirishda xatolik"))
-          }
-        } else {
-          setError(msg)
-        }
-      } else {
-        setError(errMsg(err, "O'chirishda xatolik"))
-      }
-    } finally { setBusy(b => ({ ...b, [row.id]: false })) }
+      // 409 faqat test mock imtihonda ishlatilganda keladi: backend xabari aniq aytadi.
+      setError(errMsg(err, "O'chirishda xatolik"))
+    } finally {
+      setBusy(b => ({ ...b, [row.id]: false }))
+    }
   }
 
   async function handleDownload(d: RowDownload, id: string) {
@@ -217,9 +204,19 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
   }
 
   const categoryOf = c.categoryOf
-  const visibleItems = items && categoryOf && category !== 'all'
+  const q = query.trim().toLowerCase()
+  const byCategory = items && categoryOf && category !== 'all'
     ? items.filter(item => categoryOf(item) === category)
     : items
+  const activeCount = byCategory?.filter(item => c.toRow(item).isActive !== false).length ?? 0
+  const inactiveCount = (byCategory?.length ?? 0) - activeCount
+  const visibleItems = byCategory?.filter(item => {
+    const row = c.toRow(item)
+    if (status === 'active' && row.isActive === false) return false
+    if (status === 'inactive' && row.isActive !== false) return false
+    if (!q) return true
+    return `${row.title} ${row.id}`.toLowerCase().includes(q)
+  }) ?? null
 
   if (isLoading) {
     return <div className="flex min-h-svh items-center justify-center text-sm text-muted-foreground">Yuklanmoqda...</div>
@@ -303,29 +300,35 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
           <input ref={updateRef} type="file" accept=".json,application/json" className="hidden" onChange={handleUpdateFromJson} />
         )}
 
-        {items !== null && items.length > 0 && c.categories && categoryOf && (
-          <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Kategoriyalar">
-            {[{ key: 'all', label: 'Hammasi' }, ...c.categories].map(cat => {
-              const count = cat.key === 'all'
-                ? items.length
-                : items.filter(item => categoryOf(item) === cat.key).length
-              const active = category === cat.key
-              return (
-                <button
-                  key={cat.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  onClick={() => setCategory(cat.key)}
-                  className={`inline-flex h-8 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition-colors ${
-                    active ? 'border-foreground bg-foreground text-background' : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
-                  }`}
-                >
-                  {cat.label}
-                  <span className={`rounded-md px-1.5 py-0.5 text-[10px] ${active ? 'bg-background/20' : 'bg-muted'}`}>{count}</span>
-                </button>
-              )
-            })}
+        {items !== null && items.length > 0 && (
+          <div className="space-y-3">
+            {c.categories && categoryOf && (
+              <AdminFilterTabs
+                label="Kategoriyalar"
+                value={category}
+                onChange={setCategory}
+                options={[{ key: 'all', label: 'Hammasi' }, ...c.categories].map(cat => ({
+                  key: cat.key,
+                  label: cat.label,
+                  count: cat.key === 'all' ? items.length : items.filter(item => categoryOf(item) === cat.key).length,
+                }))}
+              />
+            )}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="w-full sm:max-w-sm">
+                <AdminSearch value={query} onChange={setQuery} placeholder="Sarlavha yoki ID bo'yicha qidirish..." />
+              </div>
+              <AdminFilterTabs
+                label="Holat"
+                value={status}
+                onChange={key => setStatus(key as typeof status)}
+                options={[
+                  { key: 'all', label: 'Barchasi', count: byCategory?.length ?? 0 },
+                  { key: 'active', label: 'Faol', count: activeCount },
+                  { key: 'inactive', label: 'Nofaol', count: inactiveCount },
+                ]}
+              />
+            </div>
           </div>
         )}
 
@@ -338,7 +341,7 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
             description={`"Yangi test" yoki "JSON import" tugmasini bosing.`}
           />
         ) : visibleItems && visibleItems.length === 0 ? (
-          <AdminEmpty icon={Icon} title="Bu kategoriyada test yo'q" description="Boshqa kategoriyani tanlang." />
+          <AdminEmpty icon={Icon} title="Hech narsa topilmadi" description="Qidiruv yoki filtrlarni o'zgartirib ko'ring." />
         ) : (
           <div className="space-y-3">
             {(visibleItems ?? []).map(item => {
@@ -356,7 +359,7 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
                         <span className="truncate text-sm font-semibold">{row.title}</span>
                       )}
                       {row.isActive === false && (
-                        <StatusBadge label="Nofaol" colorClass="border-red-200 bg-red-50 text-red-700" />
+                        <StatusBadge label="Nofaol" colorClass="border-error/30 bg-error/10 text-error" />
                       )}
                       {row.badges?.map(b => (
                         <StatusBadge key={b} label={b} colorClass="border-border bg-muted text-muted-foreground" />
@@ -393,7 +396,7 @@ export function TestLibrary<T>({ config, below }: { config: TestLibraryConfig<T>
                       </Link>
                     )}
                     <button onClick={() => handleRemove(row)} disabled={!!busy[row.id]} title="O'chirish"
-                      className="rounded-xl p-1.5 text-red-500 transition-colors hover:bg-red-50 disabled:opacity-40">
+                      className="rounded-xl p-1.5 text-error transition-colors hover:bg-error/10 disabled:opacity-40">
                       <Trash2 className="size-4" />
                     </button>
                   </div>

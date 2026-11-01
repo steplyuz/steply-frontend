@@ -198,7 +198,7 @@ export default function SettingsPage() {
           <ul className="space-y-3">
             {activeSessions.map((session) => (
               <li key={session.id} className="flex flex-wrap items-center gap-4 rounded-3xl bg-white p-4 ring-1 ring-black/10 sm:p-6">
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl" style={{ background: 'rgba(228,247,10,0.22)' }}>
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl" style={{ background: 'rgba(200,255,0,0.22)' }}>
                   <MonitorSmartphone aria-hidden="true" className="size-6" strokeWidth={1.9} />
                 </span>
                 <div className="min-w-0 flex-1">

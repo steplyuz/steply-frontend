@@ -1,7 +1,5 @@
-Bu papkaga `chime.mp3` nomli tovush faylini qo'shing.
+# Sounds
 
-Kod uni shu yo'ldan chaqiradi: /sounds/chime.mp3
-(components/speaking-demo.tsx faylidagi CHIME_SRC o'zgaruvchisi)
-
-Bu tovush har bir savol/qism uchun "gapirishni boshlang" signali sifatida,
-tayyorgarlik vaqti tugagach va yozib olish boshlanganda avtomatik chaladi.
+- `chime.wav` — "gapirishni boshlang" signali (sintetik, 0.8 s). `lib/speaking/examiner.ts` shu faylni chaladi.
+  Agar fayl yo'q bo'lsa, kod WebAudio orqali oddiy signal chaladi.
+- Ixtiyoriy: haqiqiy imtihonchi yozuvlari (mp3) qo'shilsa, `speakExaminer` o'rniga shu yozuvlar chalinishi mumkin.

@@ -15,7 +15,7 @@ import { Loader2, AlertCircle, Maximize, Mic, ShieldCheck, Headphones } from "lu
 import { toast } from "sonner"
 import { PreflightStart } from "@/components/exam/preflight"
 import { useAuth } from "@/lib/auth/auth-context"
-import { isExamLocked, lockExam } from "@/lib/exam-lock"
+import { isExamLocked, lockExam } from "@/lib/exam/lock"
 import { useSpeakingGrading } from "@/lib/speaking/access"
 import { SpeakingLockedTest } from "@/components/dashboard/speaking-locked"
 
@@ -169,16 +169,25 @@ function SpeakingExamComponent() {
     const handleRecordComplete = useCallback(
         async (prompt: SpeakingPromptItem, file: File, audioUrl: string) => {
             if (!testId) return
-            const saved = await speakingApi.practiceSubmit(testId, prompt.questionId, file, prompt.partId)
+            let saved
+            try {
+                saved = await speakingApi.practiceSubmit(testId, prompt.questionId, file, prompt.partId)
+            } catch (err) {
+                const msg = err instanceof Error ? err.message : ''
+                toast.error(msg || "Audio yuborilmadi. Qayta urinib ko'ring.")
+                return
+            }
 
             const key = `${prompt.partId}-${prompt.questionId}`
             const rawId = (saved as { id?: unknown; submission_id?: unknown } | null)?.id ?? (saved as { submission_id?: unknown } | null)?.submission_id
             const submissionId = Number.isFinite(Number(rawId)) && rawId != null ? Number(rawId) : undefined
+            const rawAttempt = (saved as { practice_attempt_id?: unknown } | null)?.practice_attempt_id
+            const practiceAttemptId = Number.isFinite(Number(rawAttempt)) && rawAttempt != null ? Number(rawAttempt) : undefined
             const ext = file.name.split(".").pop() || "webm"
             setRecordings((prev) => {
-                const next = { ...prev, [key]: { submissionId, blobUrl: audioUrl, ext } }
+                const next = { ...prev, [key]: { submissionId, practiceAttemptId, blobUrl: audioUrl, ext } }
                 // blob URL sahifa yopilganda o'ladi — faqat serverga tegishli qismini saqlaymiz
-                const persist = Object.fromEntries(Object.entries(next).map(([k, v]) => [k, { submissionId: v.submissionId, ext: v.ext }]))
+                const persist = Object.fromEntries(Object.entries(next).map(([k, v]) => [k, { submissionId: v.submissionId, practiceAttemptId: v.practiceAttemptId, ext: v.ext }]))
                 localStorage.setItem(`speaking-${testId}-recordings`, JSON.stringify(persist))
                 return next
             })
@@ -234,9 +243,18 @@ function SpeakingExamComponent() {
         [prompts]
     )
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
         if (!testId || !test) return
         isExamFinished.current = true
+        // Urinishni yopamiz: keyingi safar yangi urinish boshlanadi (eski savollar 409 bermasin).
+        const finishedAttemptId = Object.values(recordings).find((r) => r.practiceAttemptId != null)?.practiceAttemptId
+        if (finishedAttemptId != null) {
+            try {
+                await speakingApi.finishPracticeAttempt(finishedAttemptId)
+            } catch {
+                /* yakunlash xatosi ishlashni to'xtatmasin; backend keyingi so'rovda baribir yangi urinishni tanlaydi */
+            }
+        }
         if (mode === "mock") lockExam(lockUid, "speaking", testId)
         if (mode === "mock" && typeof document !== "undefined" && document.fullscreenElement) {
             document.exitFullscreen().catch(() => {})
@@ -245,7 +263,7 @@ function SpeakingExamComponent() {
         const serverRecs = Object.fromEntries(
             Object.entries(recordings)
                 .filter(([, r]) => r.submissionId != null)
-                .map(([k, r]) => [k, { submissionId: r.submissionId as number, ext: r.ext }])
+                .map(([k, r]) => [k, { submissionId: r.submissionId as number, practiceAttemptId: r.practiceAttemptId, ext: r.ext }])
         )
         saveAttempt(String(user?.id ?? "guest"), {
             id: `${testId}-${Date.now()}`,
@@ -316,6 +334,7 @@ function SpeakingExamComponent() {
                 title={test.title}
                 questions={snapshot}
                 recordings={recordings}
+                practiceAttemptId={Object.values(recordings).find((r) => r.practiceAttemptId != null)?.practiceAttemptId ?? null}
                 onExit={() => router.push("/dashboard/speaking")}
             />
         )
@@ -328,7 +347,7 @@ function SpeakingExamComponent() {
                 <div className="w-full max-w-xl bg-white border border-border rounded-3xl shadow-xl p-6 sm:p-8 space-y-6">
                     <div className="flex items-center gap-4">
                         <div className="size-14 rounded-2xl bg-foreground text-white flex items-center justify-center shadow-lg shrink-0">
-                            <Mic className="size-7 text-[#E4F70A]" />
+                            <Mic className="size-7 text-[#C8FF00]" />
                         </div>
                         <div className="min-w-0">
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -359,7 +378,7 @@ function SpeakingExamComponent() {
                         <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm">
                             <li>Mikrofoningiz sozligiga va atrofda begona shovqinlar yo&apos;qligiga ishonch hosil qiling.</li>
                             <li>Imtihon boshlanganidan keyin mikrofon ruxsatini bering. Tayyorgarlik va audio yozuvi har bir savolda avtomatik boshlanadi.</li>
-                            <li>Yozib olingan javobingizni eshitib ko&apos;rish va kerak bo&apos;lsa qayta yozish imkoniyati bor.</li>
+                            <li>Orqaga qaytish va qayta yozish yo&apos;q: savollar, tayyorgarlik va yozuv avtomatik almashadi.</li>
                             <li>Barcha audio javoblar saqlanadi. Baholash faqat obunada ishlaydi; savollar va audiolarni yakunda yuklab olishingiz mumkin.</li>
                             {mode === "mock" ? <li>Mock imtihon to&apos;liq ekran rejimida o&apos;tkaziladi.</li> : <li>Practice rejimida to&apos;liq ekran majburiy emas.</li>}
                         </ul>
@@ -387,6 +406,7 @@ function SpeakingExamComponent() {
                         onIncreaseFontSize={() => setFontSize((s) => Math.min(s + 2, 26))}
                         onDecreaseFontSize={() => setFontSize((s) => Math.max(s - 2, 13))}
                         onBusyChange={setSpeakingBusy}
+                        onAllDone={() => setIsFinishModalOpen(true)}
                         autoStart
                     />
                 </main>
@@ -394,7 +414,7 @@ function SpeakingExamComponent() {
                     cameraEnabled={mode === "mock"}
                     prompts={prompts}
                     currentIndex={currentIndex}
-                    onSelectIndex={setCurrentIndex}
+                    onSelectIndex={() => {}}
                     uploadedStatus={uploadedStatus}
                     onFinish={() => setIsFinishModalOpen(true)}
                     busy={speakingBusy}
@@ -429,10 +449,7 @@ function SpeakingExamComponent() {
                     uploadedStatus={uploadedStatus}
                     onConfirm={handleFinish}
                     onCancel={() => setIsFinishModalOpen(false)}
-                    onJump={(idx) => {
-                        setCurrentIndex(idx)
-                        setIsFinishModalOpen(false)
-                    }}
+                    onJump={() => setIsFinishModalOpen(false)}
                 />
             )}
         </div>

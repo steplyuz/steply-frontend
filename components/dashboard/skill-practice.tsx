@@ -4,8 +4,10 @@
 import { useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpenText, CheckCircle2, Clock3, Headphones, Mic, Pencil, Play } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpenText, CheckCircle2, Clock3, Crown, Headphones, Lock, Mic, Pencil, Play } from 'lucide-react'
 import { useApi } from '@/lib/api/use-api'
+import type { PracticeCatalog, PracticeSkill } from '@/lib/api/types'
+import { PREMIUM_UPGRADE_HREF, isLockedTest } from '@/lib/practice/access'
 import { FOCUS, LIME } from '@/lib/brand'
 import { Badge, Empty, ErrorBox, Loading, fmtDate } from './ui'
 
@@ -14,6 +16,10 @@ export type TestCard = {
   title: string
   meta: (string | null | undefined)[]
   free?: boolean
+  /** Pullik (premium) test. Ro'yxatda "Premium" belgisi bilan ko'rinadi. */
+  premium?: boolean
+  /** Joriy foydalanuvchi uchun qulflangan: "Boshlash" o'rniga obuna tugmasi ko'rsatiladi. */
+  locked?: boolean
   /** Test qaysi qismga tegishli (masalan, 'Part 1'). Berilsa, katalog qismlar bo'yicha guruhlanadi. */
   part?: string | null
   /** Qism ko'rsatmasi (parts[0].description). Tanlangan qism sarlavhasi ostida ko'rinadi. */
@@ -55,6 +61,33 @@ function Circle({ color, width = 20, className = '' }: { color: string; width?: 
       className={`pointer-events-none absolute z-0 rounded-full ${className}`}
       style={{ border: `${width}px solid ${color}` }}
     />
+  )
+}
+
+function LockedBadge() {
+  return (
+    <Badge tone="amber">
+      <Lock aria-hidden="true" className="mr-1 size-3" />
+      Premium
+    </Badge>
+  )
+}
+
+/** Qulflangan premium test: boshlash o'rniga obuna sahifasiga olib boradi. */
+function PremiumLockButton({ cls = 'w-full', onDark = false }: { cls?: string; onDark?: boolean }) {
+  return (
+    <Link
+      href={PREMIUM_UPGRADE_HREF}
+      style={onDark ? { background: LIME } : undefined}
+      className={`group/btn inline-flex min-h-12 items-center justify-between gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-bold transition active:scale-[0.98] motion-reduce:transition-none ${
+        onDark ? 'text-foreground hover:brightness-95' : 'bg-foreground/[0.07] text-foreground hover:bg-foreground/10'
+      } ${FOCUS} ${cls}`}
+    >
+      Obunani ochish
+      <span className={`flex size-9 items-center justify-center rounded-full ${onDark ? 'bg-foreground text-white' : 'bg-white text-foreground'}`}>
+        <Lock aria-hidden="true" className="size-4" />
+      </span>
+    </Link>
   )
 }
 
@@ -182,7 +215,13 @@ function HeroPreview({ kind, accent }: { kind: SkillKind; accent: string }) {
 export function SkillPractice(props: {
   title: string
   desc: string
-  listPath: string
+  /**
+   * Practice katalogi (GET /practice/tests?skill=...). Premium testlar qulflangan holda ko'rinadi.
+   * Berilsa `listPath` ishlatilmaydi.
+   */
+  skill?: PracticeSkill
+  /** Eski rejim: ko'nikmaning o'z ro'yxat endpointi (qulf ma'lumoti yo'q). */
+  listPath?: string
   resultsPath: string
   testBaseHref?: string
   toTest: (raw: any) => TestCard
@@ -197,8 +236,12 @@ export function SkillPractice(props: {
   /** accessState 'locked' bo'lganda "Boshlash" o'rniga ko'rsatiladigan amallar. */
   lockedAction?: (t: TestCard) => ReactNode
 }) {
-  const { title, desc, listPath, resultsPath, testBaseHref, toTest, toResult, resultAction, notice, footer, accessState = 'open', lockedAction } = props
-  const tests = useApi<any[]>(listPath)
+  const { title, desc, skill, listPath, resultsPath, testBaseHref, toTest, toResult, resultAction, notice, footer, accessState = 'open', lockedAction } = props
+  const catalog = useApi<PracticeCatalog>(skill ? `/practice/tests?skill=${skill}` : null)
+  const legacyList = useApi<any[]>(skill ? null : (listPath ?? null))
+  const tests = skill
+    ? { ...catalog, data: catalog.data ? (catalog.data.items[skill] ?? []) : null }
+    : legacyList
   const results = useApi<any[]>(resultsPath)
   // Tanlangan qism (tab). Hech qachon tanlanmagan bo'lsa, birinchi qism ochiladi.
   const [activePart, setActivePart] = useState<string | null>(null)
@@ -210,7 +253,7 @@ export function SkillPractice(props: {
   // is_practice=false (yoki nofaol) testlar katalogda ko'rsatilmaydi
   const cards = (tests.data ?? []).filter(isPracticeVisible).map((raw) => {
     const t = toTest(raw)
-    return { ...t, part: detectPart(t) }
+    return { ...t, premium: t.premium ?? (raw?.access === 'premium'), locked: t.locked ?? isLockedTest(raw ?? {}), part: detectPart(t) }
   })
   const partCards = cards.filter((c) => c.part).sort((x, y) => partNum(x.part!) - partNum(y.part!))
   const fullCards = cards.filter((c) => !c.part)
@@ -254,8 +297,10 @@ export function SkillPractice(props: {
 
   // "Boshlash" — dashboarddagi CTA kabi: to'q pill + oq dumaloq strelka (to'q kartada: lime pill)
   const renderAction = (t: TestCard, cls = 'w-full', onDark = false) =>
-    accessState === 'locked' ? (
-      lockedAction ? lockedAction(t) : null
+    t.locked ? (
+      <PremiumLockButton cls={cls} onDark={onDark} />
+    ) : accessState === 'locked' ? (
+      lockedAction ? lockedAction(t) : <PremiumLockButton cls={cls} onDark={onDark} />
     ) : accessState === 'loading' ? null : (
       testBaseHref && (
         <Link
@@ -299,6 +344,7 @@ export function SkillPractice(props: {
             </span>
           )}
           {t.free && <Badge tone="green">Bepul</Badge>}
+          {t.locked ? <LockedBadge /> : t.premium ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge> : null}
         </div>
       </div>
     </div>
@@ -368,6 +414,7 @@ export function SkillPractice(props: {
             To‘liq test
           </span>
           {t.free && <Badge tone="green">Bepul</Badge>}
+          {t.locked ? <LockedBadge /> : t.premium ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge> : null}
         </div>
         <h3 className="mt-3 text-2xl font-black leading-tight tracking-tight sm:text-3xl">{t.title}</h3>
         {renderMetas(t, true)}

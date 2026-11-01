@@ -31,10 +31,12 @@ export function apiUrl(path: string, query?: QueryParams): string {
 
 /**
  * Backend nisbiy fayl manzili ("/static/...") qaytarsa, <audio>/<img> uchun to'liq manzil yasaydi.
- * Frontend va backend bir originda bo'lsa (baseUrl bo'sh) manzil o'zgarmaydi.
+ * Mutlaq URL (https://, //host, data:, blob:) o'zgarishsiz qaytadi. Bo'sh qiymat — ''.
+ * Frontend va backend bir originda bo'lsa (baseUrl bo'sh) relative manzil o'zgarmaydi.
  */
 export function resolveAssetUrl(url: string | null | undefined): string {
-  if (!url) return ''
-  if (/^https?:\/\//i.test(url)) return url
-  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`
+  const v = url?.trim()
+  if (!v) return ''
+  if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:') || v.startsWith('blob:')) return v
+  return `${baseUrl}${v.startsWith('/') ? '' : '/'}${v}`
 }

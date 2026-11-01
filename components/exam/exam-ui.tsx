@@ -14,15 +14,15 @@ import {
   ListOrdered, Minus, Plus, Type, Volume2, VolumeX,
 } from 'lucide-react'
 import { TONES, type Tone } from '@/lib/brand'
-import { EXAM_FOCUS as FOCUS } from '@/lib/exam-theme'
-import { formatClock } from '@/lib/use-countdown'
+import { EXAM_FOCUS as FOCUS } from '@/lib/exam/theme'
+import { formatClock } from '@/lib/exam/use-countdown'
 
 // ─── SKILL ACCENT ──────────────────────────────────────────────────────────
 export const SKILL_META: Record<Tone, { tint: string; mid: string; label: string }> = {
-  blue:   { tint: '#F7F9D8', mid: '#D2E600', label: 'Reading'   },
-  purple: { tint: '#F7F9D8', mid: '#D2E600', label: 'Listening' },
-  orange: { tint: '#F7F9D8', mid: '#D2E600', label: 'Writing'   },
-  red:    { tint: '#F7F9D8', mid: '#D2E600', label: 'Speaking'  },
+  blue:   { tint: '#F7F9D8', mid: '#B8ED00', label: 'Reading'   },
+  purple: { tint: '#F7F9D8', mid: '#B8ED00', label: 'Listening' },
+  orange: { tint: '#F7F9D8', mid: '#B8ED00', label: 'Writing'   },
+  red:    { tint: '#F7F9D8', mid: '#B8ED00', label: 'Speaking'  },
 }
 
 // ─── PART TABS ─────────────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ export function PartTabs({
               className={`inline-flex min-w-12 items-center justify-center gap-1.5 rounded-full border px-4 py-2 text-xs font-bold transition-all ${FOCUS}`}
               style={
                 isActive
-                  ? { backgroundColor: '#E4F70A', color: '#0B0B0D', borderColor: 'transparent', boxShadow: '0 6px 16px rgba(11,11,13,.10)' }
+                  ? { backgroundColor: '#C8FF00', color: '#0B0B0D', borderColor: 'transparent', boxShadow: '0 6px 16px rgba(11,11,13,.10)' }
                   : isDone
                   ? { backgroundColor: '#F0FDF4', color: '#16A34A', borderColor: '#86EFAC' }
                   : { backgroundColor: '#fff', color: 'rgba(11,11,13,.6)', borderColor: 'rgba(11,11,13,.14)' }
@@ -572,7 +572,7 @@ export function ExamUtilityRail({
         onClick={onFinish}
         disabled={submitting}
         className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-foreground transition-all active:scale-[.98] disabled:opacity-60 ${FOCUS}`}
-        style={{ backgroundColor: '#E4F70A', color: '#0B0B0D' }}
+        style={{ backgroundColor: '#C8FF00', color: '#0B0B0D' }}
       >
         <Flag size={15} />
         Tugatish
@@ -630,7 +630,7 @@ export function ExamFab({ onClick, submitting }: { onClick: () => void; submitti
       onClick={onClick}
       disabled={submitting}
       className={`fixed bottom-[max(16px,env(safe-area-inset-bottom))] right-4 z-40 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold text-foreground shadow-xl transition active:scale-95 disabled:opacity-60 lg:hidden ${FOCUS}`}
-      style={{ backgroundColor: '#E4F70A', color: '#0B0B0D' }}
+      style={{ backgroundColor: '#C8FF00', color: '#0B0B0D' }}
     >
       <Flag size={15} />
       Tugatish

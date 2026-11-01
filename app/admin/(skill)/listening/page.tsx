@@ -24,7 +24,7 @@ const config: TestLibraryConfig<ListeningTest> = {
   toRow: t => ({
     id: t.id,
     title: t.title,
-    meta: [t.level, `${t.total_questions ?? 0} savol`, `${t.duration} daq`],
+    meta: [t.cefr_level ?? t.level ?? '', `${t.total_questions ?? 0} savol`, `${t.duration_minutes ?? t.duration ?? 0} daq`],
     isActive: t.is_active,
     badges: [t.practice_part_number && `Part ${t.practice_part_number} mini-test`, t.is_demo && 'Demo', t.is_free && 'Free', t.is_practice && 'Practice'].filter(Boolean) as string[],
   }),

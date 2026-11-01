@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { get } from './dashboard'
+import { get } from './legacy'
 
 export function useApi<T>(path: string | null) {
   const [data, setData] = useState<T | null>(null)

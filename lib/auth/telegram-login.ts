@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { authApi } from "@/lib/api"
 import type { Me } from "@/lib/api/types"
+import { loadScriptOnce, type LoginCallbacks } from "@/lib/auth/script-loader"
 
 // BotFather'dagi "Login Widget" bo'limi bergan embed kodidagi skript manzili bilan solishtiring.
 const TELEGRAM_LOGIN_SCRIPT = "https://telegram.org/js/telegram-login.js"
@@ -33,31 +34,14 @@ declare global {
   }
 }
 
-let scriptPromise: Promise<void> | null = null
-
 function loadTelegramScript(): Promise<void> {
-  if (typeof window === "undefined") return Promise.reject(new Error("no window"))
-  if (window.Telegram?.Login) return Promise.resolve()
-  if (scriptPromise) return scriptPromise
-
-  scriptPromise = new Promise<void>((resolve, reject) => {
-    const el = document.createElement("script")
-    el.src = TELEGRAM_LOGIN_SCRIPT
-    el.async = true
-    el.onload = () => (window.Telegram?.Login ? resolve() : reject(new Error("Telegram Login yuklanmadi")))
-    el.onerror = () => reject(new Error("Telegram skripti yuklanmadi"))
-    document.head.appendChild(el)
-  }).catch((err) => {
-    scriptPromise = null // keyingi urinishda qayta yuklash mumkin bo'lsin
-    throw err
+  return loadScriptOnce(TELEGRAM_LOGIN_SCRIPT, () => !!window.Telegram?.Login, {
+    loadFailed: "Telegram skripti yuklanmadi",
+    notReady: "Telegram Login yuklanmadi",
   })
-  return scriptPromise
 }
 
-interface Options {
-  onSuccess: (me: Me) => void
-  onError: (message: string) => void
-}
+type Options = LoginCallbacks<Me>
 
 export function useTelegramLogin({ onSuccess, onError }: Options) {
   const [ready, setReady] = useState(false)

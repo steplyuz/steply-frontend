@@ -34,9 +34,8 @@ export function createAdminCrud<T, C, U = UpdateOf<C>, TItem = T>(adminBase: str
     create: (input: C) => apiPost<T>(adminBase, input),
     importJson: (file: File) => apiUpload<T>(adminBase, { file }),
     update: (id: string, input: U) => send<T>(`${adminBase}/${enc(id)}`, input),
-    /** force: faqat SUPER_ADMIN — natija/urinishlar bilan birga o'chirish (backend force=true). */
-    remove: (id: string, opts?: { force?: boolean }) =>
-      apiDelete<void>(`${adminBase}/${enc(id)}`, { query: { force: opts?.force ? true : undefined } }),
+    /** Test o'chadi, unga bog'liq natijalar/urinishlar ham o'chadi. 409 — faqat mock imtihonda ishlatilganda. */
+    remove: (id: string) => apiDelete<void>(`${adminBase}/${enc(id)}`),
   }
 }
 

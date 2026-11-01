@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight, BookOpen, Check, Clock, Headphones, Loader2, Mic, Pencil, Sparkles, X } from 'lucide-react'
 
-const LIME = '#E4F70A'
+const LIME = '#C8FF00'
 const STORAGE_KEY = 'steply:study-path'
 
 export type SkillKey = 'reading' | 'listening' | 'writing' | 'speaking'

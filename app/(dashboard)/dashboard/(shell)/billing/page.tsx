@@ -7,8 +7,9 @@ import {
   Search, Sparkles, Ticket, UploadCloud, Wallet, X,
 } from 'lucide-react'
 import { useApi } from '@/lib/api/use-api'
-import type { BillingLimits, BillingProduct } from '@/lib/api/types'
-import { post, upload, errMsg } from '@/lib/api/dashboard'
+import type { BillingLimits, BillingProduct, PromoValidateResult } from '@/lib/api/types'
+import { billingApi } from '@/lib/api'
+import { post, upload, errMsg } from '@/lib/api/legacy'
 import { FOCUS, LIME } from '@/lib/brand'
 import { fmtDate, fmtMoney } from '@/components/dashboard/ui'
 
@@ -22,11 +23,11 @@ type PaymentRequisites = {
 }
 
 type Plan = { id: number; name: string; description?: string | null; price: number; duration_days: number; tier: string; ai_limit: number; exam_limit?: number; included_skills?: string[]; ai_enabled?: boolean; discount_percent?: number; is_active?: boolean }
-type Order = { id: string; product_title?: string | null; product_type?: string; amount: number; discount_amount?: number; status: string; created_at: string }
+type Order = { id: string; product_title?: string | null; product_type?: string; amount: number; discount_amount?: number; status: string; created_at: string; checkout_url?: string | null }
 type Sub = { end_date: string; is_active: boolean } | null
-type Promo = { code: string; discount_amount: number; final_amount: number; discount_percent?: number | null; fixed_discount_amount?: number | null }
+type Promo = PromoValidateResult
 
-const HEAD_TINT = 'rgba(228,247,10,0.22)'
+const HEAD_TINT = 'rgba(200,255,0,0.22)'
 
 const TONE = {
   green: 'bg-emerald-100 text-emerald-800',
@@ -256,10 +257,88 @@ export default function BillingPage() {
     }
   }
 
+  // inPAY'dan qaytish (?order=...): webhook odatda bir necha soniyada keladi — buyurtma PAID bo'lguncha kuzatamiz.
+  const [returnOrderId, setReturnOrderId] = useState<string | null>(null)
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('order')
+    if (id) setReturnOrderId(id)
+  }, [])
+  useEffect(() => {
+    if (!returnOrderId) return
+    let alive = true
+    let tries = 0
+    let timer: ReturnType<typeof setTimeout> | undefined
+    setMsg({ ok: true, text: 'To‘lov tekshirilmoqda…' })
+    const check = async () => {
+      if (!alive) return
+      try {
+        const o = await billingApi.orderDetail(returnOrderId)
+        if (!alive) return
+        if (o.status === 'paid') {
+          setMsg({ ok: true, text: 'To‘lov qabul qilindi. Tarif faollashtirildi.' })
+          sub.reload(); limits.reload(); orders.reload()
+          setReturnOrderId(null)
+          window.history.replaceState(null, '', window.location.pathname)
+          return
+        }
+        if (o.status === 'cancelled' || o.status === 'rejected') {
+          setMsg({ ok: false, text: 'To‘lov bajarilmadi yoki bekor qilindi.' })
+          setReturnOrderId(null)
+          return
+        }
+      } catch {
+        /* vaqtinchalik xato — qayta urinamiz */
+      }
+      tries += 1
+      if (tries >= 40) {
+        setMsg({ ok: false, text: 'To‘lov hali tasdiqlanmadi. Bir necha daqiqadan so‘ng sahifani yangilang.' })
+        setReturnOrderId(null)
+        return
+      }
+      timer = setTimeout(check, 3000)
+    }
+    void check()
+    return () => {
+      alive = false
+      if (timer) clearTimeout(timer)
+    }
+  }, [returnOrderId])
+
+  /** Promo tarifga bog'langan bo'lsa, faqat shu tarifga qo'llanadi. */
+  function promoAppliesTo(planId: number): boolean {
+    return !appliedPromo || appliedPromo.activates_plan_id == null || appliedPromo.activates_plan_id === planId
+  }
+
+  /** inPAY to'lov sahifasiga o'tkazadi; to'lovdan keyin shu sahifaga qaytadi (?order=...). */
+  function redirectToCheckout(url: string) {
+    window.location.assign(url)
+  }
+
   async function handleSubscribe(plan: Plan) {
     const key = `buy-plan-${plan.id}`
-    setBusy(key)
     setMsg(null)
+    if (appliedPromo && !promoAppliesTo(plan.id)) {
+      setMsg({ ok: false, text: 'Bu promo kod boshqa tarif uchun. Shu tarifni tanlang yoki promo kodni olib tashlang.' })
+      return
+    }
+    setBusy(key)
+    // 100% promo: to'lovsiz, admin tasdig'isiz darhol faollashtiriladi.
+    if (appliedPromo?.is_free_activation && appliedPromo.activates_plan_id === plan.id) {
+      try {
+        await billingApi.activatePromo({ code: appliedPromo.code })
+        setMsg({ ok: true, text: `${plan.name} tarifi faollashtirildi.` })
+        setAppliedPromo(null)
+        setPromo('')
+        sub.reload()
+        orders.reload()
+        limits.reload()
+      } catch (e) {
+        setMsg({ ok: false, text: errMsg(e) })
+      } finally {
+        setBusy(null)
+      }
+      return
+    }
     try {
       const res = await post<Order>('/billing/orders', {
         product_type: 'subscription',
@@ -268,6 +347,10 @@ export default function BillingPage() {
       })
       orders.reload()
       sub.reload()
+      if (res.checkout_url) {
+        redirectToCheckout(res.checkout_url)
+        return
+      }
       openCheckout({ orderId: res.id, title: res.product_title || plan.name, amount: res.amount, status: res.status, productType: 'subscription' })
     } catch (e) {
       setMsg({ ok: false, text: errMsg(e) })
@@ -287,6 +370,10 @@ export default function BillingPage() {
         promo_code: appliedPromo ? appliedPromo.code : undefined,
       })
       orders.reload()
+      if (res.checkout_url) {
+        redirectToCheckout(res.checkout_url)
+        return
+      }
       openCheckout({ orderId: res.id, title: res.product_title || product.title, amount: res.amount, status: res.status, productType: product.product_type })
     } catch (e) {
       setMsg({ ok: false, text: errMsg(e) })
@@ -361,7 +448,7 @@ export default function BillingPage() {
   const instructions = pay?.instructions || 'To‘lov rekvizitlari administrator tomonidan hali sozlanmagan. Rekvizitlar tasdiqlanmaguncha to‘lov qilmang.'
   const hasPaymentDetails = Boolean(cardNum || bankName || accNum || phoneNum)
 
-  const extraProducts = (products.data ?? []).filter(p => p.is_active && ['full_exam', 'writing_ai_credits', 'teacher_review_credits'].includes(p.product_type))
+  const extraProducts = (products.data ?? []).filter(p => p.is_active && ['full_exam', 'ai_credits', 'teacher_review_credits'].includes(p.product_type))
 
   return (
     <div className="space-y-5 pb-6 sm:space-y-8">
@@ -488,12 +575,12 @@ export default function BillingPage() {
               const showBar = ai.enabled && monthly !== null && monthly > 0
               return (
                 <UsageCard
-                  title="AI tekshiruv limiti"
+                  title="AI kreditlar (Writing + Speaking)"
                   hint={
                     <>
                       {limits.data.month_start && <p>Oy boshi: {fmtDate(limits.data.month_start)}</p>}
                       {(ai.purchased_remaining ?? 0) > 0 && (
-                        <p className="mt-1 font-semibold text-emerald-700">Xarid qilingan Writing AI kreditlari: {ai.purchased_remaining} ta</p>
+                        <p className="mt-1 font-semibold text-emerald-700">Xarid qilingan AI kreditlari: {ai.purchased_remaining} ta</p>
                       )}
                     </>
                   }
@@ -577,7 +664,11 @@ export default function BillingPage() {
           {appliedPromo && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-emerald-50 px-4 py-2.5 text-xs text-emerald-800">
               <span>✓ <strong>{appliedPromo.code}</strong> kodi tekshirildi.</span>
-              <span className="font-semibold">Chegirma tanlangan mahsulot summasiga qarab hisoblanadi.</span>
+              <span className="font-semibold">
+                {appliedPromo.activates_plan_id != null
+                  ? `Bu kod faqat «${plans.data?.find((p) => p.id === appliedPromo.activates_plan_id)?.name ?? 'tanlangan'}» tarifi uchun.`
+                  : 'Chegirma tanlangan mahsulot summasiga qarab hisoblanadi.'}
+              </span>
             </div>
           )}
           {promoError && <div role="alert" className="mt-3 rounded-2xl bg-red-50 px-4 py-2.5 text-xs font-medium text-red-700">✕ {promoError}</div>}
@@ -596,7 +687,7 @@ export default function BillingPage() {
               const includedSkills = plan.included_skills || (plan.tier === 'free' ? ['READING', 'LISTENING', 'WRITING'] : ['READING', 'LISTENING', 'WRITING', 'SPEAKING'])
               const hasSpeaking = includedSkills.includes('SPEAKING')
               const discountedPrice = Math.round(plan.price * (1 - (plan.discount_percent || 0) / 100))
-              const promoDiscount = appliedPromo
+              const promoDiscount = appliedPromo && promoAppliesTo(plan.id)
                 ? appliedPromo.discount_percent != null
                   ? Math.round(discountedPrice * appliedPromo.discount_percent / 100)
                   : Math.min(discountedPrice, appliedPromo.fixed_discount_amount ?? appliedPromo.discount_amount ?? 0)
@@ -610,7 +701,7 @@ export default function BillingPage() {
               return (
                 <article key={plan.id} className="group relative flex min-w-0 flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-black/10 transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
                   <div className="relative isolate flex min-h-28 items-start justify-between gap-3 overflow-hidden p-5 sm:p-6" style={{ background: HEAD_TINT }}>
-                    <Circle color="rgba(228,247,10,0.35)" width={16} className="-right-10 -top-14 size-36" />
+                    <Circle color="rgba(200,255,0,0.35)" width={16} className="-right-10 -top-14 size-36" />
                     <span className="relative z-10 flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
                       <Sparkles aria-hidden="true" className="size-6" strokeWidth={1.9} />
                     </span>
@@ -636,7 +727,7 @@ export default function BillingPage() {
                         ))}
                         <li className="flex items-start gap-2">
                           <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-emerald-600" />
-                          <span>{plan.ai_enabled && plan.ai_limit > 0 ? `Writing AI tekshiruvi: ${plan.ai_limit} ta / oy` : 'Writing AI tekshiruvi kiritilmagan'}</span>
+                          <span>{plan.ai_enabled && plan.ai_limit > 0 ? `AI kredit (Writing + Speaking): ${plan.ai_limit} ta / oy` : 'AI kredit kiritilmagan'}</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-emerald-600" />
@@ -666,7 +757,7 @@ export default function BillingPage() {
                           <ArrowUpRight aria-hidden="true" className="size-4" />
                         </span>
                       </button>
-                      <p className="mt-2 text-center text-[11px] leading-4 text-foreground/55">Chek yuborilgach, admin tasdig‘i bilan faollashadi.</p>
+                      <p className="mt-2 text-center text-[11px] leading-4 text-foreground/55">To‘lov onlayn amalga oshiriladi va tasdiqlangach tarif avtomatik faollashadi.</p>
                     </div>
                   </div>
                 </article>
@@ -720,7 +811,7 @@ export default function BillingPage() {
       {/* Alohida xizmatlar */}
       {extraProducts.length > 0 && (
         <section aria-labelledby="billing-products" className="space-y-4 sm:space-y-6">
-          <SectionTitle id="billing-products" title="Alohida xizmatlar va testlar" desc="Writing AI qo‘shimcha tekshiruv kreditlari yoki alohida Full Exam mahsulotlari. Huquq to‘lov tasdiqlangandan keyin faollashadi." />
+          <SectionTitle id="billing-products" title="Alohida xizmatlar va testlar" desc="Qo‘shimcha AI tekshiruv kreditlari yoki alohida Full Exam mahsulotlari. Huquq to‘lov tasdiqlangandan keyin faollashadi." />
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
             {extraProducts.map(product => (
               <article key={product.id} className="flex flex-col justify-between gap-5 rounded-3xl bg-white p-5 ring-1 ring-black/10 sm:p-6">
@@ -728,7 +819,7 @@ export default function BillingPage() {
                   <h3 className="text-lg font-black leading-snug tracking-tight text-foreground">{product.title}</h3>
                   {product.description ? <p className="mt-2 text-sm leading-5 text-foreground/60">{product.description}</p> : null}
                   <span className="mt-3 inline-flex rounded-full bg-foreground/5 px-3 py-1.5 text-xs font-semibold text-foreground/70">
-                    {product.product_type === 'writing_ai_credits' ? `Writing AI · ${product.external_ref || '?'} ta tekshiruv` : product.product_type === 'teacher_review_credits' ? `Ustoz tekshiruvi · ${product.external_ref || '?'} ta` : 'Bir martalik test xaridi'}
+                    {product.product_type === 'ai_credits' ? `AI kredit · ${product.external_ref || '?'} ta tekshiruv (Writing + Speaking)` : product.product_type === 'teacher_review_credits' ? `Ustoz tekshiruvi · ${product.external_ref || '?'} ta` : 'Bir martalik test xaridi'}
                   </span>
                 </div>
                 <div>
@@ -795,7 +886,21 @@ export default function BillingPage() {
                     </ol>
                   )}
 
-                  {payable && (
+                  {payable && o.checkout_url && o.status === 'pending_payment' && (
+                    <div className="mt-4 flex flex-col gap-3 border-t border-foreground/10 pt-4 sm:flex-row sm:items-center">
+                      <p className="flex-1 text-sm text-foreground/60">
+                        To‘lov onlayn amalga oshiriladi. To‘lovdan so‘ng buyurtma avtomatik tasdiqlanadi.
+                      </p>
+                      <button type="button" onClick={() => redirectToCheckout(o.checkout_url as string)} className={pillDark}>
+                        <CreditCard aria-hidden="true" className="size-4" /> To‘lovni davom ettirish
+                      </button>
+                      <button type="button" className={pillDanger} disabled={busy === `c-${o.id}`} onClick={() => void cancelOrder(o.id)}>
+                        {busy === `c-${o.id}` ? 'Bekor qilinmoqda…' : 'Bekor qilish'}
+                      </button>
+                    </div>
+                  )}
+
+                  {payable && !(o.checkout_url && o.status === 'pending_payment') && (
                     <div className="mt-4 flex flex-col gap-3 border-t border-foreground/10 pt-4 sm:flex-row sm:items-center">
                       <p className={`flex-1 text-sm ${rejected ? 'font-semibold text-red-700' : 'text-foreground/60'}`}>
                         {rejected ? 'Chek rad etildi. Yangi chek yuklang.' : 'To‘lovdan so‘ng chekni yuklang, buyurtma tekshiriladi.'}
@@ -872,7 +977,7 @@ export default function BillingPage() {
                     <CheckCircle2 aria-hidden="true" className="mx-auto size-8 text-emerald-600" />
                     <p className="text-sm font-bold text-emerald-800">Chek muvaffaqiyatli qabul qilindi!</p>
                     <p className="text-xs leading-5 text-emerald-700/80">
-                      Chek tekshiruvga yuborildi. {checkoutModal.productType === 'writing_ai_credits' ? 'AI kreditlari' : checkoutModal.productType === 'teacher_review_credits' ? 'Ustoz tekshiruvi kreditlari' : checkoutModal.productType === 'full_exam' || checkoutModal.productType === 'mock_exam' ? 'Testga kirish huquqi' : 'Obuna'} administrator to‘lovni tasdiqlagandan keyin faollashadi. Holatni Buyurtmalarim bo‘limida kuzatishingiz mumkin.
+                      Chek tekshiruvga yuborildi. {checkoutModal.productType === 'ai_credits' ? 'AI kreditlari' : checkoutModal.productType === 'teacher_review_credits' ? 'Ustoz tekshiruvi kreditlari' : checkoutModal.productType === 'full_exam' || checkoutModal.productType === 'mock_exam' ? 'Testga kirish huquqi' : 'Obuna'} administrator to‘lovni tasdiqlagandan keyin faollashadi. Holatni Buyurtmalarim bo‘limida kuzatishingiz mumkin.
                     </p>
                     <button type="button" onClick={() => setCheckoutModal(null)} className={`${pillDark} mt-2 !min-h-11`}>Tushundim, yopish</button>
                   </div>

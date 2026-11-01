@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { AlertTriangle, CheckCircle2, ClipboardCheck, Eye, Loader2, ThumbsUp } from "lucide-react"
-import type { ListeningPart, ListeningQuestion } from "@/lib/cefr-types/listening"
+import type { ListeningPart, ListeningQuestion } from "@/lib/exam/types/listening"
 
 interface ListeningFinishModalProps {
     parts: ListeningPart[]

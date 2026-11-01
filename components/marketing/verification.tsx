@@ -67,7 +67,7 @@ function QrScanner({ reduceMotion }: { reduceMotion: boolean }) {
       {/* scan line */}
       {!reduceMotion && (
         <motion.span
-          className="absolute inset-x-1 h-0.5 rounded-full bg-primary shadow-[0_0_14px_3px_rgba(228,247,10,0.7)]"
+          className="absolute inset-x-1 h-0.5 rounded-full bg-primary shadow-[0_0_14px_3px_rgba(200,255,0,0.7)]"
           initial={{ top: "8%" }}
           animate={{ top: ["8%", "88%", "8%"] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}

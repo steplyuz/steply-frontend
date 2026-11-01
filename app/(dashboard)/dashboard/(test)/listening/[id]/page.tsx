@@ -10,13 +10,13 @@ import { Loader2, AlertCircle, Headphones, ShieldCheck, Volume2 } from "lucide-r
 import { toast } from "sonner"
 import { PreflightStart } from "@/components/exam/preflight"
 import { useAuth } from "@/lib/auth/auth-context"
-import { isExamLocked, lockExam } from "@/lib/exam-lock"
+import { isExamLocked, lockExam } from "@/lib/exam/lock"
 import { resolveAudioUrl } from "@/lib/api"
 
 // API
-import { getListeningExamByIdAPI, submitListeningExamAPI } from "@/lib/cefr-api/listening"
-import { pullMockSkillResultAPI } from "@/lib/cefr-api/mock"
-import type { ListeningExam } from "@/lib/cefr-types/listening"
+import { getListeningExamByIdAPI, submitListeningExamAPI } from "@/lib/practice/api/listening"
+import { pullMockSkillResultAPI } from "@/lib/exam/api/mock"
+import type { ListeningExam } from "@/lib/exam/types/listening"
 
 /** Variantlar [{label,value}] yoki ["matn", ...] ko'rinishida kelishi mumkin. */
 function normalizeOptions(raw: unknown): { value: string; label: string }[] {

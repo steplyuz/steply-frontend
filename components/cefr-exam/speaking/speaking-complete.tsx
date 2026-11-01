@@ -2,16 +2,19 @@
 
 import { CheckCircle2 } from 'lucide-react'
 import { SpeakingGradingNotice } from '@/components/dashboard/speaking-grading-notice'
+import { SpeakingAiResult } from '@/components/dashboard/speaking-ai-result'
 import { SpeakingDownloads } from '@/components/dashboard/speaking-downloads'
 import { btn } from '@/components/dashboard/ui'
 import type { QuestionSnapshot, RecordingRef } from '@/lib/speaking/export'
 
 export default function SpeakingComplete({
-  title, questions, recordings, onExit,
+  title, questions, recordings, practiceAttemptId, onExit,
 }: {
   title: string
   questions: QuestionSnapshot[]
   recordings: Record<string, RecordingRef>
+  /** Practice urinish ID: AI baholash shu urinish uchun ishga tushadi. */
+  practiceAttemptId?: number | null
   onExit: () => void
 }) {
   const done = questions.filter((q) => recordings[q.key]).length
@@ -31,6 +34,8 @@ export default function SpeakingComplete({
         </div>
 
         <SpeakingGradingNotice />
+
+        <SpeakingAiResult attemptId={practiceAttemptId ?? null} />
 
         <section className="space-y-3">
           <h2 className="text-base font-bold text-foreground">Yuklab olish</h2>

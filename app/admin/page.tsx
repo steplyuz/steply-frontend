@@ -124,9 +124,9 @@ export default function AdminDashboardPage() {
       </div>
 
       {error && (
-        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
           <span>Statistikani yuklashda xatolik: {error}</span>
-          <button onClick={loadStats} disabled={loading} className="rounded-lg border border-red-300 px-3 py-1.5 font-semibold disabled:opacity-50">Qayta urinish</button>
+          <button onClick={loadStats} disabled={loading} className="rounded-lg border border-error/30 px-3 py-1.5 font-semibold disabled:opacity-50">Qayta urinish</button>
         </div>
       )}
 

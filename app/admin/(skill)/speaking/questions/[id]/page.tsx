@@ -13,9 +13,11 @@ import {
 } from 'lucide-react'
 import { speakingApi } from '@/lib/api'
 import { resolveAssetUrl } from '@/lib/api/config'
-import type { SpeakingTest } from '@/lib/api/types'
+import type { SpeakingTest, SpeakingPartPayload } from '@/lib/api/types'
 import { ApiRequestError } from '@/lib/api/client'
 import { LockControls } from '@/components/admin/lock-controls'
+import { adminInput } from '@/components/admin/ui/styles'
+import { TestSettings } from '@/components/admin/test-settings'
 
 export default function EditSpeakingTestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -29,6 +31,39 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
   const [dirty, setDirty] = useState(false)
   
   const [mode, setMode] = useState<'simple' | 'json'>('simple')
+  const [partSaving, setPartSaving] = useState<string | null>(null)
+
+  /** Backend'ga yuboriladigan qism: DB ID'lari (external_id, *_id) olib tashlanadi. */
+  const cleanPart = (part: object) =>
+    Object.fromEntries(Object.entries(part).filter(([k]) => k !== 'external_id' && !k.endsWith('_id')))
+
+  /** Bitta qismni alohida saqlaydi (PUT /admin/speaking-tests/{id}/parts/{code}). Boshqa qismlar o'zgarmaydi. */
+  const savePart = async (code: '1.1' | '1.2' | '2' | '3', field: 'part_1_1' | 'part_1_2' | 'part_2' | 'part_3') => {
+    if (!exam) return
+    try {
+      setPartSaving(code)
+      setError(null)
+      const updated = await speakingApi.updatePart(id, code, cleanPart(exam[field]) as SpeakingPartPayload)
+      setExam(updated)
+      setLastSaved(new Date())
+      setDirty(false)
+    } catch (e) {
+      setError(e instanceof ApiRequestError ? `Qism ${code}: ${e.message}` : `Qism ${code} saqlanmadi`)
+    } finally {
+      setPartSaving(null)
+    }
+  }
+
+  const partSaveButton = (code: '1.1' | '1.2' | '2' | '3', field: 'part_1_1' | 'part_1_2' | 'part_2' | 'part_3') => (
+    <button
+      type="button"
+      onClick={() => void savePart(code, field)}
+      disabled={!!partSaving || saving}
+      className="rounded-lg border border-border px-3 py-1 text-xs font-semibold hover:bg-muted disabled:opacity-50"
+    >
+      {partSaving === code ? 'Saqlanmoqda...' : `Qism ${code} ni saqlash`}
+    </button>
+  )
 
   const loadData = useCallback(async () => {
     try {
@@ -56,6 +91,7 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
         title: exam.title,
         description: exam.description,
         is_active: exam.is_active,
+        is_demo: exam.is_demo,
         is_free: exam.is_free,
         is_practice: exam.is_practice,
         part_1_1: exam.part_1_1,
@@ -143,7 +179,7 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
             </div>
             <span
               className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                exam.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                exam.is_active ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
               }`}
             >
               {exam.is_active ? 'Faol (Active)' : 'Qoralama (Draft)'}
@@ -151,11 +187,11 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
           </div>
 
           <div className="flex items-center gap-3">
-            {error && <span className="text-sm font-medium text-red-600 truncate max-w-[200px]">{error}</span>}
+            {error && <span className="text-sm font-medium text-error truncate max-w-[200px]">{error}</span>}
             <LockControls onLock={() => speakingApi.lock(id)} onUnlock={() => speakingApi.unlock(id)} />
             {lastSaved && (
               <span className="text-xs text-muted-foreground hidden sm:inline">
-                {dirty ? <span className="text-amber-600">Saqlanmagan...</span> : `Saqlandi: ${lastSaved.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}`}
+                {dirty ? <span className="text-warning">Saqlanmagan...</span> : `Saqlandi: ${lastSaved.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}`}
               </span>
             )}
 
@@ -192,47 +228,12 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
 
       <main className="container-shell py-8">
         <div className="mx-auto max-w-4xl space-y-6">
-          {/* Metadata Section */}
-          <section className="space-y-4 rounded-xl border border-border bg-card p-5">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Test Sozlamalari</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-muted-foreground uppercase">Sarlavha</span>
-                <input
-                  type="text"
-                  value={exam.title}
-                  onChange={e => updateExam('title', e.target.value)}
-                  className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-muted-foreground uppercase">Tavsif (Description)</span>
-                <input
-                  type="text"
-                  value={exam.description || ''}
-                  onChange={e => updateExam('description', e.target.value)}
-                  className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                />
-              </label>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              {([
-                ['is_free', 'Bepul'],
-                ['is_practice', 'Mashq (practice) testi'],
-                ['is_active', 'Faol'],
-              ] as const).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={!!exam[key]}
-                    onChange={e => updateExam(key, e.target.checked)}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </section>
+          {/* Test Sozlamalari */}
+          <TestSettings
+            skill="speaking"
+            value={exam}
+            onChange={(key, val) => updateExam(key, val as never)}
+          />
 
           {/* Parts Section */}
           {mode === 'json' ? (
@@ -263,17 +264,17 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
               {/* Part 1.1 */}
               <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
                 <div className="border-b border-border bg-muted/30 px-4 py-3">
-                  <h3 className="text-[14px] font-bold text-foreground">Part 1.1 - Introduction</h3>
+                  <div className="flex items-center justify-between gap-3"><h3 className="text-[14px] font-bold text-foreground">Part 1.1 - Introduction</h3>{partSaveButton('1.1', 'part_1_1')}</div>
                 </div>
                 <div className="p-4 space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Tayyorgarlik (sekund)</span>
-                      <input type="number" value={exam.part_1_1.prep_seconds} onChange={e => updateExam('part_1_1', { ...exam.part_1_1, prep_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_1_1.prep_seconds} onChange={e => updateExam('part_1_1', { ...exam.part_1_1, prep_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Javob (sekund)</span>
-                      <input type="number" value={exam.part_1_1.answer_seconds} onChange={e => updateExam('part_1_1', { ...exam.part_1_1, answer_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_1_1.answer_seconds} onChange={e => updateExam('part_1_1', { ...exam.part_1_1, answer_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                   </div>
                   {[1, 2, 3].map(num => (
@@ -283,7 +284,7 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
                         type="text"
                         value={(exam.part_1_1 as any)[`question_${num}`]}
                         onChange={e => updateExam('part_1_1', { ...exam.part_1_1, [`question_${num}`]: e.target.value })}
-                        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary"
+                        className={adminInput}
                       />
                     </label>
                   ))}
@@ -293,20 +294,20 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
               {/* Part 1.2 */}
               <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
                 <div className="border-b border-border bg-muted/30 px-4 py-3">
-                  <h3 className="text-[14px] font-bold text-foreground">Part 1.2 - Compare 2 Pictures</h3>
+                  <div className="flex items-center justify-between gap-3"><h3 className="text-[14px] font-bold text-foreground">Part 1.2 - Compare 2 Pictures</h3>{partSaveButton('1.2', 'part_1_2')}</div>
                 </div>
                 <div className="p-4 space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Rasm 1 URL</span>
-                      <input type="text" value={exam.part_1_2.image_1_url} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, image_1_url: e.target.value })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="text" value={exam.part_1_2.image_1_url} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, image_1_url: e.target.value })} className={adminInput} />
                       <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={saving} onChange={e => { void handleImageUpload('part_1_2', 'image_1_url', e.target.files?.[0]); e.currentTarget.value = '' }} className="mt-2 block w-full text-xs" />
                       {exam.part_1_2.image_1_url && <img src={resolveAssetUrl(exam.part_1_2.image_1_url)} alt="Part 1.2 rasm 1" className="mt-2 max-h-36 rounded-lg border object-contain" />}
 
                     </label>
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Rasm 2 URL</span>
-                      <input type="text" value={exam.part_1_2.image_2_url} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, image_2_url: e.target.value })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="text" value={exam.part_1_2.image_2_url} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, image_2_url: e.target.value })} className={adminInput} />
                       <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={saving} onChange={e => { void handleImageUpload('part_1_2', 'image_2_url', e.target.files?.[0]); e.currentTarget.value = '' }} className="mt-2 block w-full text-xs" />
                       {exam.part_1_2.image_2_url && <img src={resolveAssetUrl(exam.part_1_2.image_2_url)} alt="Part 1.2 rasm 2" className="mt-2 max-h-36 rounded-lg border object-contain" />}
 
@@ -315,20 +316,20 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
                   <div className="grid gap-4 sm:grid-cols-3">
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Tayyorgarlik (s)</span>
-                      <input type="number" value={exam.part_1_2.prep_seconds} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, prep_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_1_2.prep_seconds} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, prep_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Tasvirlash javobi (s)</span>
-                      <input type="number" value={exam.part_1_2.describe_answer_seconds} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, describe_answer_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_1_2.describe_answer_seconds} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, describe_answer_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Normal javob (s)</span>
-                      <input type="number" value={exam.part_1_2.answer_seconds} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, answer_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_1_2.answer_seconds} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, answer_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                   </div>
                   <label className="block space-y-1.5">
                     <span className="text-xs font-semibold text-muted-foreground uppercase">Tasvirlash savoli (Describe)</span>
-                    <input type="text" value={exam.part_1_2.question_describe} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, question_describe: e.target.value })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                    <input type="text" value={exam.part_1_2.question_describe} onChange={e => updateExam('part_1_2', { ...exam.part_1_2, question_describe: e.target.value })} className={adminInput} />
                   </label>
                   {[2, 3].map(num => (
                     <label key={num} className="block space-y-1.5">
@@ -337,7 +338,7 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
                         type="text"
                         value={(exam.part_1_2 as any)[`question_${num}`]}
                         onChange={e => updateExam('part_1_2', { ...exam.part_1_2, [`question_${num}`]: e.target.value })}
-                        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary"
+                        className={adminInput}
                       />
                     </label>
                   ))}
@@ -347,12 +348,12 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
               {/* Part 2 */}
               <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
                 <div className="border-b border-border bg-muted/30 px-4 py-3">
-                  <h3 className="text-[14px] font-bold text-foreground">Part 2 - Describe 1 Picture</h3>
+                  <div className="flex items-center justify-between gap-3"><h3 className="text-[14px] font-bold text-foreground">Part 2 - Describe 1 Picture</h3>{partSaveButton('2', 'part_2')}</div>
                 </div>
                 <div className="p-4 space-y-4">
                   <label className="block space-y-1.5">
                     <span className="text-xs font-semibold text-muted-foreground uppercase">Rasm URL</span>
-                    <input type="text" value={exam.part_2.image_url} onChange={e => updateExam('part_2', { ...exam.part_2, image_url: e.target.value })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                    <input type="text" value={exam.part_2.image_url} onChange={e => updateExam('part_2', { ...exam.part_2, image_url: e.target.value })} className={adminInput} />
                     <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={saving} onChange={e => { void handleImageUpload('part_2', 'image_url', e.target.files?.[0]); e.currentTarget.value = '' }} className="mt-2 block w-full text-xs" />
                     {exam.part_2.image_url && <img src={resolveAssetUrl(exam.part_2.image_url)} alt="Part 2 rasm" className="mt-2 max-h-36 rounded-lg border object-contain" />}
 
@@ -360,11 +361,11 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Tayyorgarlik (s)</span>
-                      <input type="number" value={exam.part_2.prep_seconds} onChange={e => updateExam('part_2', { ...exam.part_2, prep_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_2.prep_seconds} onChange={e => updateExam('part_2', { ...exam.part_2, prep_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Javob (s)</span>
-                      <input type="number" value={exam.part_2.answer_seconds} onChange={e => updateExam('part_2', { ...exam.part_2, answer_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_2.answer_seconds} onChange={e => updateExam('part_2', { ...exam.part_2, answer_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                   </div>
                   {[1, 2, 3].map(num => (
@@ -374,7 +375,7 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
                         type="text"
                         value={(exam.part_2 as any)[`question_${num}`]}
                         onChange={e => updateExam('part_2', { ...exam.part_2, [`question_${num}`]: e.target.value })}
-                        className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary"
+                        className={adminInput}
                       />
                     </label>
                   ))}
@@ -384,22 +385,22 @@ export default function EditSpeakingTestPage({ params }: { params: Promise<{ id:
               {/* Part 3 */}
               <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
                 <div className="border-b border-border bg-muted/30 px-4 py-3">
-                  <h3 className="text-[14px] font-bold text-foreground">Part 3 - Discussion Topic</h3>
+                  <div className="flex items-center justify-between gap-3"><h3 className="text-[14px] font-bold text-foreground">Part 3 - Discussion Topic</h3>{partSaveButton('3', 'part_3')}</div>
                 </div>
                 <div className="p-4 space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Tayyorgarlik (s)</span>
-                      <input type="number" value={exam.part_3.prep_seconds} onChange={e => updateExam('part_3', { ...exam.part_3, prep_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_3.prep_seconds} onChange={e => updateExam('part_3', { ...exam.part_3, prep_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                     <label className="block space-y-1.5">
                       <span className="text-xs font-semibold text-muted-foreground uppercase">Javob (s)</span>
-                      <input type="number" value={exam.part_3.answer_seconds} onChange={e => updateExam('part_3', { ...exam.part_3, answer_seconds: Number(e.target.value) })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                      <input type="number" value={exam.part_3.answer_seconds} onChange={e => updateExam('part_3', { ...exam.part_3, answer_seconds: Number(e.target.value) })} className={adminInput} />
                     </label>
                   </div>
                   <label className="block space-y-1.5">
                     <span className="text-xs font-semibold text-muted-foreground uppercase">Mavzu (Topic)</span>
-                    <input type="text" value={exam.part_3.topic} onChange={e => updateExam('part_3', { ...exam.part_3, topic: e.target.value })} className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] outline-none transition focus:border-primary" />
+                    <input type="text" value={exam.part_3.topic} onChange={e => updateExam('part_3', { ...exam.part_3, topic: e.target.value })} className={adminInput} />
                   </label>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block space-y-1.5">

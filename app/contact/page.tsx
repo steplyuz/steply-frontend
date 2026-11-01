@@ -34,8 +34,8 @@ type ChannelProps = {
 
 function Channel({ icon, title, value, href, action, emptyText, external }: ChannelProps) {
   const head = (
-    <div className="relative isolate flex min-h-24 items-start justify-between gap-3 overflow-hidden p-5 sm:p-6" style={{ background: 'rgba(228,247,10,0.22)' }}>
-      <Circle color="rgba(228,247,10,0.35)" width={16} className="-right-10 -top-14 size-36" />
+    <div className="relative isolate flex min-h-24 items-start justify-between gap-3 overflow-hidden p-5 sm:p-6" style={{ background: 'rgba(200,255,0,0.22)' }}>
+      <Circle color="rgba(200,255,0,0.35)" width={16} className="-right-10 -top-14 size-36" />
       <span className="relative z-10 flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-black/5">{icon}</span>
     </div>
   )

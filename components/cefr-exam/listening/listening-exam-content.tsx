@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from "react"
 import { CircleHelp, FolderOpen, Folder, ChevronDown, TriangleAlert } from "lucide-react"
 import DOMPurify from "isomorphic-dompurify"
-import { ListeningExam, ListeningQuestion } from "@/lib/cefr-types/listening"
+import { ListeningExam, ListeningQuestion } from "@/lib/exam/types/listening"
 
 interface ListeningExamContentProps {
   examData: ListeningExam | null

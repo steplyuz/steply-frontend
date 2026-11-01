@@ -12,7 +12,7 @@ import { homeUrlForRole } from "@/lib/auth/auth-context"
 import { useTelegramLogin } from "@/lib/auth/telegram-login"
 import { useGoogleLogin } from "@/lib/auth/google-login"
 
-const LIME = "#E4F70A"
+const LIME = "#C8FF00"
 const LIME_TEXT = "#7A9A00"
 
 function useEntrance<T extends HTMLElement>(keyframes: Keyframe[], options: KeyframeAnimationOptions) {
@@ -137,7 +137,7 @@ function LoginForm() {
             placeholder="+998901234567"
             required
             disabled={loading}
-            className="h-[52px] w-full rounded-xl border border-border-strong bg-white pl-14 pr-4 text-[15px] font-medium text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-[#B0B1B9] focus:border-foreground focus:ring-4 focus:ring-[#E4F70A]/60 disabled:opacity-60"
+            className="h-[52px] w-full rounded-xl border border-border-strong bg-white pl-14 pr-4 text-[15px] font-medium text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-[#B0B1B9] focus:border-foreground focus:ring-4 focus:ring-[#C8FF00]/60 disabled:opacity-60"
           />
         </div>
         <div className="relative">
@@ -149,7 +149,7 @@ function LoginForm() {
             required
             minLength={6}
             disabled={loading}
-            className="h-[52px] w-full rounded-xl border border-border-strong bg-white pl-14 pr-12 text-[15px] font-medium text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-[#B0B1B9] focus:border-foreground focus:ring-4 focus:ring-[#E4F70A]/60 disabled:opacity-60"
+            className="h-[52px] w-full rounded-xl border border-border-strong bg-white pl-14 pr-12 text-[15px] font-medium text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-[#B0B1B9] focus:border-foreground focus:ring-4 focus:ring-[#C8FF00]/60 disabled:opacity-60"
           />
           <button
             type="button"

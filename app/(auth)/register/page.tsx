@@ -14,7 +14,7 @@ import { useGoogleLogin } from "@/lib/auth/google-login"
 
 type Step = "form" | "verify"
 
-const LIME = "#E4F70A"
+const LIME = "#C8FF00"
 const LIME_TEXT = "#7A9A00"
 
 const prefersReducedMotion = () =>
@@ -94,7 +94,7 @@ function BackgroundS() {
 const fieldClass =
   "h-[52px] w-full rounded-xl border border-border-strong bg-white pl-14 pr-4 text-[15px] font-medium text-foreground " +
   "outline-none transition-[border-color,box-shadow] placeholder:text-[#B0B1B9] " +
-  "focus:border-foreground focus:ring-4 focus:ring-[#E4F70A]/60 disabled:opacity-60"
+  "focus:border-foreground focus:ring-4 focus:ring-[#C8FF00]/60 disabled:opacity-60"
 
 const primaryButtonClass =
   "group mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4F53C] px-5 " +
@@ -170,7 +170,7 @@ function CustomSelect({
           "outline-none transition-[border-color,box-shadow] disabled:opacity-60",
           center ? "justify-center gap-1.5" : "justify-between",
           open
-            ? "border-foreground bg-white ring-4 ring-[#E4F70A]/60"
+            ? "border-foreground bg-white ring-4 ring-[#C8FF00]/60"
             : "border-border-strong bg-white hover:border-[#B0B1B9]",
           hasValue ? "text-foreground" : "text-[#B0B1B9]",
         ].join(" ")}
@@ -202,7 +202,7 @@ function CustomSelect({
                 }}
                 className={[
                   "flex cursor-pointer items-center justify-between px-3.5 py-2.5 text-[14px] font-medium transition-colors",
-                  isSelected ? "bg-[#E4F70A]/20 text-foreground" : "text-foreground hover:bg-[#F4F5F0]",
+                  isSelected ? "bg-[#C8FF00]/20 text-foreground" : "text-foreground hover:bg-[#F4F5F0]",
                 ].join(" ")}
               >
                 <span>{opt.label}</span>
@@ -432,7 +432,7 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
   if (step === "verify") {
     return (
       <form onSubmit={onVerify} noValidate className="w-full">
-        <div className="rounded-2xl border border-[#E4F70A]/70 bg-[#F8FBE7] p-4">
+        <div className="rounded-2xl border border-[#C8FF00]/70 bg-[#F8FBE7] p-4">
           <p className="text-sm font-semibold text-foreground">SMS kodini Telegram orqali oling</p>
           <p className="mt-1 text-xs leading-5 text-[#6F7078]">
             <span className="font-medium text-foreground">{phone}</span> raqamiga kod yuborildi.
@@ -469,7 +469,7 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
             aria-describedby={error ? "register-error" : undefined}
             className="h-[52px] w-full rounded-xl border border-border-strong bg-white text-center text-lg font-semibold tracking-[0.5em] text-foreground
                        outline-none transition-[border-color,box-shadow] placeholder:tracking-[0.5em] placeholder:text-[#B0B1B9]
-                       focus:border-foreground focus:ring-4 focus:ring-[#E4F70A]/60 disabled:opacity-60"
+                       focus:border-foreground focus:ring-4 focus:ring-[#C8FF00]/60 disabled:opacity-60"
           />
         </div>
 
