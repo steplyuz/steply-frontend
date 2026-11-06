@@ -7,6 +7,7 @@ import { ArrowUpRight, BookOpen, Headphones, Mic2, PenLine, type LucideIcon } fr
 
 import { FOCUS, LIME } from "@/lib/brand";
 import { useMotionVariants } from "./motion";
+import { Circle } from "@/components/ui/circle";
 
 /* -------------------------------------------------------------------------- */
 /* FINAL CTA — sayt bo‘yicha yagona banner                                      */
@@ -21,17 +22,6 @@ const CHIPS: { icon: LucideIcon; position: string; delay: number }[] = [
   { icon: PenLine, position: "bottom-12 left-2 sm:left-4 lg:bottom-16 lg:left-0", delay: 1.2 },
   { icon: Mic2, position: "bottom-6 right-2 sm:right-4 lg:bottom-10 lg:right-0", delay: 1.8 },
 ];
-
-/** Dekorativ halqa — faqat bezak */
-function Circle({ color, width = 20, className = "" }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  );
-}
 
 function MascotStage() {
   const reduceMotion = useReducedMotion() ?? false;

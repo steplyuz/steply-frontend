@@ -5,17 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth/auth-context'
 import OnboardingWizard from '@/components/onboarding/onboarding-wizard'
 import { OnboardingStyles } from '@/components/onboarding/onboarding-animations'
-
-/** Dekorativ halqa — faqat bezak, ekran o‘quvchilardan yashirilgan */
-function Circle({ color, width = 24, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
-}
+import { Circle } from '@/components/ui/circle'
 
 // Onboarding dashboard shell'idan tashqarida: sidebar yo'q, to'liq ekran wizard.
 // Shell layout'dagi gate shu sahifaga yo'naltiradi, shuning uchun bu yerda gate yo'q.

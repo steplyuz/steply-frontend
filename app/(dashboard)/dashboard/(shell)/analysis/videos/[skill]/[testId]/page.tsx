@@ -8,8 +8,10 @@ import { useApi } from '@/lib/api/use-api'
 import { apiUrl } from '@/lib/api/config'
 import { btn } from '@/components/dashboard/ui'
 import {
-  Circle, LIME, SKILLS, authFetch, errorMessage, parseSkill, type AnalysisVideo,
+  SKILLS, authFetch, errorMessage, parseSkill, type AnalysisVideo,
 } from '@/components/dashboard/analysis-shared'
+import { Circle } from '@/components/ui/circle'
+import { LIME } from '@/lib/brand'
 
 export default function AnalysisVideoPage() {
   const params = useParams<{ skill: string; testId: string }>()

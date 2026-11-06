@@ -1,6 +1,6 @@
 // PRACTICE — Reading. Talaba o'z Steply login sessiyasi bilan ishlaydi.
 // Endpointlar:
-//   GET  /reading-tests, GET /reading-tests/{id}
+//   GET  /reading-tests/{id}
 //   POST /reading-tests/{id}/attempts            (practice urinishni boshlash / davom ettirish)
 //   GET  /reading-tests/attempts/{attempt_id}    (holat + saqlangan javoblar)
 //   PUT  /reading-tests/attempts/{attempt_id}/answers
@@ -25,10 +25,6 @@ export interface AnswerItem {
 export interface ReadingSubmission {
   answers: AnswerItem[]
   exam_attempt_id?: number | null
-}
-
-export const getAllReadingExamsAPI = async () => {
-  return { data: (await readingApi.getAll()) as unknown as ReadingExam[] }
 }
 
 export const getReadingExamByIdAPI = async (testId: string) => {

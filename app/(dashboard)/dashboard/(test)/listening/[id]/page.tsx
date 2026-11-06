@@ -11,11 +11,10 @@ import { toast } from "sonner"
 import { PreflightStart } from "@/components/exam/preflight"
 import { useAuth } from "@/lib/auth/auth-context"
 import { isExamLocked, lockExam } from "@/lib/exam/lock"
-import { resolveAudioUrl } from "@/lib/api"
+import { examsApi, resolveAudioUrl } from "@/lib/api"
 
 // API
 import { getListeningExamByIdAPI, submitListeningExamAPI } from "@/lib/practice/api/listening"
-import { pullMockSkillResultAPI } from "@/lib/exam/api/mock"
 import type { ListeningExam } from "@/lib/exam/types/listening"
 
 /** Variantlar [{label,value}] yoki ["matn", ...] ko'rinishida kelishi mumkin. */
@@ -241,7 +240,7 @@ function ListeningExamComponent() {
 
             if (mode === "mock" && attemptId) {
                 try {
-                    await pullMockSkillResultAPI(Number(attemptId), "LISTENING")
+                    await examsApi.pullSkillFromExistingResult(Number(attemptId), "LISTENING")
                 } catch (e) {
                     console.error("Listening pull error:", e)
                 }

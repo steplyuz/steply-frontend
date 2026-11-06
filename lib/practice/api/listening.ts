@@ -1,4 +1,4 @@
-// PRACTICE — Listening. GET /listening-tests, GET /listening-tests/{id},
+// PRACTICE — Listening. GET /listening-tests/{id},
 // POST /listening-tests/{id}/submit  (body: { exam_id, user_answers, exam_attempt_id? })
 import { listeningApi } from '@/lib/api'
 import type { ListeningResultDetail, ListeningTest } from '@/lib/api/types'
@@ -7,10 +7,6 @@ export interface ListeningSubmission {
   exam_id: string
   user_answers: Record<string, string>
   exam_attempt_id?: number | null
-}
-
-export const getListeningExamsAPI = async () => {
-  return { data: (await listeningApi.getAll()) as ListeningTest[] }
 }
 
 export const getListeningExamByIdAPI = async (examId: string) => {

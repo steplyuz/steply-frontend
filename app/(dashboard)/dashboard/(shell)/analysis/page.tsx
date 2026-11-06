@@ -6,9 +6,11 @@ import { ChartNoAxesCombined, ChevronRight, CirclePlay, RefreshCw, Video } from 
 import { useApi } from '@/lib/api/use-api'
 import { Empty, ErrorBox, Loading, btn } from '@/components/dashboard/ui'
 import {
-  Circle, LIME, SKILLS, barColor, fmtDay, scoreOf,
+  SKILLS, barColor, fmtDay, scoreOf,
   type AnalysisVideo, type Quota, type Skill, type SkillResult,
 } from '@/components/dashboard/analysis-shared'
+import { Circle } from '@/components/ui/circle'
+import { LIME } from '@/lib/brand'
 
 function UsageBar({ label, used, limit }: { label: string; used: number; limit: number | null }) {
   const ratio = limit && limit > 0 ? Math.min(used / limit, 1) : 0

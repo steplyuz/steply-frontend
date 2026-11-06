@@ -15,7 +15,7 @@ import {
     startReadingAttemptAPI,
     submitReadingExamAPI,
 } from "@/lib/practice/api/reading"
-import { pullMockSkillResultAPI } from "@/lib/exam/api/mock"
+import { examsApi } from "@/lib/api"
 import type { ReadingExam } from "@/lib/exam/types/reading"
 import { Loader2, AlertCircle, Maximize, BookOpen, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
@@ -171,7 +171,7 @@ function ReadingExamComponent() {
 
             if (mode === "mock" && attemptId) {
                 try {
-                    await pullMockSkillResultAPI(Number(attemptId), "READING")
+                    await examsApi.pullSkillFromExistingResult(Number(attemptId), "READING")
                 } catch (e) {
                     console.error("Reading pull error:", e)
                 }

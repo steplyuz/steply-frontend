@@ -3,18 +3,9 @@
 import { CalendarDays, CheckCircle2, ExternalLink, Flag, Sparkles } from 'lucide-react'
 import type { OnboardingPlan } from '@/lib/api/types'
 import { CountUp } from './onboarding-animations'
-import { LIME, SKILL_LABEL, formatExamDate } from './onboarding-constants'
-
-/** Dekorativ halqa — faqat bezak, ekran o‘quvchilardan yashirilgan */
-function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
-}
+import { SKILL_LABEL, formatExamDate } from './onboarding-constants'
+import { Circle } from '@/components/ui/circle'
+import { LIME } from '@/lib/brand'
 
 function Stat({ value, label }: { value: number; label: string }) {
   return (

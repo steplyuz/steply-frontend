@@ -1,7 +1,5 @@
 import type { OnbCefrLevel, OnbDailyHours, OnbSkill, OnbTargetLevel, OnbTeacherHours, OnbVocabBand } from '@/lib/api/types'
 
-export const LIME = '#C8FF00'
-
 export const CEFR_LEVELS: OnbCefrLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1']
 export const TARGET_LEVELS: OnbTargetLevel[] = ['A2', 'B1', 'B2', 'C1']
 

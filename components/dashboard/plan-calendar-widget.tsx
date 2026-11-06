@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, Flag } from 'lucide-react'
 import type { OnboardingPlan } from '@/lib/api/types'
+import { LIME } from '@/lib/brand'
 
-const LIME = '#C8FF00'
 const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
 const DAY_MS = 86_400_000
 const PLAN_MONTH_DAYS = 30

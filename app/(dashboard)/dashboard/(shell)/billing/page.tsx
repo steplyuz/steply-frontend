@@ -12,6 +12,7 @@ import { billingApi } from '@/lib/api'
 import { post, upload, errMsg } from '@/lib/api/legacy'
 import { FOCUS, LIME } from '@/lib/brand'
 import { fmtDate, fmtMoney } from '@/components/dashboard/ui'
+import { Circle } from '@/components/ui/circle'
 
 type PaymentRequisites = {
   card_number: string
@@ -66,17 +67,6 @@ const STEP_LABELS = ['To‘lov', 'Tekshiruv', 'Tasdiq']
 
 function daysLeft(end: string) {
   return Math.max(0, Math.ceil((new Date(end).getTime() - Date.now()) / 86_400_000))
-}
-
-/** Dekorativ halqa — faqat bezak */
-function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
 }
 
 function CopyButton({ text, label }: { text: string; label: string }) {

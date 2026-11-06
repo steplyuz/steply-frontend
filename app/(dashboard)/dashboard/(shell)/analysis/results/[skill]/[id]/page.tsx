@@ -9,9 +9,11 @@ import { apiUrl } from '@/lib/api/config'
 import { getReadingExamByIdAPI } from '@/lib/practice/api/reading'
 import { ErrorBox, Loading } from '@/components/dashboard/ui'
 import {
-  Circle, LIME, SKILLS, answerText, authFetch, errorMessage, fmtDay, parseSkill,
+  SKILLS, answerText, authFetch, errorMessage, fmtDay, parseSkill,
   type QuestionReview, type ResultDetail,
 } from '@/components/dashboard/analysis-shared'
+import { Circle } from '@/components/ui/circle'
+import { LIME } from '@/lib/brand'
 
 const OK = { tint: '#E7F7EC', accent: '#16A34A' }
 const BAD = { tint: '#FFE4E6', accent: '#E11D48' }

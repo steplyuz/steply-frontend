@@ -5,6 +5,7 @@ export const PAPER = '#FFFFFF' // sidebar va topbar foni
 export const CANVAS = '#F7F7F5' // sahifa foni (kartalar ustida ajralib turishi uchun)
 export const LIME = '#C8FF00' // faqat to'ldirilgan fon sifatida (matn emas)
 export const LIME_DEEP = '#0B0B0D' // och fonda ko'rinadigan nuqta/aksent
+export const LIME_TEXT = '#7A9A00' // och fonda o'qiladigan lime matn rangi (LIME'ning to'q varianti)
 
 export type Tone = 'blue' | 'purple' | 'orange' | 'red'
 

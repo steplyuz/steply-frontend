@@ -10,6 +10,7 @@ import type { PracticeCatalog, PracticeSkill } from '@/lib/api/types'
 import { PREMIUM_UPGRADE_HREF, isLockedTest } from '@/lib/practice/access'
 import { FOCUS, LIME } from '@/lib/brand'
 import { Badge, Empty, ErrorBox, Loading, fmtDate } from './ui'
+import { Circle } from '@/components/ui/circle'
 
 export type TestCard = {
   id: string
@@ -51,17 +52,6 @@ export function isPracticeVisible(raw: any): boolean {
   if (raw.is_practice === false) return false
   if (raw.is_active === false) return false
   return true
-}
-
-/** Dekorativ halqa — matn ostida qoladi, bosilmaydi */
-function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
 }
 
 export function LockedBadge() {

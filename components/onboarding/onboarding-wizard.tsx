@@ -11,8 +11,10 @@ import type {
 import { PlanView } from './plan-view'
 import { OnboardingStyles, useCountUp } from './onboarding-animations'
 import {
-  CEFR_LEVELS, DAILY_OPTIONS, LIME, SKILLS, TARGET_LEVELS, TEACHER_OPTIONS, VOCAB_BANDS, formatExamDate,
+  CEFR_LEVELS, DAILY_OPTIONS, SKILLS, TARGET_LEVELS, TEACHER_OPTIONS, VOCAB_BANDS, formatExamDate,
 } from './onboarding-constants'
+import { Circle } from '@/components/ui/circle'
+import { LIME } from '@/lib/brand'
 
 type StepId = 'cefr' | 'target' | 'skills' | 'exam' | 'time' | 'review'
 const STEP_ORDER: StepId[] = ['cefr', 'target', 'skills', 'exam', 'time', 'review']
@@ -105,17 +107,6 @@ function firstIncompleteStep(d: Draft, hasExamDates: boolean): StepId {
 }
 
 /* ───────────── UI bo‘laklari ───────────── */
-
-/** Dekorativ halqa — faqat bezak, ekran o‘quvchilardan yashirilgan */
-function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
-}
 
 function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (

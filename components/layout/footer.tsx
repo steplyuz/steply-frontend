@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail, MessageCircle } from "lucide-react";
 import { FOCUS, LIME } from "@/lib/brand";
+import { Circle } from "@/components/ui/circle";
 
 /* -------------------------------------------------------------------------- */
 /* FOOTER                                                                       */
@@ -39,17 +40,6 @@ const COLUMNS = [
     ],
   },
 ];
-
-/** Dekorativ halqa — faqat bezak */
-function Circle({ color, width = 20, className = "" }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  );
-}
 
 function ContactPill({ href, icon, label, external }: { href: string; icon: React.ReactNode; label: string; external?: boolean }) {
   return (

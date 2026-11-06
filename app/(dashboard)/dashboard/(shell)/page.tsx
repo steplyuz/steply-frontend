@@ -8,12 +8,12 @@ import { useApi } from '@/lib/api/use-api'
 import type { BillingLimits, OnboardingState } from '@/lib/api/types'
 import { PlanCalendarWidget } from '@/components/dashboard/plan-calendar-widget'
 import { AiReminder } from '@/components/dashboard/ai-reminder'
+import { Circle } from '@/components/ui/circle'
+import { LIME } from '@/lib/brand'
 
 /* ───────────── Palette ─────────────
    Asosiy: LIME (urg‘u) + foreground (to‘q) + oq/neytral.
    Ko‘nikmalar faqat ikonka rangi sifatida o‘z rangiga ega — sahifa "kamalak"ga aylanmaydi. */
-
-const LIME = '#C8FF00'
 
 const PRACTICE_SKILLS = [
   { href: '/dashboard/reading', label: 'Reading', description: 'Matn o‘qing, savollarga javob bering', icon: BookOpen, tint: '#E6EEFF', accent: '#2563EB' },
@@ -42,17 +42,6 @@ function barColor(ratio: number) {
   if (ratio >= 1) return '#FB7185'
   if (ratio >= 0.8) return '#FB923C'
   return LIME
-}
-
-/** Dekorativ halqa — faqat bezak, ekran o‘quvchilardan yashirilgan */
-function Circle({ color, width = 18, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
 }
 
 function Ring({ used, limit }: { used: number; limit: number }) {

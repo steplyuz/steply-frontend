@@ -2,8 +2,7 @@
 
 import { BookOpenText, Headphones, Mic, PenLine } from 'lucide-react'
 import { refreshSession } from '@/lib/api/client'
-
-export const LIME = '#C8FF00'
+import { LIME } from '@/lib/brand'
 
 export type Skill = 'READING' | 'LISTENING' | 'WRITING' | 'SPEAKING'
 export type AnalysisVideo = { id: number | string; skill: Skill; test_id: string; title: string; created_at: string }
@@ -75,17 +74,6 @@ export const scoreOf = (r: SkillResult) => Number(r.standard_score ?? r.raw_scor
 
 export const fmtDay = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Sana ko‘rsatilmagan'
-
-/** Dekorativ halqa — matn ostida qoladi, bosilmaydi */
-export function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
-}
 
 export function barColor(ratio: number) {
   if (ratio >= 1) return '#FB7185'

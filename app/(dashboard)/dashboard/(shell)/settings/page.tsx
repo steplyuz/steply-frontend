@@ -9,6 +9,7 @@ import type { Session } from '@/lib/api/types'
 import { FOCUS, LIME } from '@/lib/brand'
 import { fmtDate } from '@/components/dashboard/ui'
 import { Select } from '@/components/dashboard/select'
+import { Circle } from '@/components/ui/circle'
 
 const pillDark = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 py-2 text-sm font-bold text-white transition hover:bg-foreground/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none ${FOCUS}`
 const pillLight = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground/5 px-6 py-2 text-sm font-bold text-foreground transition hover:bg-foreground/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${FOCUS}`
@@ -26,17 +27,6 @@ const TIMEZONES = [
   { value: 'America/New_York', label: 'New York' },
   { value: 'UTC', label: 'UTC' },
 ]
-
-/** Dekorativ halqa — faqat bezak */
-function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
-}
 
 export default function SettingsPage() {
   const { user, refresh } = useAuth()

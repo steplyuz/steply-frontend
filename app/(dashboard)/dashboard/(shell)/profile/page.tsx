@@ -9,6 +9,7 @@ import { del, errMsg, patch, post, put, upload } from '@/lib/api/legacy'
 import { FOCUS, LIME } from '@/lib/brand'
 import { Select } from '@/components/dashboard/select'
 import { DatePicker } from '@/components/dashboard/date-picker'
+import { Circle } from '@/components/ui/circle'
 
 type Profile = { full_name?: string | null; username?: string | null; avatar_url?: string | null; bio?: string | null; birth_date?: string | null; language?: string | null; timezone?: string | null }
 type Contact = { id: number; contact_type: string; value: string; is_verified: boolean; is_primary: boolean }
@@ -36,13 +37,6 @@ const CONTACT_TYPES = [
   { value: 'email', label: 'Email' },
   { value: 'phone', label: 'Telefon' },
 ]
-
-/** Dekorativ halqa — faqat bezak */
-function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div aria-hidden="true" className={`pointer-events-none absolute z-0 rounded-full ${className}`} style={{ border: `${width}px solid ${color}` }} />
-  )
-}
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

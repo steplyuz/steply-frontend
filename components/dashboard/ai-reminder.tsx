@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, X } from 'lucide-react'
 import type { OnboardingPlan } from '@/lib/api/types'
+import { LIME } from '@/lib/brand'
 
-const LIME = '#C8FF00'
 const focusRing = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
 
 function daysUntil(iso: string): number | null {

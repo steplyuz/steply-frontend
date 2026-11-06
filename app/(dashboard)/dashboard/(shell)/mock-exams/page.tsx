@@ -8,6 +8,7 @@ import { getErrorMessage } from '@/lib/api/client'
 import { FOCUS, LIME } from '@/lib/brand'
 import type { BillingOrder, PaymentDetails, MockExam } from '@/lib/api/types'
 import { MockRegistrationPanel } from '@/components/dashboard/mock-registration-panel'
+import { Circle } from '@/components/ui/circle'
 
 const STATUS_LABEL: Record<string, string> = {
   pending_payment: 'To‘lov kutilmoqda',
@@ -31,17 +32,6 @@ const pillDark = `inline-flex min-h-12 items-center justify-center gap-2 rounded
 
 function money(value: number) {
   return `${value.toLocaleString('uz-UZ')} UZS`
-}
-
-/** Dekorativ halqa — faqat bezak */
-function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`pointer-events-none absolute z-0 rounded-full ${className}`}
-      style={{ border: `${width}px solid ${color}` }}
-    />
-  )
 }
 
 function CopyButton({ text, label }: { text: string; label: string }) {

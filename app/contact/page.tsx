@@ -3,17 +3,11 @@ import { ArrowUpRight, CheckCircle2, LifeBuoy, Mail, MessageCircle, ShieldCheck 
 import { SiteHeader } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { FOCUS, LIME } from '@/lib/brand'
+import { Circle } from '@/components/ui/circle'
 
 export const metadata = {
   title: 'Aloqa | Steply',
   description: 'Steply akkaunti, testlar va billing bo‘yicha aloqa ma’lumotlari.',
-}
-
-/** Dekorativ halqa — faqat bezak */
-function Circle({ color, width = 20, className = '' }: { color: string; width?: number; className?: string }) {
-  return (
-    <div aria-hidden="true" className={`pointer-events-none absolute z-0 rounded-full ${className}`} style={{ border: `${width}px solid ${color}` }} />
-  )
 }
 
 const CHECKLIST = [
