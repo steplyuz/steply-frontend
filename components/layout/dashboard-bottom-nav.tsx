@@ -31,8 +31,8 @@ const tabs: Item[] = (
 export function DashboardBottomNav({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname() || ''
 
-  const isActive = ({ href, exact }: Item) =>
-    exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
+  const isActive = ({ href, exact, also }: Item) =>
+    exact ? pathname === href : [href, ...(also ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`))
 
   const base = `group flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-1 py-1.5 text-[11px] font-semibold transition active:scale-95 motion-reduce:transition-none ${FOCUS}`
 

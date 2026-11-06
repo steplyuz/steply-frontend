@@ -177,7 +177,7 @@ function ReadingExamComponent() {
                 }
             }
             toast.success("Reading imtihoni yakunlandi!")
-            router.push(mode === "mock" ? "/dashboard" : "/dashboard/reading")
+            router.push(mode === "mock" ? "/dashboard" : "/dashboard/practice?skill=reading")
         } catch (err: any) {
             console.error("Reading submit error:", err)
             toast.error(err?.message || "Natijani saqlashda xatolik yuz berdi")
@@ -441,7 +441,7 @@ function ReadingExamComponent() {
         if (!testId) return
         clearLocalSession()
         attemptIdRef.current = null
-        router.push("/dashboard/reading")
+        router.push("/dashboard/practice?skill=reading")
     }
 
     // --- ⌨️ HANDLERS ---
@@ -588,7 +588,7 @@ function ReadingExamComponent() {
                             <Loader2 className="size-4 animate-spin" /> Test boshlanmoqda...
                         </div>
                     ) : (
-                        <PreflightStart needs={{ mic: 'optional', fullscreen: mode === "mock" }} onBack={() => router.push(mode === "mock" ? "/dashboard" : "/dashboard/reading")} onStart={handleStartExam} />
+                        <PreflightStart needs={{ mic: 'optional', fullscreen: mode === "mock" }} onBack={() => router.push(mode === "mock" ? "/dashboard" : "/dashboard/practice?skill=reading")} onStart={handleStartExam} />
                     )}
                 </div>
             </div>

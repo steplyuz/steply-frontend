@@ -6,7 +6,7 @@ import type { Tone } from '@/lib/brand'
 // Kabinet navigatsiyasi va sahifa sarlavhalari uchun yagona manba:
 // sidebar menyusi ham, topbar sarlavhasi ham shu yerdan oladi.
 
-export type NavItem = { href: string; label: string; icon: React.ElementType; exact?: boolean; tone?: Tone }
+export type NavItem = { href: string; label: string; icon: React.ElementType; exact?: boolean; tone?: Tone; also?: string[] }
 export type NavGroup = { title?: string; items: NavItem[] }
 
 export const DASHBOARD_NAV: NavGroup[] = [
@@ -18,10 +18,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
   {
     title: 'Mashq',
     items: [
-      { href: '/dashboard/reading', label: 'Reading', icon: BookOpen, tone: 'blue' },
-      { href: '/dashboard/listening', label: 'Listening', icon: Headphones, tone: 'purple' },
-      { href: '/dashboard/writing', label: 'Writing', icon: Pencil, tone: 'orange' },
-      { href: '/dashboard/speaking', label: 'Speaking', icon: Mic, tone: 'red' },
+      { href: '/dashboard/practice', label: 'Practice', icon: BookOpen, tone: 'blue', also: ['/dashboard/reading', '/dashboard/listening', '/dashboard/writing', '/dashboard/speaking'] },
       { href: '/dashboard/analysis', label: 'Analysis', icon: ChartNoAxesCombined, tone: 'blue' },
       { href: '/dashboard/mock-exams', label: 'Mock Exam', icon: GraduationCap, tone: 'purple' },
     ],
@@ -41,10 +38,7 @@ export const isExternalHref = (href: string) => /^https?:\/\//.test(href)
 
 const PAGE_DESC: Record<string, string> = {
   '/dashboard': 'Practice bo‘limlari va o‘quv rejangiz',
-  '/dashboard/reading': 'Practice testlar va natijalar',
-  '/dashboard/listening': 'Audio testlar va natijalar',
-  '/dashboard/writing': 'Yozma topshiriqlar va natijalar',
-  '/dashboard/speaking': 'Ovoz yozish va natijalar',
+  '/dashboard/practice': 'Reading, Listening, Writing va Speaking testlari',
   '/dashboard/analysis': 'Mavjud tahlil videolari va foydalanish limiti',
   '/dashboard/mock-exams': 'Mock Exam katalogi va xaridlar',
   '/dashboard/billing': 'Obuna, buyurtmalar va to‘lovlar',
@@ -56,7 +50,7 @@ const PAGE_DESC: Record<string, string> = {
 export function pageMeta(pathname: string): { title: string; description?: string } {
   const all = [...DASHBOARD_NAV.flatMap((g) => g.items), PROFILE_ITEM].filter((i) => !isExternalHref(i.href))
   const match = all
-    .filter((i) => (i.exact ? pathname === i.href : pathname === i.href || pathname.startsWith(`${i.href}/`)))
+    .filter((i) => (i.exact ? pathname === i.href : [i.href, ...(i.also ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`))))
     .sort((a, b) => b.href.length - a.href.length)[0]
   if (!match) return { title: 'Shaxsiy kabinet' }
   return { title: match.label, description: PAGE_DESC[match.href] }

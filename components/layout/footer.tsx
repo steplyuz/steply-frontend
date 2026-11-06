@@ -10,10 +10,10 @@ const COLUMNS = [
   {
     title: "Mashqlar",
     links: [
-      { href: "/dashboard/reading", label: "Reading" },
-      { href: "/dashboard/listening", label: "Listening" },
-      { href: "/dashboard/writing", label: "Writing" },
-      { href: "/dashboard/speaking", label: "Speaking" },
+      { href: "/dashboard/practice?skill=reading", label: "Reading" },
+      { href: "/dashboard/practice?skill=listening", label: "Listening" },
+      { href: "/dashboard/practice?skill=writing", label: "Writing" },
+      { href: "/dashboard/practice?skill=speaking", label: "Speaking" },
     ],
   },
   {

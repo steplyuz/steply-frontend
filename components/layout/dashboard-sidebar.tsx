@@ -27,8 +27,8 @@ export function DashboardSidebar({ open, onClose }: { open: boolean; onClose: ()
     if (open && window.matchMedia('(max-width: 1023px)').matches) closeRef.current?.focus()
   }, [open])
 
-  const isActive = ({ href, exact }: Item) =>
-    !isExternal(href) && (exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`))
+  const isActive = ({ href, exact, also }: Item) =>
+    !isExternal(href) && (exact ? pathname === href : [href, ...(also ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`)))
 
   async function handleLogout() {
     if (loggingOut) return

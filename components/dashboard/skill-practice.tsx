@@ -28,13 +28,13 @@ export type TestCard = {
 export type ResultRow = { id: number; date: string; score: string; level?: string | null; note?: string | null }
 
 // Dashboard'dagi ko'nikma ranglari va ikonkalari bilan bir xil (writing — #EA580C, kontrast uchun)
-const SKILLS = {
+export const SKILLS = {
   reading: { tint: '#E6EEFF', accent: '#2563EB', icon: BookOpenText },
   listening: { tint: '#F3E8FF', accent: '#9333EA', icon: Headphones },
   writing: { tint: '#FFEDD5', accent: '#EA580C', icon: Pencil },
   speaking: { tint: '#FFE4E6', accent: '#E11D48', icon: Mic },
 } as const
-type SkillKind = keyof typeof SKILLS
+export type SkillKind = keyof typeof SKILLS
 
 function detectSkill(title: string): SkillKind {
   const t = title.toLowerCase()
@@ -46,7 +46,7 @@ function detectSkill(title: string): SkillKind {
  * Backend (submit/attempts) shu shartni talab qiladi: aks holda talaba testni ochib, keyin 404 oladi.
  * Maydon javobda umuman bo'lmasa (undefined), test yashirilmaydi: faqat aniq `false` yashiriladi.
  */
-function isPracticeVisible(raw: any): boolean {
+export function isPracticeVisible(raw: any): boolean {
   if (!raw || typeof raw !== 'object') return true
   if (raw.is_practice === false) return false
   if (raw.is_active === false) return false
@@ -64,7 +64,7 @@ function Circle({ color, width = 20, className = '' }: { color: string; width?: 
   )
 }
 
-function LockedBadge() {
+export function LockedBadge() {
   return (
     <Badge tone="amber">
       <Lock aria-hidden="true" className="mr-1 size-3" />
@@ -74,7 +74,7 @@ function LockedBadge() {
 }
 
 /** Qulflangan premium test: boshlash o'rniga obuna sahifasiga olib boradi. */
-function PremiumLockButton({ cls = 'w-full', onDark = false }: { cls?: string; onDark?: boolean }) {
+export function PremiumLockButton({ cls = 'w-full', onDark = false }: { cls?: string; onDark?: boolean }) {
   return (
     <Link
       href={PREMIUM_UPGRADE_HREF}
@@ -107,7 +107,7 @@ const partNum = (p: string) => parseInt(p.replace(/\D/g, ''), 10) || 0
  * → "Paper 2 (National Assessment)". Uchta segment bo'lsa o'rtadagisi olinadi,
  * aks holda birinchi segment.
  */
-const baseTitle = (title: string) => {
+export const baseTitle = (title: string) => {
   const segs = title.split(/\s[—–]\s/).map((s) => s.trim())
   return segs.length > 2 ? segs[1] : segs[0]
 }
