@@ -61,8 +61,9 @@ function draftFrom(s: OnboardingState): Draft {
   }
 }
 
-/** Qadam bo'yicha to'liqlik. Backend bilan bir xil qoidalar. */
-function stepValid(step: StepId, d: Draft): boolean {
+/** Qadam bo'yicha to'liqlik. Backend bilan bir xil qoidalar.
+ *  Sana ro'yxati bo'sh bo'lsa, imtihon qadami avtomatik to'liq (sana e'lon qilinmagan). */
+function stepValid(step: StepId, d: Draft, hasExamDates: boolean): boolean {
   switch (step) {
     case 'cefr':
       return d.cefrTaken === true ? !!d.cefrLevel : d.cefrTaken === false ? !!d.estimatedLevel : false
@@ -71,7 +72,7 @@ function stepValid(step: StepId, d: Draft): boolean {
     case 'skills':
       return d.weaknesses.length > 0
     case 'exam':
-      return d.examDateId !== null
+      return hasExamDates ? d.examDateId !== null : true
     case 'time':
       return d.dailyHours !== null && d.teacherHours !== null
     default:
@@ -80,7 +81,7 @@ function stepValid(step: StepId, d: Draft): boolean {
 }
 
 /** Qadamga mos yuboriladigan maydonlar (qisman saqlash) */
-function payloadFor(step: StepId, d: Draft): OnboardingUpdateInput {
+function payloadFor(step: StepId, d: Draft, hasExamDates: boolean): OnboardingUpdateInput {
   switch (step) {
     case 'cefr':
       return d.cefrTaken
@@ -91,7 +92,7 @@ function payloadFor(step: StepId, d: Draft): OnboardingUpdateInput {
     case 'skills':
       return { strengths: d.strengths, weaknesses: d.weaknesses }
     case 'exam':
-      return { exam_date_id: d.examDateId! }
+      return hasExamDates ? { exam_date_id: d.examDateId! } : { exam_date_pending: true }
     case 'time':
       return { daily_hours: d.dailyHours!, teacher_hours: d.teacherHours! }
     default:
@@ -99,8 +100,8 @@ function payloadFor(step: StepId, d: Draft): OnboardingUpdateInput {
   }
 }
 
-function firstIncompleteStep(d: Draft): StepId {
-  return STEP_ORDER.find((s) => s !== 'review' && !stepValid(s, d)) ?? 'review'
+function firstIncompleteStep(d: Draft, hasExamDates: boolean): StepId {
+  return STEP_ORDER.find((s) => s !== 'review' && !stepValid(s, d, hasExamDates)) ?? 'review'
 }
 
 /* ───────────── UI bo‘laklari ───────────── */
@@ -276,7 +277,7 @@ export default function OnboardingWizard() {
         setDraft(d)
         setExamDates(dates)
         setPlan(state.plan)
-        setStep(state.plan ? 'review' : firstIncompleteStep(d))
+        setStep(state.plan ? 'review' : firstIncompleteStep(d, dates.length > 0))
       })
       .catch((e) => !cancelled && setError(getErrorMessage(e)))
       .finally(() => !cancelled && setLoading(false))
@@ -288,8 +289,12 @@ export default function OnboardingWizard() {
   const stepIndex = STEP_ORDER.indexOf(step)
   const progress = Math.round((stepIndex / (STEP_ORDER.length - 1)) * 100)
   const pct = useCountUp(progress, { duration: 700 })
-  const canNext = stepValid(step, draft)
-  const allDone = useMemo(() => STEP_ORDER.every((s) => s === 'review' || stepValid(s, draft)), [draft])
+  const hasExamDates = examDates.length > 0
+  const canNext = stepValid(step, draft, hasExamDates)
+  const allDone = useMemo(
+    () => STEP_ORDER.every((s) => s === 'review' || stepValid(s, draft, hasExamDates)),
+    [draft, hasExamDates],
+  )
 
   // Teacher vaqti kunlik vaqtdan oshmasin
   const teacherOptions = TEACHER_OPTIONS.filter((o) => draft.dailyHours === null || o.value <= draft.dailyHours)
@@ -322,7 +327,7 @@ export default function OnboardingWizard() {
     setSaving(true)
     setError(null)
     try {
-      await onboardingApi.update(payloadFor(step, draft))
+      await onboardingApi.update(payloadFor(step, draft, hasExamDates))
       go(STEP_ORDER[stepIndex + 1])
     } catch (e) {
       setError(getErrorMessage(e))
@@ -520,7 +525,7 @@ export default function OnboardingWizard() {
         {step === 'exam' && (
           examDates.length === 0 ? (
             <Panel className="text-sm font-medium leading-6 text-muted-foreground">
-              Hozircha imtihon sanalari e’lon qilinmagan. Keyinroq qayta kiring yoki administrator bilan bog‘laning.
+              Hozircha imtihon sanalari e’lon qilinmagan. Davom etishingiz mumkin: sana e’lon qilingach, onboardingda sanani tanlaysiz.
             </Panel>
           ) : (
             <Panel>
@@ -606,7 +611,8 @@ export default function OnboardingWizard() {
                       label="Imtihon"
                       value={(() => {
                         const ex = examDates.find((x) => x.id === draft.examDateId)
-                        return ex ? `${ex.title} — ${formatExamDate(ex.exam_date)}` : '—'
+                        if (ex) return `${ex.title} — ${formatExamDate(ex.exam_date)}`
+                        return hasExamDates ? '—' : 'E’lon qilinmagan (keyinroq tanlanadi)'
                       })()}
                       onEdit={() => go('exam')}
                     />

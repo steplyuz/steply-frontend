@@ -17,6 +17,8 @@ export interface OnboardingState {
   strengths: string[] | null
   weaknesses: string[] | null
   exam_date_id: number | null
+  /** Sana hali e'lon qilinmagan va foydalanuvchi shu holatda davom etgan */
+  exam_date_pending: boolean
   daily_hours: number | null
   teacher_hours: number | null
   is_complete: boolean
@@ -36,6 +38,8 @@ export interface OnboardingUpdateInput {
   strengths?: OnbSkill[]
   weaknesses?: OnbSkill[]
   exam_date_id?: number
+  /** true: ro'yxatda sana yo'q, sana e'lon qilinmagan deb belgilanadi (exam_date_id bilan birga bo'lmaydi) */
+  exam_date_pending?: boolean
   daily_hours?: OnbDailyHours
   teacher_hours?: OnbTeacherHours
 }
@@ -63,7 +67,7 @@ export interface OnboardingPlan {
   teacher_sessions_per_week: number
   vocabulary_words_per_day: number
   milestones: string[]
-  exam?: { id: number; title: string; date: string; register_url: string }
+  exam?: { id: number; title: string; date: string; register_url: string } | null
 }
 
 /** POST /onboarding/plan */
