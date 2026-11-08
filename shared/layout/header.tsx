@@ -761,11 +761,11 @@ function MobileMenu({
             <div className="my-1.5 border-t border-primary-strong/[0.08]" />
 
             {/* Alifbo tanlash (mobil) */}
-            <div className="flex items-center justify-between px-3 py-1">
-              <span className="text-sm font-medium text-muted-foreground">
-                <Uz>Til</Uz>
+            <div className="px-3 py-1">
+              <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Uz>Alifbo</Uz>
               </span>
-              <LanguageSwitch className="flex" />
+              <LanguageSwitch inline />
             </div>
 
             <div className="my-1.5 border-t border-primary-strong/[0.08]" />
