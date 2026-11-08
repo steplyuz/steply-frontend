@@ -11,13 +11,13 @@ import { use, useCallback, useEffect, useState } from 'react'
 import {
   ArrowLeft, Braces, Save, Layout, ShieldAlert
 } from 'lucide-react'
-import { speakingApi } from '@/lib/api'
-import { resolveAssetUrl } from '@/lib/api/config'
-import type { SpeakingTest, SpeakingPartPayload } from '@/lib/api/types'
-import { ApiRequestError } from '@/lib/api/client'
-import { LockControls } from '@/components/admin/lock-controls'
-import { adminInput } from '@/components/admin/ui/styles'
-import { TestSettings } from '@/components/admin/test-settings'
+import { speakingApi } from '@/shared/api'
+import { resolveAssetUrl } from '@/shared/api/config'
+import type { SpeakingTest, SpeakingPartPayload } from '@/shared/api/types'
+import { ApiRequestError } from '@/shared/api/client'
+import { LockControls } from '@/features/admin/components/lock-controls'
+import { adminInput } from '@/features/admin/components/ui/styles'
+import { TestSettings } from '@/features/admin/components/test-settings'
 
 export default function EditSpeakingTestPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)

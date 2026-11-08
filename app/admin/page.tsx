@@ -5,9 +5,9 @@ import Link from 'next/link'
 import {
   Users, FileText, CheckCircle2, PenLine, Mic2, CreditCard, RefreshCw, GraduationCap, ClipboardList, BadgeCheck, Banknote, Clock3, Activity
 } from 'lucide-react'
-import { useAuth } from '@/lib/auth/auth-context'
-import { adminApi } from '@/lib/api'
-import type { AdminDashboard as DashboardStats } from '@/lib/api/types'
+import { useAuth } from '@/shared/providers/auth-context'
+import { adminApi } from '@/shared/api'
+import type { AdminDashboard as DashboardStats } from '@/shared/api/types'
 
 export const dynamic = 'force-dynamic'
 

@@ -29,11 +29,11 @@ import {
   Package,
 } from 'lucide-react'
 
-import { billingApi } from '@/lib/api/modules/billing'
-import { adminApi } from '@/lib/api/modules/admin'
-import type { AdminGrantSubscriptionInput, AdminUser } from '@/lib/api/types'
-import { authenticatedDownload } from '@/lib/api/download'
-import { getErrorMessage } from '@/lib/api/client'
+import { billingApi } from '@/shared/api/modules/billing'
+import { adminApi } from '@/shared/api/modules/admin'
+import type { AdminGrantSubscriptionInput, AdminUser } from '@/shared/api/types'
+import { authenticatedDownload } from '@/shared/api/download'
+import { getErrorMessage } from '@/shared/api/client'
 import type {
   BillingOrder,
   BillingPlan,
@@ -45,7 +45,7 @@ import type {
   PromoCodeInput,
   SubscriptionTier,
   TierLimitRule,
-} from '@/lib/api/types'
+} from '@/shared/api/types'
 
 import {
   AdminButton,
@@ -55,9 +55,9 @@ import {
   AdminSearch,
   AdminTable,
   AdminTableSkeleton,
-} from '@/components/layout/admin-page-shell'
-import { formatDateTime, formatMoney } from '@/lib/format'
-import { adminInput } from '@/components/admin/ui/styles'
+} from '@/features/admin/layout/admin-page-shell'
+import { formatDateTime, formatMoney } from '@/shared/lib/format'
+import { adminInput } from '@/features/admin/components/ui/styles'
 
 /* ── Order Status Meta ────────────────────────────────────── */
 const ORDER_STATUS_LABEL: Record<string, string> = {
@@ -290,7 +290,7 @@ export default function AdminBillingPage() {
     },
     {
       label: 'PRO (1 oylik)',
-      name: 'Steply PRO',
+      name: 'Steply PRo',
       description: 'Barcha practice ko‘nikmalari, jumladan Speaking',
       tier: 'pro' as SubscriptionTier,
       duration_days: 30,
@@ -1031,7 +1031,7 @@ export default function AdminBillingPage() {
                           onClick={() => void handleSelfPurchase(p)}
                           className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-xs font-semibold text-success transition hover:bg-success/15 disabled:opacity-50 dark:text-success"
                         >
-                          <CreditCard className="size-3.5" /> {selfPurchaseSubmitting ? 'Buyurtma...' : 'O‘zim uchun sotib olish'}
+                          <CreditCard className="size-3.5" /> {selfPurchaseSubmitting ? 'Buyurtma...' : 'o‘zim uchun sotib olish'}
                         </button>
                       )}
                       <button
@@ -1366,7 +1366,7 @@ export default function AdminBillingPage() {
                           onClick={() => handleTogglePromoActive(p)}
                           className="text-xs text-muted-foreground hover:text-foreground font-medium"
                         >
-                          {p.is_active ? 'O‘chirish' : 'Yoqish'}
+                          {p.is_active ? 'o‘chirish' : 'Yoqish'}
                         </button>
                         <AdminButton size="sm" variant="default" onClick={() => openEditPromoModal(p)}>
                           <Edit2 className="size-3" /> Tahrirlash
@@ -1430,7 +1430,7 @@ export default function AdminBillingPage() {
       )}
 
       {/* ──────────────────────────────────────────────────────────
-         TAB 5: TO'LOV REKVIZITLARI (REQUISITES)
+         TAB 5: To'LOV REKVIZITLARI (REQUISITES)
       ────────────────────────────────────────────────────────── */}
       {activeTab === 'grant' && (
         <div className="space-y-6 max-w-3xl">
@@ -1793,7 +1793,7 @@ export default function AdminBillingPage() {
               <div><label className="mb-1 block text-xs font-semibold">Tavsif (ixtiyoriy)</label><textarea maxLength={2000} value={productForm.description || ''} onChange={e => setProductForm(previous => ({ ...previous, description: e.target.value }))} rows={2} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm" /></div>
               <div><label className="mb-1 block text-xs font-semibold">{productForm.product_type === 'ai_credits' ? 'Kreditlar soni (external_ref)' : 'Mock Exam ID (external_ref)'}</label><input required maxLength={100} value={productForm.external_ref || ''} onChange={e => setProductForm(previous => ({ ...previous, external_ref: e.target.value.trim() }))} placeholder={productForm.product_type === 'ai_credits' ? '10' : 'Mock Exam ID'} className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 font-mono text-sm" /><p className="mt-1 text-[11px] text-muted-foreground">{productForm.product_type === 'ai_credits' ? '1–10000 oralig‘idagi butun son kiriting.' : 'ID admin Mock Exam katalogidagi mavjud, faol imtihonga tegishli bo‘lishi kerak.'}</p></div>
               <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={productForm.is_active ?? true} onChange={e => setProductForm(previous => ({ ...previous, is_active: e.target.checked }))} className="size-4" /> Xarid uchun faol</label>
-              <div className="flex justify-end gap-3 border-t border-border pt-4"><AdminButton variant="default" onClick={() => { setProductModalOpen(false); setEditingProduct(null) }}>Bekor qilish</AdminButton><AdminButton type="submit" variant="primary" disabled={productSubmitting}>{productSubmitting ? 'Saqlanmoqda…' : editingProduct ? 'O‘zgarishlarni saqlash' : 'Mahsulot yaratish'}</AdminButton></div>
+              <div className="flex justify-end gap-3 border-t border-border pt-4"><AdminButton variant="default" onClick={() => { setProductModalOpen(false); setEditingProduct(null) }}>Bekor qilish</AdminButton><AdminButton type="submit" variant="primary" disabled={productSubmitting}>{productSubmitting ? 'Saqlanmoqda…' : editingProduct ? 'o‘zgarishlarni saqlash' : 'Mahsulot yaratish'}</AdminButton></div>
             </form>
           </div>
         </div>

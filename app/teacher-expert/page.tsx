@@ -3,9 +3,9 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Clock3, Mic2, PenLine, RefreshCw } from 'lucide-react'
-import { useAuth } from '@/lib/auth/auth-context'
-import { writingApi, speakingApi } from '@/lib/api'
-import type { WritingResult, SpeakingSubmission } from '@/lib/api/types'
+import { useAuth } from '@/shared/providers/auth-context'
+import { writingApi, speakingApi } from '@/shared/api'
+import type { WritingResult, SpeakingSubmission } from '@/shared/api/types'
 
 export default function TeacherDashboardPage() {
   const { user } = useAuth()

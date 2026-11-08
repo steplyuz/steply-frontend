@@ -8,10 +8,10 @@
  */
 
 import { Pen } from 'lucide-react'
-import { writingApi } from '@/lib/api'
-import { TestLibrary, type TestLibraryConfig } from '@/components/admin/test-library'
-import { WRITING_JSON_TEMPLATE } from '@/lib/admin/json-templates'
-import type { WritingExam, WritingTask, WritingUpdateInput } from '@/lib/api/types'
+import { writingApi } from '@/shared/api'
+import { TestLibrary, type TestLibraryConfig } from '@/features/admin/components/test-library'
+import { WRITING_JSON_TEMPLATE } from '@/features/admin/lib/json-templates'
+import type { WritingExam, WritingTask, WritingUpdateInput } from '@/shared/api/types'
 
 async function readJson(file: File): Promise<Record<string, unknown>> {
   let raw: unknown

@@ -2,19 +2,19 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo, Suspense } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
-import WritingExamContent from "@/components/cefr-exam/writing/writing-exam-content"
-import WritingExamSidebar from "@/components/cefr-exam/writing/writing-exam-sidebar"
-import WritingTopBar from "@/components/cefr-exam/writing/writing-top-bar"
-import WritingFinishModal from "@/components/cefr-exam/writing/writing-finish-modal"
-import { writingApi } from "@/lib/api"
-import type { WritingExam, WritingResult } from "@/lib/api/types"
+import WritingExamContent from "@/features/exam/cefr/writing/writing-exam-content"
+import WritingExamSidebar from "@/features/exam/cefr/writing/writing-exam-sidebar"
+import WritingTopBar from "@/features/exam/cefr/writing/writing-top-bar"
+import WritingFinishModal from "@/features/exam/cefr/writing/writing-finish-modal"
+import { writingApi } from "@/shared/api"
+import type { WritingExam, WritingResult } from "@/shared/api/types"
 import { Loader2, AlertCircle, PenTool } from "lucide-react"
 import { toast } from "sonner"
-import { PreflightStart } from "@/components/exam/preflight"
-import { useAuth } from "@/lib/auth/auth-context"
-import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, remainingSeconds } from "@/lib/exam/lock"
+import { PreflightStart } from "@/features/exam/components/preflight"
+import { useAuth } from "@/shared/providers/auth-context"
+import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, remainingSeconds } from "@/features/exam/lib/lock"
 import Link from "next/link"
-import { formatClock } from '@/lib/format'
+import { formatClock } from '@/shared/lib/format'
 
 const FONT_SIZE = 17
 const LOW_TIME_SECONDS = 300
@@ -260,7 +260,7 @@ function WritingExamComponent() {
     if (!hasStarted) {
         return (
             <div className="flex min-h-[80vh] flex-col items-center justify-center bg-background p-4 sm:p-6">
-                <div className="w-full max-w-xl space-y-6 rounded-3xl border border-border bg-white p-6 shadow-xl sm:p-8">
+                <div className="w-full max-w-xl space-y-6 rounded-3xl bg-white p-6 shadow-xl sm:p-8 ring-1 ring-[#0F3D26]/[0.06]">
                     <div className="flex items-center gap-4">
                         <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-foreground text-white shadow-lg">
                             <PenTool className="size-7" />
@@ -269,7 +269,7 @@ function WritingExamComponent() {
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 {test.cefr_level || "CEFR"} · Yozish bo&apos;limi
                             </span>
-                            <h1 className="truncate text-xl font-extrabold text-foreground sm:text-2xl" title={test.title}>
+                            <h1 className="truncate text-xl font-semibold text-foreground sm:text-2xl" title={test.title}>
                                 {test.title}
                             </h1>
                         </div>

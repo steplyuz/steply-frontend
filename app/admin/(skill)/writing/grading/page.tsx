@@ -5,8 +5,8 @@
  * Insho yuklash (test kutubxonasi) bilan aralashmasligi uchun alohida sahifa.
  */
 
-import { AdminPageShell } from '@/components/layout/admin-page-shell'
-import { WritingGradingQueue } from '@/components/admin/writing-grading-queue'
+import { AdminPageShell } from '@/features/admin/layout/admin-page-shell'
+import { WritingGradingQueue } from '@/features/admin/components/writing-grading-queue'
 
 export default function AdminWritingGradingPage() {
   return (

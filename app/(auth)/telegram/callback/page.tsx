@@ -4,8 +4,8 @@ import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
-import { authApi } from "@/lib/api"
-import { homeUrlForRole } from "@/lib/auth/auth-context"
+import { authApi } from "@/shared/api"
+import { homeUrlForRole } from "@/shared/providers/auth-context"
 
 function TelegramCallbackContent() {
   const router = useRouter()
@@ -41,14 +41,14 @@ function TelegramCallbackContent() {
 
   return (
     <main className="flex min-h-svh items-center justify-center bg-[#FBFCF6] px-5">
-      <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-[0_24px_64px_rgba(20,24,0,0.07)]">
+      <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-[0_24px_64px_rgba(15,61,38,0.10)] ring-1 ring-[#0F3D26]/[0.06]">
         {error ? (
           <>
             <h1 className="text-xl font-bold text-foreground">Telegram bilan kirish amalga oshmadi</h1>
             <p className="mt-3 text-sm text-[#777982]">{error}</p>
             <a
               href="/login"
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-[#D4F53C] px-5 text-sm font-semibold text-foreground"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-strong px-5 text-sm font-semibold text-primary-foreground"
             >
               Qayta urinish
             </a>

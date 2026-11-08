@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
-import { PracticeHub } from '@/components/dashboard/practice-hub'
-import { Loading } from '@/components/dashboard/ui'
+import { PracticeHub } from '@/features/practice/components/practice-hub'
+import { Loading } from '@/shared/ui/dashboard-kit'
 
 export default function PracticePage() {
   return (

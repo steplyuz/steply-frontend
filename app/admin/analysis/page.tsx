@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { Loader2, Trash2, Upload, Video } from 'lucide-react'
-import { useApi } from '@/lib/api/use-api'
-import { apiRequest, apiUpload } from '@/lib/api/client'
-import { errMsg } from '@/lib/api/legacy'
-import { Empty, ErrorBox, Loading, PageHeader, Section, input } from '@/components/dashboard/ui'
+import { useApi } from '@/shared/api/use-api'
+import { apiRequest, apiUpload } from '@/shared/api/client'
+import { errMsg } from '@/shared/api/legacy'
+import { Empty, ErrorBox, Loading, PageHeader, Section, input } from '@/shared/ui/dashboard-kit'
 
 type AnalysisVideo = { id: number; skill: 'READING' | 'LISTENING' | 'WRITING' | 'SPEAKING'; test_id: string; title: string; created_at: string }
 const SKILLS: AnalysisVideo['skill'][] = ['READING', 'LISTENING', 'WRITING', 'SPEAKING']

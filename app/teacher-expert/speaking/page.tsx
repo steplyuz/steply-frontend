@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Clock3, Mic2, RefreshCw } from 'lucide-react'
-import { speakingApi } from '@/lib/api'
-import type { SpeakingSubmission } from '@/lib/api/types'
+import { speakingApi } from '@/shared/api'
+import type { SpeakingSubmission } from '@/shared/api/types'
 
 export default function TeacherSpeakingPage() {
   const [items, setItems] = useState<SpeakingSubmission[] | null>(null)

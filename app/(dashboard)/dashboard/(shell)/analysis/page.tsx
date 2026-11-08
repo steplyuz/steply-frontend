@@ -3,14 +3,14 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ChartNoAxesCombined, ChevronRight, CirclePlay, RefreshCw, Video } from 'lucide-react'
-import { useApi } from '@/lib/api/use-api'
-import { Empty, ErrorBox, Loading, btn } from '@/components/dashboard/ui'
+import { useApi } from '@/shared/api/use-api'
+import { Empty, ErrorBox, Loading, btn } from '@/shared/ui/dashboard-kit'
 import {
   SKILLS, barColor, fmtDay, scoreOf,
   type AnalysisVideo, type Quota, type Skill, type SkillResult,
-} from '@/components/dashboard/analysis-shared'
-import { Circle } from '@/components/ui/circle'
-import { LIME } from '@/lib/brand'
+} from '@/features/analysis/analysis-shared'
+import { Circle } from '@/shared/ui/circle'
+import { LIME } from '@/shared/lib/brand'
 
 function UsageBar({ label, used, limit }: { label: string; used: number; limit: number | null }) {
   const ratio = limit && limit > 0 ? Math.min(used / limit, 1) : 0
@@ -65,29 +65,29 @@ export default function AnalysisPage() {
       {/* Hero + limit */}
       <section className="grid gap-3 sm:gap-4 lg:grid-cols-5">
         <div
-          className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl p-5 text-foreground sm:rounded-[32px] sm:p-8 lg:col-span-3 lg:min-h-72 lg:p-10"
-          style={{ background: LIME }}
+          className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl ring-1 ring-[#0F3D26]/[0.06] p-5 text-foreground sm:p-8 lg:col-span-3 lg:min-h-72 lg:p-10"
+          style={{ background: 'linear-gradient(110deg, #FFFFFF 0%, #EEF7F1 45%, #CFE9DA 100%)' }}
         >
-          <Circle color="rgba(0,0,0,0.07)" width={24} className="-right-14 -top-14 size-44 sm:-right-16 sm:-top-16 sm:size-72" />
-          <Circle color="rgba(0,0,0,0.06)" width={18} className="-bottom-24 right-10 hidden size-56 sm:block" />
+          <Circle color="rgba(31,122,77,0.10)" width={24} className="-right-14 -top-14 size-44 sm:-right-16 sm:-top-16 sm:size-72" />
+          <Circle color="rgba(31,122,77,0.08)" width={18} className="-bottom-24 right-10 hidden size-56 sm:block" />
 
           <div className="relative z-10">
             <span className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-foreground text-white shadow-sm sm:size-14" style={{ color: LIME }}>
               <ChartNoAxesCombined aria-hidden="true" className="size-6 sm:size-7" strokeWidth={2} />
             </span>
-            <h1 className="text-5xl font-black leading-none tracking-tighter sm:text-7xl">Analysis</h1>
+            <h1 className="text-5xl font-semibold leading-none tracking-tighter sm:text-7xl">Analysis</h1>
             <p className="mt-3 max-w-md text-[15px] font-medium leading-6 text-foreground/70 sm:mt-4 sm:text-base">
               Test natijalaringiz va tahlil videolari. Xatolaringizni tushunib, keyingi urinishda yaxshilang.
             </p>
           </div>
 
           <div className="relative z-10 flex flex-wrap gap-2">
-            <span className="rounded-full bg-black/10 px-4 py-2 text-sm font-bold tabular-nums">{totalResults} ta natija</span>
-            <span className="rounded-full bg-black/10 px-4 py-2 text-sm font-bold tabular-nums">{counts.ALL} ta video</span>
+            <span className="rounded-full bg-[#E4F1E9] px-4 py-2 text-sm font-semibold text-[#0F3D26] tabular-nums">{totalResults} ta natija</span>
+            <span className="rounded-full bg-[#E4F1E9] px-4 py-2 text-sm font-semibold text-[#0F3D26] tabular-nums">{counts.ALL} ta video</span>
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl bg-foreground p-5 text-white sm:rounded-[32px] sm:p-8 lg:col-span-2" aria-live="polite">
+        <div className="relative overflow-hidden rounded-3xl bg-brand-texture p-5 text-white sm:p-8 lg:col-span-2" aria-live="polite">
           <Circle color="rgba(255,255,255,0.06)" width={20} className="-right-16 -top-16 size-44 sm:size-56" />
           <div className="relative z-10">
             <div className="flex items-start justify-between gap-3">
@@ -118,7 +118,7 @@ export default function AnalysisPage() {
             ) : quota ? (
               <div className="mt-6 space-y-6">
                 <div className="flex items-end gap-3">
-                  <span className="text-6xl font-black leading-none tabular-nums sm:text-7xl" style={{ color: LIME }}>
+                  <span className="text-6xl font-semibold leading-none tabular-nums sm:text-7xl" style={{ color: LIME }}>
                     {quota.weekly_remaining ?? '∞'}
                   </span>
                   <span className="pb-1 text-sm font-medium text-white/65">video bu hafta qoldi</span>
@@ -136,7 +136,7 @@ export default function AnalysisPage() {
       {/* Natijalar */}
       <section aria-labelledby="analysis-results" className="space-y-3 sm:space-y-4">
         <div>
-          <h2 id="analysis-results" className="text-xl font-black tracking-tight sm:text-3xl">Imtihon natijalari</h2>
+          <h2 id="analysis-results" className="text-xl font-semibold tracking-tight sm:text-3xl">Imtihon natijalari</h2>
           <p className="mt-1 text-sm text-foreground/60">Natijani bosing — savollar bo‘yicha batafsil tahlil ochiladi.</p>
         </div>
 
@@ -147,14 +147,14 @@ export default function AnalysisPage() {
             const all = resource.data ?? []
             const shown = expanded[skill] ? all : all.slice(0, PREVIEW)
             return (
-              <section key={skill} aria-label={`${label} natijalari`} className="overflow-hidden rounded-3xl bg-white ring-1 ring-black/10 sm:rounded-[28px]">
+              <section key={skill} aria-label={`${label} natijalari`} className="overflow-hidden rounded-3xl bg-white ring-1 ring-[#0F3D26]/[0.07] sm:rounded-[28px]">
                 <div className="relative isolate flex items-center justify-between gap-3 overflow-hidden p-4 sm:p-5" style={{ background: tint }}>
                   <Circle color={`${accent}14`} width={14} className="-right-8 -top-10 size-28" />
                   <div className="relative z-10 flex items-center gap-3">
                     <span className="flex size-11 items-center justify-center rounded-2xl text-white shadow-sm" style={{ background: accent }}>
                       <Icon aria-hidden="true" className="size-5" strokeWidth={1.9} />
                     </span>
-                    <h3 className="text-xl font-black tracking-tight">{label}</h3>
+                    <h3 className="text-xl font-semibold tracking-tight">{label}</h3>
                   </div>
                   <span className="relative z-10 rounded-full bg-white/80 px-3 py-1 text-xs font-bold tabular-nums" style={{ color: accent }}>
                     {all.length} ta
@@ -181,7 +181,7 @@ export default function AnalysisPage() {
                                 className="flex w-16 shrink-0 flex-col items-center rounded-2xl py-2"
                                 style={{ background: tint, color: accent }}
                               >
-                                <span className="text-xl font-black leading-none tabular-nums">{scoreOf(r).toFixed(1)}</span>
+                                <span className="text-xl font-semibold leading-none tabular-nums">{scoreOf(r).toFixed(1)}</span>
                                 <span className="mt-1 text-[11px] font-bold">{r.cefr_level || 'ball'}</span>
                               </span>
                               <span className="min-w-0 flex-1">
@@ -199,7 +199,7 @@ export default function AnalysisPage() {
                         <button
                           type="button"
                           onClick={() => setExpanded((e) => ({ ...e, [skill]: !e[skill] }))}
-                          className="mt-2 flex min-h-11 w-full items-center justify-center rounded-2xl text-sm font-bold text-foreground/70 transition active:scale-[0.99] hover:bg-foreground/5"
+                          className="mt-2 flex min-h-11 w-full items-center justify-center rounded-full text-sm font-semibold text-foreground/70 transition active:scale-[0.99] hover:bg-[#0F3D26]/[0.07]"
                         >
                           {expanded[skill] ? 'Kamroq ko‘rsatish' : `Yana ${all.length - PREVIEW} ta natija`}
                         </button>
@@ -216,7 +216,7 @@ export default function AnalysisPage() {
       {/* Videolar */}
       <section aria-labelledby="analysis-videos" className="space-y-3 sm:space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-          <h2 id="analysis-videos" className="text-xl font-black tracking-tight sm:text-3xl">Tahlil videolari</h2>
+          <h2 id="analysis-videos" className="text-xl font-semibold tracking-tight sm:text-3xl">Tahlil videolari</h2>
         </div>
 
         <div role="group" aria-label="Ko‘nikma bo‘yicha filtr" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
@@ -230,13 +230,13 @@ export default function AnalysisPage() {
                 aria-pressed={on}
                 onClick={() => setFilter(k)}
                 className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-bold transition active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground motion-reduce:transition-none ${
-                  on ? 'bg-foreground text-white' : 'bg-white text-foreground/75 ring-1 ring-black/10 hover:bg-foreground/5'
+                  on ? 'bg-foreground text-white' : 'bg-white text-foreground/75 ring-1 ring-[#0F3D26]/[0.07] hover:bg-[#0F3D26]/[0.07]'
                 }`}
               >
                 {k === 'ALL' ? 'Hammasi' : s!.label}
                 <span
                   className="rounded-full px-2 py-0.5 text-xs tabular-nums"
-                  style={on ? { background: LIME, color: '#111' } : { background: s?.tint ?? '#F1F1F1', color: s?.accent ?? '#555' }}
+                  style={on ? { background: LIME, color: '#0F3D26' } : { background: s?.tint ?? '#F1F1F1', color: s?.accent ?? '#555' }}
                 >
                   {counts[k] ?? 0}
                 </span>
@@ -263,7 +263,7 @@ export default function AnalysisPage() {
               return (
                 <article
                   key={item.id}
-                  className="group relative flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-black/10 transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:rounded-[28px]"
+                  className="group relative flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-[#0F3D26]/[0.07] transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:rounded-[28px]"
                 >
                   <div className="relative isolate flex min-h-32 flex-col justify-between overflow-hidden p-5 sm:p-6" style={{ background: tint }}>
                     <Circle color={`${accent}14`} width={16} className="-left-10 -top-14 size-36" />
@@ -284,8 +284,8 @@ export default function AnalysisPage() {
                   </div>
                   <div className="flex flex-1 flex-col justify-between gap-5 p-5 sm:p-6">
                     <div>
-                      <h3 className="line-clamp-2 text-xl font-black leading-snug tracking-tight">{item.title}</h3>
-                      <p className="mt-2 inline-flex rounded-full bg-foreground/5 px-3 py-1.5 text-xs font-semibold text-foreground/70">
+                      <h3 className="line-clamp-2 text-xl font-semibold leading-snug tracking-tight">{item.title}</h3>
+                      <p className="mt-2 inline-flex rounded-full bg-[#0F3D26]/[0.07] px-3 py-1.5 text-xs font-semibold text-foreground/70">
                         Test {item.test_id}
                       </p>
                     </div>

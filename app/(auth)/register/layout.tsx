@@ -1,12 +1,30 @@
+/* app/login/layout.tsx */
+
 import type { Metadata } from 'next'
 
+const TITLE = 'Ro‘yxatdan o‘tish'
+const DESCRIPTION =
+  "Steply hisobingizga telefon raqam, Google yoki Telegram orqali kiring va milliy sertifikat imtihoniga tayyorgarligingizni davom ettiring."
+
 export const metadata: Metadata = {
-  title: "Ro'yxatdan o'tish",
-  description: "Steply'da bepul ro'yxatdan o'ting va CEFR Multilevel ko‘nikmalarini practice orqali rivojlantirishni boshlang.",
-  alternates: { canonical: '/register' },
-  openGraph: { type: 'website', locale: 'uz_UZ', siteName: 'Steply', url: '/register', title: "Ro'yxatdan o'tish | Steply" },
+  title: TITLE, // root layout'dagi template: "Kirish | Steply"
+  description: DESCRIPTION,
+  alternates: { canonical: '/login' },
+  // Kirish sahifasi qidiruv natijalarida chiqishi shart emas, lekin havolalarni kuzatish mumkin
+  robots: { index: false, follow: true },
+  openGraph: {
+    type: 'website',
+    locale: 'uz_UZ',
+    siteName: 'Steply',
+    url: '/login',
+    title: `${TITLE} | Steply`,
+    description: DESCRIPTION,
+    // MUHIM: bolada openGraph berilsa, root layout'dagi openGraph to'liq almashadi (rasm ham yo'qoladi),
+    // shuning uchun rasm bu yerda qayta beriladi.
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Steply — Milliy sertifikat practice platformasi' }],
+  },
 }
 
-export default function RegisterLayout({ children }: { children: React.ReactNode }) {
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return children
 }

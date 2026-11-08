@@ -7,16 +7,16 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useParams } from 'next/navigation'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 
-import { SiteHeader } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
-import { applyApi } from '@/lib/api/modules/apply'
-import { getErrorMessage } from '@/lib/api/client'
-import type { ApplyInput, ApplyResult, ApplySession } from '@/lib/api/types/apply'
-import { loadScriptOnce } from '@/lib/auth/script-loader'
-import { FOCUS } from '@/lib/brand'
-import { formatDateTime } from '@/lib/format'
-import { REGIONS, REGION_LABEL } from '@/lib/exam/mock-labels'
-import { btn, input, Field } from '@/components/dashboard/ui'
+import { SiteHeader } from '@/shared/layout/header'
+import { Footer } from '@/shared/layout/footer'
+import { applyApi } from '@/shared/api/modules/apply'
+import { getErrorMessage } from '@/shared/api/client'
+import type { ApplyInput, ApplyResult, ApplySession } from '@/shared/api/types/apply'
+import { loadScriptOnce } from '@/features/auth/lib/script-loader'
+import { FOCUS } from '@/shared/lib/brand'
+import { formatDateTime } from '@/shared/lib/format'
+import { REGIONS, REGION_LABEL } from '@/shared/lib/mock-labels'
+import { btn, input, Field } from '@/shared/ui/dashboard-kit'
 
 // Cloudflare Turnstile — faqat backend APPLY_CAPTCHA_ENABLED=true bo'lganda kerak.
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''
@@ -176,16 +176,16 @@ export default function ApplyPage() {
       <SiteHeader />
       <main className="mx-auto w-full max-w-3xl px-4 py-10 sm:py-14">
         {loadError ? (
-          <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-black/10">
-            <h1 className="text-xl font-black">Sessiya topilmadi</h1>
+          <div className="rounded-3xl bg-white p-8 text-center ring-1 ring-[#0F3D26]/[0.07]">
+            <h1 className="text-xl font-semibold">Sessiya topilmadi</h1>
             <p className="mt-2 text-sm text-foreground/70">{loadError}</p>
           </div>
         ) : !session ? (
           <div className="flex items-center gap-3 text-sm text-foreground/60"><Loader2 className="size-4 animate-spin" /> Yuklanmoqda…</div>
         ) : result ? (
-          <div className="rounded-3xl bg-white p-8 ring-1 ring-black/10">
+          <div className="rounded-3xl bg-white p-8 ring-1 ring-[#0F3D26]/[0.07]">
             <CheckCircle2 className="size-10 text-emerald-600" aria-hidden="true" />
-            <h1 className="mt-4 text-2xl font-black">Arizangiz qabul qilindi</h1>
+            <h1 className="mt-4 text-2xl font-semibold">Arizangiz qabul qilindi</h1>
             <p className="mt-2 text-sm text-foreground/70">
               {result.first_name} {result.last_name} — {session.name}. Sana: {formatDateTime(session.scheduled_at)}.
             </p>
@@ -198,20 +198,20 @@ export default function ApplyPage() {
           <>
             <header className="mb-8">
               <p className="text-xs font-bold uppercase tracking-widest text-foreground/50">Mock Exam ro‘yxatdan o‘tish</p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">{session.name}</h1>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{session.name}</h1>
               <p className="mt-3 text-sm text-foreground/70">
                 {formatDateTime(session.scheduled_at)} · {session.location} · {session.duration_minutes} daqiqa
               </p>
             </header>
 
             {session.payment_details && (
-              <section className="mb-8 rounded-2xl bg-white p-5 ring-1 ring-black/10">
+              <section className="mb-8 rounded-3xl bg-white p-5 ring-1 ring-[#0F3D26]/[0.07]">
                 <h2 className="font-bold">To‘lov rekvizitlari</h2>
                 <pre className="mt-2 whitespace-pre-wrap font-sans text-sm text-foreground/80">{session.payment_details}</pre>
               </section>
             )}
 
-            <form onSubmit={submit} className="grid gap-4 rounded-3xl bg-white p-5 ring-1 ring-black/10 sm:grid-cols-2 sm:p-8">
+            <form onSubmit={submit} className="grid gap-4 rounded-3xl bg-white p-5 ring-1 ring-[#0F3D26]/[0.07] sm:grid-cols-2 sm:p-8">
               <Field label="Familiya">
                 <input className={input} value={form.last_name} onChange={e => set('last_name', e.target.value)} />
               </Field>

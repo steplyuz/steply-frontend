@@ -8,10 +8,10 @@
  */
 
 import { Headphones } from 'lucide-react'
-import { listeningApi } from '@/lib/api'
-import { TestLibrary, type TestLibraryConfig } from '@/components/admin/test-library'
-import { LISTENING_JSON_TEMPLATE } from '@/lib/admin/json-templates'
-import type { ListeningTest } from '@/lib/api/types'
+import { listeningApi } from '@/shared/api'
+import { TestLibrary, type TestLibraryConfig } from '@/features/admin/components/test-library'
+import { LISTENING_JSON_TEMPLATE } from '@/features/admin/lib/json-templates'
+import type { ListeningTest } from '@/shared/api/types'
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Multilevel']
 

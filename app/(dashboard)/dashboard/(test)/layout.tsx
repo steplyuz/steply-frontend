@@ -1,12 +1,12 @@
 "use client"
 
-// Vaqt bilan ishlaydigan practice sahifalari: sidebar va topbar YO'Q — to'liq ekran.
+// Vaqt bilan ishlaydigan practice sahifalari: sidebar va topbar Yo'Q — to'liq ekran.
 // Faqat auth tekshiruvi va bitta ExamTopBar (sahifa ichida) bo'ladi.
 
 import { useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Toaster } from "sonner"
-import { useAuth } from "@/lib/auth/auth-context"
+import { useAuth } from "@/shared/providers/auth-context"
 
 export default function TestLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()

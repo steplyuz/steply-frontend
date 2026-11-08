@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, Check, CheckCircle2, Clock3, Copy, CreditCard, FileText, GraduationCap, RefreshCw, UploadCloud } from 'lucide-react'
-import { mockExamsApi } from '@/lib/api/modules/exam/mock-exams'
-import { billingApi } from '@/lib/api/modules/billing'
-import { getErrorMessage } from '@/lib/api/client'
-import { FOCUS, LIME } from '@/lib/brand'
-import type { BillingOrder, PaymentDetails, MockExam } from '@/lib/api/types'
-import { MockRegistrationPanel } from '@/components/dashboard/mock-registration-panel'
-import { Circle } from '@/components/ui/circle'
+import { mockExamsApi } from '@/shared/api/modules/exam/mock-exams'
+import { billingApi } from '@/shared/api/modules/billing'
+import { getErrorMessage } from '@/shared/api/client'
+import { FOCUS, LIME } from '@/shared/lib/brand'
+import type { BillingOrder, PaymentDetails, MockExam } from '@/shared/api/types'
+import { MockRegistrationPanel } from '@/features/mock-exams/components/mock-registration-panel'
+import { Circle } from '@/shared/ui/circle'
 
 const STATUS_LABEL: Record<string, string> = {
   pending_payment: 'To‘lov kutilmoqda',
@@ -19,16 +19,16 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 const STATUS_TONE: Record<string, string> = {
-  pending_payment: 'bg-foreground/5 text-foreground/70',
+  pending_payment: 'bg-[#0F3D26]/[0.07] text-foreground/70',
   under_review: 'bg-amber-100 text-amber-800',
   paid: 'bg-emerald-100 text-emerald-800',
   rejected: 'bg-red-100 text-red-700',
-  cancelled: 'bg-foreground/5 text-foreground/50',
+  cancelled: 'bg-[#0F3D26]/[0.07] text-foreground/50',
 }
 
 const HEAD_TINT = 'rgba(200,255,0,0.22)'
 
-const pillDark = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 py-2 text-sm font-bold text-white transition hover:bg-foreground/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none ${FOCUS}`
+const pillDark = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-texture px-6 py-2 text-sm font-bold text-white transition hover:bg-foreground/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none ${FOCUS}`
 
 function money(value: number) {
   return `${value.toLocaleString('uz-UZ')} UZS`
@@ -49,7 +49,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
           /* clipboard mavjud emas — e'tiborsiz */
         }
       }}
-      className={`flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-foreground/70 ring-1 ring-black/5 transition hover:text-foreground active:scale-95 ${FOCUS}`}
+      className={`flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-foreground/70 ring-1 ring-[#0F3D26]/[0.07] transition hover:text-foreground active:scale-95 ${FOCUS}`}
     >
       {done ? <Check className="size-4 text-emerald-600" /> : <Copy className="size-4" />}
     </button>
@@ -170,13 +170,13 @@ export default function MockExamsPage() {
     <div className="space-y-5 pb-6 sm:space-y-8">
       {/* Hero + statistika */}
       <section className="grid gap-3 sm:gap-4 lg:grid-cols-5">
-        <div className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl p-5 text-foreground sm:p-8 lg:col-span-3 lg:min-h-72 lg:p-10" style={{ background: LIME }}>
-          <Circle color="rgba(0,0,0,0.07)" width={22} className="-right-14 -top-14 size-44 sm:-right-16 sm:-top-16 sm:size-72" />
+        <div className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl ring-1 ring-[#0F3D26]/[0.06] p-5 text-foreground sm:p-8 lg:col-span-3 lg:min-h-72 lg:p-10" style={{ background: 'linear-gradient(110deg, #FFFFFF 0%, #EEF7F1 45%, #CFE9DA 100%)' }}>
+          <Circle color="rgba(31,122,77,0.10)" width={22} className="-right-14 -top-14 size-44 sm:-right-16 sm:-top-16 sm:size-72" />
           <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/10 px-3 py-1 text-xs font-bold uppercase tracking-wide">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E4F1E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#0F3D26]">
               <GraduationCap aria-hidden="true" className="size-3.5" /> To‘liq imtihon
             </span>
-            <h1 className="mt-4 text-5xl font-black leading-none tracking-tighter sm:text-6xl">Mock Exam</h1>
+            <h1 className="mt-4 text-5xl font-semibold leading-none tracking-tighter sm:text-6xl">Mock Exam</h1>
             <p className="mt-3 max-w-lg text-[15px] font-medium leading-6 text-foreground/70 sm:mt-4 sm:text-base">
               To‘liq imtihonni tanlang. Pullik imtihonlarda buyurtma yaratiladi, chek yuboriladi va admin tasdiqlagandan keyin kirish huquqi faollashadi.
             </p>
@@ -194,7 +194,7 @@ export default function MockExamsPage() {
           </button>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl bg-foreground p-5 text-white sm:p-8 lg:col-span-2">
+        <div className="relative overflow-hidden rounded-3xl bg-brand-texture p-5 text-white sm:p-8 lg:col-span-2">
           <Circle color="rgba(255,255,255,0.06)" width={20} className="-right-16 -top-16 size-44 sm:size-56" />
           <div className="relative z-10 flex h-full flex-col gap-5">
             <div>
@@ -207,7 +207,7 @@ export default function MockExamsPage() {
                   <GraduationCap aria-hidden="true" className="size-6" strokeWidth={2} />
                 </span>
                 <dt className="min-w-0 flex-1 text-sm font-medium text-white/70">Mavjud imtihonlar</dt>
-                <dd className="text-5xl font-black leading-none tabular-nums sm:text-6xl" style={{ color: LIME }}>
+                <dd className="text-5xl font-semibold leading-none tabular-nums sm:text-6xl" style={{ color: LIME }}>
                   {loading && !exams.length ? '—' : exams.length}
                 </dd>
               </div>
@@ -216,7 +216,7 @@ export default function MockExamsPage() {
                   <CheckCircle2 aria-hidden="true" className="size-6" strokeWidth={2} />
                 </span>
                 <dt className="min-w-0 flex-1 text-sm font-medium text-white/70">Xarid qilingan</dt>
-                <dd className="text-5xl font-black leading-none tabular-nums text-white sm:text-6xl">
+                <dd className="text-5xl font-semibold leading-none tabular-nums text-white sm:text-6xl">
                   {loading && !exams.length ? '—' : purchasedCount}
                 </dd>
               </div>
@@ -230,7 +230,7 @@ export default function MockExamsPage() {
 
       {/* Imtihonlar katalogi */}
       <section aria-labelledby="mock-catalog" className="space-y-4 sm:space-y-6">
-        <h2 id="mock-catalog" className="text-xl font-black tracking-tight text-foreground sm:text-3xl">Imtihonlar katalogi</h2>
+        <h2 id="mock-catalog" className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl">Imtihonlar katalogi</h2>
 
         {loading && exams.length === 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3" aria-busy="true">
@@ -251,10 +251,10 @@ export default function MockExamsPage() {
               const pending = latestOrder && ['pending_payment', 'rejected'].includes(latestOrder.status)
               const underReview = latestOrder?.status === 'under_review'
               return (
-                <article key={exam.id} className="group relative flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-black/10 transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+                <article key={exam.id} className="group relative flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-[#0F3D26]/[0.07] transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
                   <div className="relative isolate flex min-h-28 items-start justify-between gap-3 overflow-hidden p-5 sm:p-6" style={{ background: HEAD_TINT }}>
                     <Circle color="rgba(200,255,0,0.35)" width={16} className="-right-10 -top-14 size-36" />
-                    <span className="relative z-10 flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-black/5">
+                    <span className="relative z-10 flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-[#0F3D26]/[0.07]">
                       <GraduationCap aria-hidden="true" className="size-6" strokeWidth={1.9} />
                     </span>
                     <div className="relative z-10">
@@ -268,18 +268,18 @@ export default function MockExamsPage() {
 
                   <div className="flex flex-1 flex-col justify-between gap-5 p-5 sm:p-6">
                     <div>
-                      <h3 className="line-clamp-2 text-xl font-black leading-snug tracking-tight text-foreground">{exam.title}</h3>
+                      <h3 className="line-clamp-2 text-xl font-semibold leading-snug tracking-tight text-foreground">{exam.title}</h3>
                       {exam.description && <p className="mt-2 line-clamp-3 text-sm leading-5 text-foreground/60">{exam.description}</p>}
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="rounded-full bg-foreground/5 px-3 py-1.5 text-xs font-semibold text-foreground/70">{exam.cefr_level}</span>
+                        <span className="rounded-full bg-[#0F3D26]/[0.07] px-3 py-1.5 text-xs font-semibold text-foreground/70">{exam.cefr_level}</span>
                         {exam.duration_minutes ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/5 px-3 py-1.5 text-xs font-semibold text-foreground/70"><Clock3 aria-hidden="true" className="size-3.5" />{exam.duration_minutes} daqiqa</span>
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0F3D26]/[0.07] px-3 py-1.5 text-xs font-semibold text-foreground/70"><Clock3 aria-hidden="true" className="size-3.5" />{exam.duration_minutes} daqiqa</span>
                         ) : null}
                       </div>
                     </div>
 
                     <div>
-                      <p className="text-3xl font-black leading-none tracking-tighter text-foreground tabular-nums">{exam.price > 0 ? money(exam.price) : 'Bepul'}</p>
+                      <p className="text-3xl font-semibold leading-none tracking-tighter text-foreground tabular-nums">{exam.price > 0 ? money(exam.price) : 'Bepul'}</p>
                       <button
                         type="button"
                         disabled={!!busyId || !!exam.is_purchased || underReview}
@@ -304,17 +304,17 @@ export default function MockExamsPage() {
 
       {/* Ro'yxatdan o'tish: ochiq sanalar, yozilish va ruxsatnomalar */}
       <section aria-labelledby="mock-registration" className="space-y-4 sm:space-y-6">
-        <h2 id="mock-registration" className="text-xl font-black tracking-tight text-foreground sm:text-3xl">Imtihonga yozilish</h2>
+        <h2 id="mock-registration" className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl">Imtihonga yozilish</h2>
         <MockRegistrationPanel />
       </section>
 
       {/* To'lov rekvizitlari */}
-      <section aria-labelledby="mock-payment" className="rounded-3xl bg-white p-5 ring-1 ring-black/10 sm:p-8">
+      <section aria-labelledby="mock-payment" className="rounded-3xl bg-white p-5 ring-1 ring-[#0F3D26]/[0.07] sm:p-8">
         <div className="flex items-center gap-4">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl text-foreground sm:size-12" style={{ background: LIME }}>
             <CreditCard aria-hidden="true" className="size-5 sm:size-6" strokeWidth={1.75} />
           </span>
-          <h2 id="mock-payment" className="text-base font-extrabold text-foreground sm:text-lg">To‘lov rekvizitlari</h2>
+          <h2 id="mock-payment" className="text-base font-semibold text-foreground sm:text-lg">To‘lov rekvizitlari</h2>
         </div>
         {!hasPaymentDetails ? (
           <p className="mt-4 text-sm text-foreground/60">{payment?.instructions || 'To‘lov rekvizitlari hali sozlanmagan. Admin bilan bog‘laning.'}</p>
@@ -334,7 +334,7 @@ export default function MockExamsPage() {
       {/* Buyurtmalar */}
       <section aria-labelledby="mock-orders" className="space-y-3 sm:space-y-4">
         <div>
-          <h2 id="mock-orders" className="text-xl font-black tracking-tight text-foreground sm:text-3xl">Mock Exam buyurtmalari</h2>
+          <h2 id="mock-orders" className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl">Mock Exam buyurtmalari</h2>
           <p className="mt-1 text-sm text-foreground/60">Chek yuborilgandan keyin admin tekshiradi. Tasdiqlanmaguncha pullik imtihonga kirish ochilmaydi.</p>
         </div>
 
@@ -345,13 +345,13 @@ export default function MockExamsPage() {
             {mockOrders.map(order => {
               const canUpload = ['pending_payment', 'rejected'].includes(order.status)
               return (
-                <li key={order.id} className="rounded-3xl bg-white p-4 ring-1 ring-black/10 sm:p-6">
+                <li key={order.id} className="rounded-3xl bg-white p-4 ring-1 ring-[#0F3D26]/[0.07] sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-bold text-foreground">{order.product_title}</p>
                       <p className="mt-1 text-xs text-foreground/55">Buyurtma #{order.id.slice(0, 8)} · {money(order.amount)}</p>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_TONE[order.status] ?? 'bg-foreground/5 text-foreground/70'}`}>
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_TONE[order.status] ?? 'bg-[#0F3D26]/[0.07] text-foreground/70'}`}>
                       {STATUS_LABEL[order.status] ?? order.status}
                     </span>
                   </div>

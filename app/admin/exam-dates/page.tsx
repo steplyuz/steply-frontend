@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { CalendarDays, ExternalLink, Pencil, Plus, RotateCcw, Save, Trash2, X } from 'lucide-react'
-import { AdminPageShell } from '@/components/layout/admin-page-shell'
-import { AdminAlert, AdminBadge, AdminSection } from '@/components/admin/ui'
-import { adminButtonDanger, adminButtonPrimary, adminButtonSecondary, adminInput } from '@/components/admin/ui/styles'
-import { getErrorMessage, onboardingAdminApi } from '@/lib/api'
-import type { OnboardingExamDate, OnboardingExamDateInput } from '@/lib/api/types'
-import { formatExamDate } from '@/components/onboarding/onboarding-constants'
+import { AdminPageShell } from '@/features/admin/layout/admin-page-shell'
+import { AdminAlert, AdminBadge, AdminSection } from '@/features/admin/components/ui'
+import { adminButtonDanger, adminButtonPrimary, adminButtonSecondary, adminInput } from '@/features/admin/components/ui/styles'
+import { getErrorMessage, onboardingAdminApi } from '@/shared/api'
+import type { OnboardingExamDate, OnboardingExamDateInput } from '@/shared/api/types'
+import { formatExamDate } from '@/features/onboarding/components/onboarding-constants'
 
 type Form = { title: string; exam_date: string; register_url: string; is_active: boolean }
 

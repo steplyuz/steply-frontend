@@ -14,8 +14,8 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 
-import { SiteHeader } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
+import { SiteHeader } from '@/shared/layout/header'
+import { Footer } from '@/shared/layout/footer'
 
 export const metadata: Metadata = {
   title: 'Foydalanish shartlari | Steply',
@@ -61,7 +61,7 @@ export default function TermsPage() {
                 Huquqiy ma’lumot
               </div>
 
-              <h1 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-5xl">
+              <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-5xl">
                 Foydalanish shartlari
               </h1>
 
@@ -77,7 +77,7 @@ export default function TermsPage() {
                   Foydalanish qoidalari
                 </span>
                 <span className="rounded-lg border bg-background px-3 py-2">
-                  Til: O‘zbekcha
+                  Til: o‘zbekcha
                 </span>
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function TermsPage() {
 
         <div className="container-shell mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-8 sm:py-14 lg:grid-cols-[250px_minmax(0,1fr)]">
           <aside className="h-fit lg:sticky lg:top-6">
-            <div className="rounded-2xl border bg-card p-4 shadow-sm">
+            <div className="rounded-3xl border bg-white p-4 shadow-sm">
               <p className="px-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Ushbu sahifada
               </p>
@@ -130,7 +130,7 @@ export default function TermsPage() {
           </aside>
 
           <article className="min-w-0">
-            <div className="mb-6 rounded-2xl border bg-card p-5 sm:p-6">
+            <div className="mb-6 rounded-3xl border bg-white p-5 sm:p-6">
               <h2 className="text-base font-bold">Boshlashdan oldin</h2>
               <p className="mt-2 text-sm leading-7 text-muted-foreground">
                 Steply xizmatidan foydalanishdan oldin ushbu shartlarni
@@ -149,7 +149,7 @@ export default function TermsPage() {
             <div className="space-y-5">
               <section
                 id="account"
-                className="scroll-mt-8 rounded-2xl border bg-card p-5 sm:p-7"
+                className="scroll-mt-8 rounded-3xl border bg-white p-5 sm:p-7"
               >
                 <SectionHeading number="01" title="Hisob va xavfsizlik" />
                 <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
@@ -176,7 +176,7 @@ export default function TermsPage() {
 
               <section
                 id="service"
-                className="scroll-mt-8 rounded-2xl border bg-card p-5 sm:p-7"
+                className="scroll-mt-8 rounded-3xl border bg-white p-5 sm:p-7"
               >
                 <SectionHeading number="02" title="Platforma xizmatlari" />
                 <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
@@ -206,7 +206,7 @@ export default function TermsPage() {
 
               <section
                 id="subscription"
-                className="scroll-mt-8 rounded-2xl border bg-card p-5 sm:p-7"
+                className="scroll-mt-8 rounded-3xl border bg-white p-5 sm:p-7"
               >
                 <SectionHeading number="03" title="Obuna va AI limitlari" />
                 <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
@@ -240,7 +240,7 @@ export default function TermsPage() {
 
               <section
                 id="payment"
-                className="scroll-mt-8 rounded-2xl border bg-card p-5 sm:p-7"
+                className="scroll-mt-8 rounded-3xl border bg-white p-5 sm:p-7"
               >
                 <SectionHeading number="04" title="To‘lovlar va tasdiqlash" />
                 <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
@@ -275,7 +275,7 @@ export default function TermsPage() {
 
               <section
                 id="refund"
-                className="scroll-mt-8 rounded-2xl border bg-card p-5 sm:p-7"
+                className="scroll-mt-8 rounded-3xl border bg-white p-5 sm:p-7"
               >
                 <SectionHeading number="05" title="Bekor qilish va pulni qaytarish" />
                 <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
@@ -309,7 +309,7 @@ export default function TermsPage() {
 
               <section
                 id="content"
-                className="scroll-mt-8 rounded-2xl border bg-card p-5 sm:p-7"
+                className="scroll-mt-8 rounded-3xl border bg-white p-5 sm:p-7"
               >
                 <SectionHeading number="06" title="Kontent va foydalanish qoidalari" />
                 <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
@@ -335,7 +335,7 @@ export default function TermsPage() {
 
               <section
                 id="availability"
-                className="scroll-mt-8 rounded-2xl border bg-card p-5 sm:p-7"
+                className="scroll-mt-8 rounded-3xl border bg-white p-5 sm:p-7"
               >
                 <SectionHeading number="07" title="Xizmat mavjudligi va o‘zgarishlar" />
                 <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
@@ -363,7 +363,7 @@ export default function TermsPage() {
 
               <section
                 id="privacy"
-                className="scroll-mt-8 rounded-2xl border bg-card p-5 sm:p-7"
+                className="scroll-mt-8 rounded-3xl border bg-white p-5 sm:p-7"
               >
                 <SectionHeading number="08" title="Maxfiylik va aloqa" />
                 <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
@@ -383,7 +383,7 @@ export default function TermsPage() {
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="/privacy"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition hover:bg-muted"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition hover:bg-muted"
                   >
                     <LockKeyhole className="size-4" />
                     Maxfiylik siyosati
@@ -392,7 +392,7 @@ export default function TermsPage() {
 
                   <Link
                     href="/contact"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
                   >
                     Biz bilan bog‘lanish
                     <ArrowRight className="size-4" />
@@ -433,7 +433,7 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-start gap-4">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-extrabold text-primary-strong">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-semibold text-primary-strong">
         {number}
       </span>
       <div className="min-w-0">

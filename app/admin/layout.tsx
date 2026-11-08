@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Space_Grotesk } from 'next/font/google'
 
-import { RoleSidebar } from '@/components/layout/role-sidebar'
-import { AdminTopbar } from '@/components/layout/admin-topbar'
-import { useAuth } from '@/lib/auth/auth-context'
+import { RoleSidebar } from '@/features/admin/layout/role-sidebar'
+import { AdminTopbar } from '@/features/admin/layout/admin-topbar'
+import { useAuth } from '@/shared/providers/auth-context'
 
 export const dynamic = 'force-dynamic'
 

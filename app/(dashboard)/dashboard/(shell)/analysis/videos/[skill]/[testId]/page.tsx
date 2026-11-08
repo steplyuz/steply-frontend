@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { AlertCircle, ArrowLeft, Loader2, RefreshCw } from 'lucide-react'
-import { useApi } from '@/lib/api/use-api'
-import { apiUrl } from '@/lib/api/config'
-import { btn } from '@/components/dashboard/ui'
+import { useApi } from '@/shared/api/use-api'
+import { apiUrl } from '@/shared/api/config'
+import { btn } from '@/shared/ui/dashboard-kit'
 import {
   SKILLS, authFetch, errorMessage, parseSkill, type AnalysisVideo,
-} from '@/components/dashboard/analysis-shared'
-import { Circle } from '@/components/ui/circle'
-import { LIME } from '@/lib/brand'
+} from '@/features/analysis/analysis-shared'
+import { Circle } from '@/shared/ui/circle'
+import { LIME } from '@/shared/lib/brand'
 
 export default function AnalysisVideoPage() {
   const params = useParams<{ skill: string; testId: string }>()
@@ -54,7 +54,7 @@ export default function AnalysisVideoPage() {
   const back = (
     <Link
       href="/dashboard/analysis"
-      className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-foreground/65 transition active:scale-95 hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
+      className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-foreground/65 transition active:scale-95 hover:bg-[#0F3D26]/[0.07] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
     >
       <ArrowLeft className="size-4" aria-hidden="true" /> Analysis’ga qaytish
     </Link>
@@ -80,7 +80,7 @@ export default function AnalysisVideoPage() {
       {back}
 
       <section
-        className="relative isolate overflow-hidden rounded-3xl p-5 ring-1 ring-black/5 sm:rounded-[32px] sm:p-8"
+        className="relative isolate overflow-hidden rounded-3xl p-5 ring-1 ring-[#0F3D26]/[0.07] sm:p-8"
         style={{ background: tint }}
       >
         <Circle color={`${accent}1A`} width={22} className="-right-14 -top-14 size-40 sm:-right-16 sm:-top-16 sm:size-64" />
@@ -90,7 +90,7 @@ export default function AnalysisVideoPage() {
           </span>
           <div className="min-w-0">
             <p className="text-sm font-bold" style={{ color: accent }}>{label} · tahlil videosi</p>
-            <h1 className="mt-1 break-words text-2xl font-black leading-tight tracking-tight sm:text-4xl">{title}</h1>
+            <h1 className="mt-1 break-words text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{title}</h1>
             <p className="mt-2 inline-flex rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-foreground/70">
               Test {testId}
             </p>
@@ -98,7 +98,7 @@ export default function AnalysisVideoPage() {
         </div>
       </section>
 
-      <section aria-label={title} className="overflow-hidden rounded-3xl bg-foreground sm:rounded-[32px]">
+      <section aria-label={title} className="overflow-hidden rounded-3xl bg-brand-texture">
         {loading ? (
           <div className="flex aspect-video items-center justify-center gap-2 text-sm text-white/70" role="status">
             <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> Video yuklanmoqda…

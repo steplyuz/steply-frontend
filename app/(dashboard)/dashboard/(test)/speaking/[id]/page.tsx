@@ -2,22 +2,22 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo, Suspense } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
-import SpeakingExamContent, { type SpeakingPromptItem } from "@/components/cefr-exam/speaking/speaking-exam-content"
-import SpeakingExamSidebar from "@/components/cefr-exam/speaking/speaking-exam-sidebar"
-import SpeakingTopBar from "@/components/cefr-exam/speaking/speaking-top-bar"
-import SpeakingFinishModal from "@/components/cefr-exam/speaking/speaking-finish-modal"
-import SpeakingComplete from "@/components/cefr-exam/speaking/speaking-complete"
-import { saveAttempt, type QuestionSnapshot, type RecordingRef } from "@/lib/speaking/export"
-import { resolveAudioUrl } from "@/lib/api"
-import { speakingApi } from "@/lib/api"
-import type { SpeakingTest } from "@/lib/api/types"
+import SpeakingExamContent, { type SpeakingPromptItem } from "@/features/exam/cefr/speaking/speaking-exam-content"
+import SpeakingExamSidebar from "@/features/exam/cefr/speaking/speaking-exam-sidebar"
+import SpeakingTopBar from "@/features/exam/cefr/speaking/speaking-top-bar"
+import SpeakingFinishModal from "@/features/exam/cefr/speaking/speaking-finish-modal"
+import SpeakingComplete from "@/features/exam/cefr/speaking/speaking-complete"
+import { saveAttempt, type QuestionSnapshot, type RecordingRef } from "@/features/speaking/lib/export"
+import { resolveAudioUrl } from "@/shared/api"
+import { speakingApi } from "@/shared/api"
+import type { SpeakingTest } from "@/shared/api/types"
 import { Loader2, AlertCircle, Maximize, Mic, ShieldCheck, Headphones } from "lucide-react"
 import { toast } from "sonner"
-import { PreflightStart } from "@/components/exam/preflight"
-import { useAuth } from "@/lib/auth/auth-context"
-import { isExamLocked, lockExam } from "@/lib/exam/lock"
-import { useSpeakingGrading } from "@/lib/speaking/access"
-import { SpeakingLockedTest } from "@/components/dashboard/speaking-locked"
+import { PreflightStart } from "@/features/exam/components/preflight"
+import { useAuth } from "@/shared/providers/auth-context"
+import { isExamLocked, lockExam } from "@/features/exam/lib/lock"
+import { useSpeakingGrading } from "@/features/speaking/lib/access"
+import { SpeakingLockedTest } from "@/features/speaking/components/speaking-locked"
 
 function promptsFrom(test: SpeakingTest): SpeakingPromptItem[] {
     const prompts: SpeakingPromptItem[] = []
@@ -344,16 +344,16 @@ function SpeakingExamComponent() {
     if (!hasStarted) {
         return (
             <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 sm:p-6 bg-background">
-                <div className="w-full max-w-xl bg-white border border-border rounded-3xl shadow-xl p-6 sm:p-8 space-y-6">
+                <div className="w-full max-w-xl bg-white rounded-3xl shadow-xl p-6 sm:p-8 space-y-6 ring-1 ring-[#0F3D26]/[0.06]">
                     <div className="flex items-center gap-4">
                         <div className="size-14 rounded-2xl bg-foreground text-white flex items-center justify-center shadow-lg shrink-0">
-                            <Mic className="size-7 text-[#C8FF00]" />
+                            <Mic className="size-7 text-[#9BE3BC]" />
                         </div>
                         <div className="min-w-0">
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 CEFR · Gapirish bo&apos;limi
                             </span>
-                            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate" title={test.title}>
+                            <h1 className="text-xl sm:text-2xl font-semibold text-foreground truncate" title={test.title}>
                                 {test.title}
                             </h1>
                         </div>
@@ -428,7 +428,7 @@ function SpeakingExamComponent() {
                         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
                             <Maximize className="size-7" />
                         </div>
-                        <h2 className="mt-4 text-xl font-extrabold text-foreground">To&apos;liq ekran rejimi o&apos;chdi</h2>
+                        <h2 className="mt-4 text-xl font-semibold text-foreground">To&apos;liq ekran rejimi o&apos;chdi</h2>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                             Imtihon to&apos;liq ekran rejimida o&apos;tkaziladi. Davom etish uchun to&apos;liq ekranga qayting.
                         </p>

@@ -23,14 +23,14 @@ import {
   FileDown, FileText, Layers, Layout, ListOrdered, Lock, Plus, Save, ShieldAlert,
   Trash2, Unlock, X,
 } from 'lucide-react'
-import { formatLockError, readingApi } from '@/lib/api'
-import { authenticatedDownload } from '@/lib/api/download'
-import type { ReadingPart, ReadingQuestion, ReadingTest, ExamVersion, LockError } from '@/lib/api/types'
-import { useAuth } from '@/lib/auth/auth-context'
-import { ApiRequestError } from '@/lib/api/client'
-import { resolveAssetUrl } from '@/lib/api/config'
-import { READING_QUESTION_TYPES, READING_LANGUAGES } from '@/lib/admin/question-types'
-import { TestSettings } from '@/components/admin/test-settings'
+import { formatLockError, readingApi } from '@/shared/api'
+import { authenticatedDownload } from '@/shared/api/download'
+import type { ReadingPart, ReadingQuestion, ReadingTest, ExamVersion, LockError } from '@/shared/api/types'
+import { useAuth } from '@/shared/providers/auth-context'
+import { ApiRequestError } from '@/shared/api/client'
+import { resolveAssetUrl } from '@/shared/api/config'
+import { READING_QUESTION_TYPES, READING_LANGUAGES } from '@/features/admin/lib/question-types'
+import { TestSettings } from '@/features/admin/components/test-settings'
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Multilevel']
 
@@ -666,7 +666,7 @@ function PartCard({
                           </button>
                           <button
                             onClick={() => onRemoveQuestion(qIdx)}
-                            className="rounded p-1.5 text-error hover:bg-error/10" aria-label="O'chirish"
+                            className="rounded p-1.5 text-error hover:bg-error/10" aria-label="o'chirish"
                           >
                             <Trash2 className="size-3.5" />
                           </button>

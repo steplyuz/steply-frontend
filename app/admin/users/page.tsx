@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Search, UserCog, X, Loader2, CheckCircle2, XCircle, ShieldCheck, Shield } from 'lucide-react'
-import { adminApi } from '@/lib/api'
+import { adminApi } from '@/shared/api'
 
 type GlobalRole = 'admin' | 'super_admin' | 'teacher' | 'student'
 

@@ -14,15 +14,15 @@ import { use, useEffect, useState } from 'react'
 import {
   AlertTriangle, ArrowLeft, ChevronDown, FileDown, Layers, Lock, Plus, Save, ShieldAlert, Trash2, Unlock,
 } from 'lucide-react'
-import { formatLockError, listeningApi } from '@/lib/api'
-import { authenticatedDownload } from '@/lib/api/download'
-import type { ListeningPart, ListeningQuestion, ListeningTest, ExamVersion, LockError } from '@/lib/api/types'
-import { useAuth } from '@/lib/auth/auth-context'
-import { ApiRequestError } from '@/lib/api/client'
-import { resolveAssetUrl } from '@/lib/api/config'
+import { formatLockError, listeningApi } from '@/shared/api'
+import { authenticatedDownload } from '@/shared/api/download'
+import type { ListeningPart, ListeningQuestion, ListeningTest, ExamVersion, LockError } from '@/shared/api/types'
+import { useAuth } from '@/shared/providers/auth-context'
+import { ApiRequestError } from '@/shared/api/client'
+import { resolveAssetUrl } from '@/shared/api/config'
 import { toast } from 'sonner'
-import { LISTENING_QUESTION_TYPES } from '@/lib/admin/question-types'
-import { TestSettings } from '@/components/admin/test-settings'
+import { LISTENING_QUESTION_TYPES } from '@/features/admin/lib/question-types'
+import { TestSettings } from '@/features/admin/components/test-settings'
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Multilevel']
 
@@ -1031,7 +1031,7 @@ export default function AdminListeningEditorPage({ params }: { params: Promise<{
             className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
           >
             <Save className="size-4" />
-            {saving ? 'Saqlanmoqda...' : "O'zgarishlarni saqlash"}
+            {saving ? 'Saqlanmoqda...' : "o'zgarishlarni saqlash"}
           </button>
         </div>
       )}

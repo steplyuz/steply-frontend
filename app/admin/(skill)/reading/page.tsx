@@ -7,10 +7,10 @@
    */
 
   import { BookOpen } from 'lucide-react'
-  import { readingApi } from '@/lib/api'
-  import { TestLibrary, type TestLibraryConfig } from '@/components/admin/test-library'
-  import { READING_JSON_TEMPLATE } from '@/lib/admin/json-templates'
-  import type { ReadingTest } from '@/lib/api/types'
+  import { readingApi } from '@/shared/api'
+  import { TestLibrary, type TestLibraryConfig } from '@/features/admin/components/test-library'
+  import { READING_JSON_TEMPLATE } from '@/features/admin/lib/json-templates'
+  import type { ReadingTest } from '@/shared/api/types'
 
   const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Multilevel']
 

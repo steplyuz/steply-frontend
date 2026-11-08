@@ -9,10 +9,10 @@
 
 import Link from 'next/link'
 import { ChevronRight, Mic } from 'lucide-react'
-import { speakingApi } from '@/lib/api'
-import { TestLibrary, type TestLibraryConfig } from '@/components/admin/test-library'
-import { SPEAKING_JSON_TEMPLATE } from '@/lib/admin/json-templates'
-import type { SpeakingTestSummary, SpeakingTestUpdateInput } from '@/lib/api/types'
+import { speakingApi } from '@/shared/api'
+import { TestLibrary, type TestLibraryConfig } from '@/features/admin/components/test-library'
+import { SPEAKING_JSON_TEMPLATE } from '@/features/admin/lib/json-templates'
+import type { SpeakingTestSummary, SpeakingTestUpdateInput } from '@/shared/api/types'
 
 const config: TestLibraryConfig<SpeakingTestSummary> = {
   noun: 'Speaking',

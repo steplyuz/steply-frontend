@@ -3,7 +3,10 @@
 @import "shadcn/tailwind.css";
 
 @theme inline {
-  --font-sans: "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Matn: Inter. Sarlavha va katta raqamlar: Manrope (`font-display` klassi).
+     Ikkalasi layout.tsx da next/font orqali ulangan; bo'lmasa tizim shriftlari */
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-manrope), var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -35,7 +38,21 @@
   --color-warning: var(--warning);
   --color-info: var(--info);
 
+  /* Brend yashilining yorqin varianti: to'q fondagi matn va nuqtalar uchun */
+  --color-brand-bright: var(--brand-bright);
+  /* Yanada och variantlar: to'q fondagi urg'u (glow) va marker/tanlov foni (soft) */
+  --color-brand-glow: var(--brand-glow);
+  --color-brand-soft: var(--brand-soft);
+
   --font-admin-display: var(--admin-display-font, var(--font-sans));
+
+  /* Qalinroq shrift: font-medium/semibold/bold klasslari bir pog'ona qalinlashtirilgan.
+     (Inter va Manrope o'zgaruvchan shriftlar, 200–800 oralig'i ishlaydi.)
+     Juda og'ir tuyulsa: semibold 700 → 650, bold 700 → 800 qiymatlarini sinab ko'ring. */
+  --font-weight-medium: 600;
+  --font-weight-semibold: 700;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
 
   --radius-lg: var(--radius);
 }
@@ -44,45 +61,53 @@
   color-scheme: light;
 
   /* ============================================================
-     STEPLY — GLOBAL UI COLOR SYSTEM
+     STEPLY — GLOBAL UI COLOR SYSTEM (yashil brend)
+     Palitra:  #0F3D26 (to'q)   #1F7A4D (asosiy)   #5DBB8A (yorqin)
+               #9BE3BC (glow)   #CDEBDA (soft)     #E4F1E9 (och fon)
+               #0F2A1C (matn)   #F1F5F2 (sahifa foni)
      ============================================================ */
 
-  /* Base */
-  --background: #f7f7f5;
-  --foreground: #0b0b0d;
+  /* Base — dashboard qobig'i (layout) va kartalar orqasi shu fon */
+  --background: #f1f5f2;
+  --foreground: #0f2a1c;
 
   /* Cards */
   --card: #ffffff;
-  --card-foreground: #0b0b0d;
+  --card-foreground: #0f2a1c;
 
-  /* Brand — primary lime, only for CTAs / active state / accents */
-  --primary: #C8FF00;
-  --primary-hover: #B8ED00;
-  --primary-active: #AADB00;
-  --primary-foreground: #0b0b0d;
-  /* Darkened lime for icons/text that need brand meaning on a light
-     background — pure lime fails contrast there, see design rules. */
-  --primary-strong: #587800;
+  /* Brand — asosiy yashil: CTA / faol holat / aksentlar */
+  --primary: #1f7a4d;
+  --primary-hover: #196640;
+  --primary-active: #145232;
+  --primary-foreground: #ffffff;
+  /* Och fonda ikonka/matn uchun yanada to'q yashil */
+  --primary-strong: #0f3d26;
 
-  /* Soft badge/icon-circle surface tinted with the brand color
-     (used across the app as "bg-secondary text-primary") */
-  --secondary: #F0F8D2;
-  --secondary-foreground: #0a0a0c;
+  /* Brend rangidagi yumshoq fon (badge, ikonka doirasi):
+     "bg-secondary text-primary" */
+  --secondary: #e4f1e9;
+  --secondary-foreground: #0f3d26;
 
-  /* Accent */
-  --accent: #C8FF00;
-  --accent-foreground: #0b0b0d;
+  /* Accent (hover/tanlangan fon) */
+  --accent: #e4f1e9;
+  --accent-foreground: #0f3d26;
 
-  /* Muted surfaces — dashboard sections, secondary blocks */
-  --muted: #f0f0ec;
-  --muted-foreground: #6b7280;
+  /* Muted surfaces — dashboard bo'limlari, ikkilamchi bloklar.
+     --background dan sal to'qroq, shunda ajralib turadi */
+  --muted: #e9f0eb;
+  --muted-foreground: #5f6f65;
 
-  /* Borders */
-  --border: #e6e7e2;
-  --border-strong: #d1d5db;
+  /* Borders (yashilga moyil neytral) */
+  --border: #dfe8e1;
+  --border-strong: #c7d3ca;
 
   /* Focus ring */
-  --ring: #C8FF00;
+  --ring: #1f7a4d;
+
+  /* To'q fonda ishlatiladigan yashil variantlar */
+  --brand-bright: #5dbb8a;
+  --brand-glow: #9be3bc;
+  --brand-soft: #cdebda;
 
   /* Status */
   --success: #15803d;
@@ -97,25 +122,39 @@
 /* ================================================================
    ADMIN THEME
    ------------------------------------------------------------
-   Foydalanuvchi (candidate) ilovasi lime (#C8FF00) aksentda qoladi.
-   Admin panel esa o'z aksent rangi (indigo) va sarlavha shrifti bilan
-   vizual jihatdan alohida "boshqaruv markazi" hissi beradi — fon
-   baribir och (--background/--card) qoladi, faqat aksent va sarlavha
-   tipografiyasi farqlanadi. `--admin-display-font` qiymati
+   Admin panel o'z neytral (zinc) palitrasini saqlaydi — yashil brend
+   faqat foydalanuvchi ilovasida. Barcha admin o'zgaruvchilari BIR
+   joyda (oldin ikki blokka bo'lingan, birinchisidagi indigo ranglar
+   ikkinchisi tomonidan bekor qilinardi). `--admin-display-font`
    app/admin/layout.tsx'da next/font orqali ulanadi.
    ================================================================ */
 
 .admin-theme {
-  --primary: #4f46e5;
+  --background: #f7f7f5;
+  --foreground: #0b0b0d;
+  --card-foreground: #0b0b0d;
+  --muted: #f0f0ec;
+  --muted-foreground: #6b7280;
+  --border: #e6e7e2;
+  --border-strong: #d1d5db;
+
+  --primary: #18181b;
   --primary-foreground: #ffffff;
+  --primary-hover: #27272a;
+  --primary-active: #09090b;
+  --primary-strong: #18181b;
 
-  --secondary: #eef2ff;
-  --secondary-foreground: #4338ca;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
 
-  --accent: #4f46e5;
-  --accent-foreground: #ffffff;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
 
-  --ring: #4f46e5;
+  --ring: #71717a;
+
+  --brand-bright: #18181b;
+  --brand-glow: #a1a1aa;
+  --brand-soft: #e4e4e7;
 }
 
 .admin-theme h1,
@@ -140,14 +179,21 @@ html {
 
 body {
   @apply bg-background text-foreground font-sans antialiased;
+}
 
-  selection-background-color: #C8FF00;
-  selection-color: #151515;
+/* Sarlavhalar Manrope'da (admin temada pastdagi .admin-theme qoidasi ustun) */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
 }
 
 ::selection {
-  background: #C8FF00;
-  color: #151515;
+  background: var(--brand-soft);
+  color: var(--foreground);
 }
 
 /* Prevent horizontal overflow */
@@ -170,7 +216,7 @@ body {
    ================================================================ */
 
 .surface {
-  @apply rounded-2xl border border-border bg-card shadow-[0_4px_16px_rgba(11,11,13,0.02)];
+  @apply rounded-2xl border border-border bg-card shadow-[0_4px_16px_rgba(15,61,38,0.04)];
 }
 
 .field {
@@ -186,6 +232,48 @@ body {
 }
 
 /* ================================================================
+   DASHBOARD DESIGN SYSTEM (foydalanuvchi qismi)
+   .ds-card       — oq karta (rounded-3xl, yumshoq yashil halqa)
+   .ds-card-soft  — karta ichidagi ikkilamchi blok
+   .ds-input      — maydon (input / select / textarea)
+   .ds-label      — maydon yorlig'i
+   Admin panel o'z .surface / .field klasslarida qoladi.
+   ================================================================ */
+
+.ds-card {
+  @apply rounded-3xl bg-white text-foreground ring-1 ring-[#0F3D26]/[0.06];
+}
+
+.ds-card-soft {
+  @apply rounded-2xl bg-background ring-1 ring-[#0F3D26]/[0.05];
+}
+
+.ds-input {
+  @apply min-h-11 w-full rounded-2xl border border-border bg-white px-4 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+.ds-input:focus {
+  @apply border-primary ring-2 ring-primary/25;
+}
+
+.ds-label {
+  @apply mb-1.5 block text-xs font-semibold text-muted-foreground;
+}
+
+/* Sahifa bo'limlari ketma-ket chiqishi (dashboard bosh sahifasidagi kabi) */
+@keyframes dash-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+.dash-rise { animation: dash-rise .6s cubic-bezier(.2,.7,.2,1) backwards; }
+.dash-stagger > * { animation: dash-rise .6s cubic-bezier(.2,.7,.2,1) backwards; }
+.dash-stagger > *:nth-child(1) { animation-delay: .08s; }
+.dash-stagger > *:nth-child(2) { animation-delay: .16s; }
+.dash-stagger > *:nth-child(3) { animation-delay: .24s; }
+.dash-stagger > *:nth-child(4) { animation-delay: .32s; }
+.dash-stagger > *:nth-child(5) { animation-delay: .40s; }
+@media (prefers-reduced-motion: reduce) {
+  .dash-rise, .dash-stagger > * { animation: none; }
+}
+
+/* ================================================================
    EDITORIAL GRID
    ================================================================ */
 
@@ -196,12 +284,12 @@ body {
     background-image:
       linear-gradient(
         to right,
-        rgba(21, 21, 21, 0.035) 1px,
+        rgba(15, 61, 38, 0.04) 1px,
         transparent 1px
       ),
       linear-gradient(
         to bottom,
-        rgba(21, 21, 21, 0.035) 1px,
+        rgba(15, 61, 38, 0.04) 1px,
         transparent 1px
       );
   }
@@ -216,51 +304,85 @@ body {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
 
-    border: 1px solid rgba(218, 220, 212, 0.85);
+    border: 1px solid rgba(207, 222, 211, 0.85);
 
     box-shadow:
-      0 20px 30px -10px rgba(21, 21, 21, 0.05),
-      0 10px 15px -5px rgba(21, 21, 21, 0.025);
+      0 20px 30px -10px rgba(15, 61, 38, 0.07),
+      0 10px 15px -5px rgba(15, 61, 38, 0.035);
   }
 
   /* ============================================================
-     LIME SPOTLIGHT
+     BRAND SPOTLIGHT / GLOW
+     Klass nomlari (lime-*) eski komponentlar uchun saqlangan,
+     ranglar endi --primary ga ergashadi.
      ============================================================ */
 
   .lime-spotlight {
     background: radial-gradient(
       circle,
-      rgba(200, 255, 0, 0.12) 0%,
-      rgba(200, 255, 0, 0.045) 38%,
-      rgba(250, 250, 247, 0) 72%
+      color-mix(in srgb, var(--primary) 14%, transparent) 0%,
+      color-mix(in srgb, var(--primary) 5%, transparent) 38%,
+      transparent 72%
     );
   }
 
-  /* Very subtle lime glow */
+  /* Very subtle brand glow */
   .lime-glow {
     box-shadow:
-      0 0 0 1px rgba(200, 255, 0, 0.15),
-      0 10px 35px rgba(200, 255, 0, 0.08);
+      0 0 0 1px color-mix(in srgb, var(--primary) 15%, transparent),
+      0 10px 35px color-mix(in srgb, var(--primary) 10%, transparent);
   }
 
   /* ============================================================
-     EDITORIAL SURFACE
+     BRAND SURFACES (dashboard kartalari)
+     bg-brand-gradient — asosiy statistika kartasi
+     bg-brand-texture  — teksturali to'q yashil karta (profil, maslahat)
+     bg-hatch          — shtrixli bezak (pill, gauge, legend)
+     ============================================================ */
+
+  .bg-brand-gradient {
+    background: radial-gradient(
+      120% 100% at 0% 0%,
+      #2a9460 0%,
+      var(--primary) 45%,
+      var(--primary-strong) 100%
+    );
+  }
+
+  .bg-brand-texture {
+    background:
+      radial-gradient(90% 70% at 100% 0%, rgba(93, 187, 138, 0.4), transparent 60%),
+      radial-gradient(70% 60% at 0% 100%, rgba(31, 122, 77, 0.55), transparent 60%),
+      repeating-radial-gradient(circle at 120% -10%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 14px),
+      #0b2e1d;
+  }
+
+  .bg-hatch {
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(15, 61, 38, 0.26) 0 2px,
+      transparent 2px 8px
+    );
+  }
+
+  /* ============================================================
+     EDITORIAL SURFACE (yashilga moyil och fonlar)
      ============================================================ */
 
   .surface-soft {
-    background: #f3f3ee;
+    background: #ecf3ee;
   }
 
   .surface-warm {
-    background: #f7f7f2;
+    background: #f4f8f5;
   }
 
   /* ============================================================
-     DARK PRODUCT SURFACE
+     DARK PRODUCT SURFACE (to'q yashil)
      ============================================================ */
 
   .surface-dark {
-    background: #151515;
+    background: #0b2e1d;
     color: #ffffff;
   }
 
@@ -269,7 +391,7 @@ body {
      ============================================================ */
 
   .divider-soft {
-    border-color: #e2e2da;
+    border-color: #dfe8e1;
   }
 
   /* ============================================================
@@ -277,11 +399,12 @@ body {
      ============================================================ */
 
   .text-muted {
-    color: #716f67;
+    color: var(--muted-foreground);
   }
 
+  /* To'q fondagi brend matni (och fonda --primary ishlating) */
   .text-brand {
-    color: #C8FF00;
+    color: var(--brand-bright);
   }
 
   /* ============================================================
@@ -292,7 +415,7 @@ body {
     width: 6px;
     height: 6px;
     border-radius: 9999px;
-    background: #C8FF00;
+    background: var(--brand-bright);
   }
 }
 
@@ -315,42 +438,20 @@ body {
   }
 }
 
-.admin-theme {
-  /* mavjud qiymatlar qoladi, quyidagilar qo'shiladi */
-  --primary-hover: #4338ca;
-  --primary-active: #3730a3;
-  --primary-strong: #4f46e5;
-}
-
-/* Admin temada qattiq lime ishlatilgan yordamchilar aksentga ergashsin */
-.admin-theme .text-brand { color: var(--primary); }
-.admin-theme .brand-dot { background: var(--primary); }
-.admin-theme .lime-glow {
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--primary) 15%, transparent),
-    0 10px 35px color-mix(in srgb, var(--primary) 8%, transparent);
-}
-.admin-theme ::selection { background: var(--primary); color: #fff; }
 /* ================================================================
    ADMIN — MINIMALIZM VA TEZLIK
    Admin panel: neytral palitra, bitta aksent, soya/blur/gradientsiz.
    Fokus holati (klaviatura) saqlanadi — ring ham box-shadow ishlatadi.
+   (Admin o'zgaruvchilari yuqoridagi `.admin-theme` blokida.)
    ================================================================ */
-.admin-theme {
-  --primary: #18181b;
-  --primary-foreground: #ffffff;
-  --primary-hover: #27272a;
-  --primary-active: #09090b;
-  --primary-strong: #18181b;
 
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-
-  --accent: #f4f4f5;
-  --accent-foreground: #18181b;
-
-  --ring: #71717a;
+/* Admin temada brend yordamchilari aksentga ergashsin */
+.admin-theme .text-brand { color: var(--primary); }
+.admin-theme .brand-dot { background: var(--primary); }
+.admin-theme .lime-glow {
+  box-shadow: none !important;
 }
+.admin-theme ::selection { background: var(--primary); color: #fff; }
 
 .admin-theme [class*="shadow-"] {
   box-shadow: none !important;
@@ -365,10 +466,6 @@ body {
 .admin-theme [class*="bg-linear"],
 .admin-theme [class*="bg-gradient"] {
   background-image: none !important;
-}
-
-.admin-theme .lime-glow {
-  box-shadow: none !important;
 }
 
 /* Klaviatura fokusi shadow o'chirilganda ham ko'rinsin */

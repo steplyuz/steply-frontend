@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo, Suspense } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
-import ReadingExamContent from "@/components/cefr-exam/reading/reading-exam-content"
-import ReadingExamSidebar from "@/components/cefr-exam/reading/reading-exam-sidebar"
-import ReadingTopBar from "@/components/cefr-exam/reading/reading-top-bar"
-import ReadingFinishModal, { type NavGroup } from "@/components/cefr-exam/reading/reading-finish-modal"
+import ReadingExamContent from "@/features/exam/cefr/reading/reading-exam-content"
+import ReadingExamSidebar from "@/features/exam/cefr/reading/reading-exam-sidebar"
+import ReadingTopBar from "@/features/exam/cefr/reading/reading-top-bar"
+import ReadingFinishModal, { type NavGroup } from "@/features/exam/cefr/reading/reading-finish-modal"
 import {
     attemptAnswersToMap,
     finishReadingAttemptAPI,
@@ -14,14 +14,14 @@ import {
     saveReadingAnswerAPI,
     startReadingAttemptAPI,
     submitReadingExamAPI,
-} from "@/lib/practice/api/reading"
-import { examsApi } from "@/lib/api"
-import type { ReadingExam } from "@/lib/exam/types/reading"
+} from "@/features/practice/lib/api/reading"
+import { examsApi } from "@/shared/api"
+import type { ReadingExam } from "@/features/exam/lib/types/reading"
 import { Loader2, AlertCircle, Maximize, BookOpen, ShieldCheck } from "lucide-react"
 import { toast } from "sonner"
-import { PreflightStart } from "@/components/exam/preflight"
-import { useAuth } from "@/lib/auth/auth-context"
-import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, readingPracticeMinutes, remainingSeconds, serverRemainingSeconds } from "@/lib/exam/lock"
+import { PreflightStart } from "@/features/exam/components/preflight"
+import { useAuth } from "@/shared/providers/auth-context"
+import { clearDeadline, getOrCreateDeadline, isExamLocked, lockExam, readingPracticeMinutes, remainingSeconds, serverRemainingSeconds } from "@/features/exam/lib/lock"
 
 const SAVE_DEBOUNCE_MS = 600
 
@@ -351,7 +351,7 @@ function ReadingExamComponent() {
         }
     }, [hasStarted, mode])
 
-    // --- 🖥️ TO'LIQ EKRAN NAZORATI ---
+    // --- 🖥️ To'LIQ EKRAN NAZORATI ---
     useEffect(() => {
         if (!hasStarted || mode !== "mock") return
         const onFs = () => {
@@ -533,7 +533,7 @@ function ReadingExamComponent() {
     if (!hasStarted) {
         return (
             <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 sm:p-6 bg-background">
-                <div className="w-full max-w-xl bg-white border border-border rounded-3xl shadow-xl p-6 sm:p-8 space-y-6">
+                <div className="w-full max-w-xl bg-white rounded-3xl shadow-xl p-6 sm:p-8 space-y-6 ring-1 ring-[#0F3D26]/[0.06]">
                     <div className="flex items-center gap-4">
                         <div className="size-14 rounded-2xl bg-foreground text-white flex items-center justify-center shadow-lg shrink-0">
                             <BookOpen className="size-7" />
@@ -542,7 +542,7 @@ function ReadingExamComponent() {
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 {test.cefr_level || "CEFR"} · O&apos;qib tushunish
                             </span>
-                            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate" title={test.title}>
+                            <h1 className="text-xl sm:text-2xl font-semibold text-foreground truncate" title={test.title}>
                                 {test.title}
                             </h1>
                         </div>
@@ -641,7 +641,7 @@ function ReadingExamComponent() {
                         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
                             <Maximize className="size-7" />
                         </div>
-                        <h2 className="mt-4 text-xl font-extrabold text-foreground">To&apos;liq ekran rejimi o&apos;chdi</h2>
+                        <h2 className="mt-4 text-xl font-semibold text-foreground">To&apos;liq ekran rejimi o&apos;chdi</h2>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                             Imtihon to&apos;liq ekran rejimida o&apos;tkaziladi. Taymer to&apos;xtamaydi — davom etish uchun to&apos;liq ekranga qayting.
                         </p>
@@ -661,7 +661,7 @@ function ReadingExamComponent() {
                         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-red-100 text-red-600">
                             <AlertCircle className="size-7" />
                         </div>
-                        <h2 className="mt-4 text-xl font-extrabold text-foreground">
+                        <h2 className="mt-4 text-xl font-semibold text-foreground">
                             {timeLeft === 0 ? "Vaqt tugadi" : "Bo'lim yakunlandi"}
                         </h2>
                         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">

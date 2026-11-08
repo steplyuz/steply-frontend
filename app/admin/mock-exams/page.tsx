@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { CalendarDays, GraduationCap, MapPin, Pencil, Plus, RefreshCw, Save, Trash2, Users } from 'lucide-react'
-import { mockExamsApi } from '@/lib/api/modules/exam/mock-exams'
-import { SessionRegistrations } from '@/components/admin/session-registrations'
-import { readingApi } from '@/lib/api/modules/practice/reading'
-import { listeningApi } from '@/lib/api/modules/practice/listening'
-import { writingApi } from '@/lib/api/modules/practice/writing'
-import { speakingApi } from '@/lib/api/modules/practice/speaking'
-import type { MockExam, ExamSession, ExamSessionCreateInput } from '@/lib/api/types/exam/mock-exams'
-import { errMsg } from '@/lib/api/legacy'
+import { mockExamsApi } from '@/shared/api/modules/exam/mock-exams'
+import { SessionRegistrations } from '@/features/admin/components/session-registrations'
+import { readingApi } from '@/shared/api/modules/practice/reading'
+import { listeningApi } from '@/shared/api/modules/practice/listening'
+import { writingApi } from '@/shared/api/modules/practice/writing'
+import { speakingApi } from '@/shared/api/modules/practice/speaking'
+import type { MockExam, ExamSession, ExamSessionCreateInput } from '@/shared/api/types/exam/mock-exams'
+import { errMsg } from '@/shared/api/legacy'
 
 /* ───────────── Types & constants ───────────── */
 
@@ -229,7 +229,7 @@ export default function AdminMockExamsPage() {
       flash('Mock imtihon o‘chirildi.')
       await load()
     } catch (err) {
-      setError(errMsg(err, 'O‘chirishda xatolik'))
+      setError(errMsg(err, 'o‘chirishda xatolik'))
     }
   }
 

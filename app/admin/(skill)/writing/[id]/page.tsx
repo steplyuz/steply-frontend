@@ -12,13 +12,13 @@ import {
   ArrowLeft, Braces, Save, Layout, ShieldAlert,
   Trash2, Plus, GripVertical
 } from 'lucide-react'
-import { writingApi } from '@/lib/api'
-import type { WritingExam, WritingTask } from '@/lib/api/types'
-import { ApiRequestError } from '@/lib/api/client'
-import { useAuth } from '@/lib/auth/auth-context'
-import { LockControls } from '@/components/admin/lock-controls'
-import { adminInput } from '@/components/admin/ui/styles'
-import { TestSettings } from '@/components/admin/test-settings'
+import { writingApi } from '@/shared/api'
+import type { WritingExam, WritingTask } from '@/shared/api/types'
+import { ApiRequestError } from '@/shared/api/client'
+import { useAuth } from '@/shared/providers/auth-context'
+import { LockControls } from '@/features/admin/components/lock-controls'
+import { adminInput } from '@/features/admin/components/ui/styles'
+import { TestSettings } from '@/features/admin/components/test-settings'
 
 // Reading / Listening bilan bir xil ro'yxat — barcha skill testlarida CEFR darajasi shu to'plamdan tanlanadi.
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'Multilevel']
@@ -311,7 +311,7 @@ export default function EditWritingTestPage({ params }: { params: Promise<{ id: 
                     <button
                       onClick={() => removeTask(i)}
                       className="text-muted-foreground transition hover:text-error"
-                      title="O'chirish"
+                      title="o'chirish"
                     >
                       <Trash2 className="size-4" />
                     </button>

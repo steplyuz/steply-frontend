@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/auth/auth-context'
-import OnboardingWizard from '@/components/onboarding/onboarding-wizard'
-import { OnboardingStyles } from '@/components/onboarding/onboarding-animations'
-import { Circle } from '@/components/ui/circle'
+import { useAuth } from '@/shared/providers/auth-context'
+import OnboardingWizard from '@/features/onboarding/components/onboarding-wizard'
+import { OnboardingStyles } from '@/features/onboarding/components/onboarding-animations'
+import { Circle } from '@/shared/ui/circle'
 
 // Onboarding dashboard shell'idan tashqarida: sidebar yo'q, to'liq ekran wizard.
 // Shell layout'dagi gate shu sahifaga yo'naltiradi, shuning uchun bu yerda gate yo'q.
@@ -23,8 +23,8 @@ export default function OnboardingPage() {
     return (
       <div className="flex min-h-screen items-center bg-background px-4 py-6 sm:px-6 sm:py-12" aria-busy="true">
         <div className="mx-auto grid w-full max-w-6xl gap-4 lg:grid-cols-5 lg:gap-6">
-          <div className="h-56 animate-pulse rounded-3xl bg-foreground/10 motion-reduce:animate-none sm:h-64 sm:rounded-[32px] lg:col-span-2 lg:h-[30rem]" />
-          <div className="h-72 animate-pulse rounded-3xl bg-foreground/5 motion-reduce:animate-none sm:rounded-[32px] lg:col-span-3 lg:h-[30rem]" />
+          <div className="h-56 animate-pulse rounded-3xl bg-[#0F3D26]/[0.07] motion-reduce:animate-none sm:h-64 lg:col-span-2 lg:h-[30rem]" />
+          <div className="h-72 animate-pulse rounded-3xl bg-[#0F3D26]/[0.07] motion-reduce:animate-none lg:col-span-3 lg:h-[30rem]" />
         </div>
       </div>
     )

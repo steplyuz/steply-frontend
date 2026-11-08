@@ -2,20 +2,20 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo, Suspense } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
-import ListeningExamContent from "@/components/cefr-exam/listening/listening-exam-content"
-import ListeningExamSidebar from "@/components/cefr-exam/listening/listening-exam-sidebar"
-import ListeningFinishModal from "@/components/cefr-exam/listening/listening-finish-modal"
-import ListeningTopBar from "@/components/cefr-exam/listening/listening-top-bar"
+import ListeningExamContent from "@/features/exam/cefr/listening/listening-exam-content"
+import ListeningExamSidebar from "@/features/exam/cefr/listening/listening-exam-sidebar"
+import ListeningFinishModal from "@/features/exam/cefr/listening/listening-finish-modal"
+import ListeningTopBar from "@/features/exam/cefr/listening/listening-top-bar"
 import { Loader2, AlertCircle, Headphones, ShieldCheck, Volume2 } from "lucide-react"
 import { toast } from "sonner"
-import { PreflightStart } from "@/components/exam/preflight"
-import { useAuth } from "@/lib/auth/auth-context"
-import { isExamLocked, lockExam } from "@/lib/exam/lock"
-import { examsApi, resolveAudioUrl } from "@/lib/api"
+import { PreflightStart } from "@/features/exam/components/preflight"
+import { useAuth } from "@/shared/providers/auth-context"
+import { isExamLocked, lockExam } from "@/features/exam/lib/lock"
+import { examsApi, resolveAudioUrl } from "@/shared/api"
 
 // API
-import { getListeningExamByIdAPI, submitListeningExamAPI } from "@/lib/practice/api/listening"
-import type { ListeningExam } from "@/lib/exam/types/listening"
+import { getListeningExamByIdAPI, submitListeningExamAPI } from "@/features/practice/lib/api/listening"
+import type { ListeningExam } from "@/features/exam/lib/types/listening"
 
 /** Variantlar [{label,value}] yoki ["matn", ...] ko'rinishida kelishi mumkin. */
 function normalizeOptions(raw: unknown): { value: string; label: string }[] {
@@ -86,7 +86,7 @@ function ListeningExamComponent() {
     const answersRef = useRef<Record<string, string>>({})
     const lockedRef = useRef(false)
 
-    // "reading" fazasi YO'Q: o'qish vaqti audioning ichida. "ending" ham yo'q: "end of part" ham audio ichida.
+    // "reading" fazasi Yo'Q: o'qish vaqti audioning ichida. "ending" ham yo'q: "end of part" ham audio ichida.
     const [status, setStatus] = useState<"reading" | "playing" | "ending" | "finished">("playing")
     const [fontSize, setFontSize] = useState(18)
     const [volume, setVolume] = useState(80)
@@ -386,7 +386,7 @@ function ListeningExamComponent() {
     if (!hasStarted) {
         return (
             <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 sm:p-6 bg-background">
-                <div className="w-full max-w-xl bg-white border border-border rounded-3xl shadow-xl p-6 sm:p-8 space-y-6">
+                <div className="w-full max-w-xl bg-white rounded-3xl shadow-xl p-6 sm:p-8 space-y-6 ring-1 ring-[#0F3D26]/[0.06]">
                     <div className="flex items-center gap-4">
                         <div className="size-14 rounded-2xl bg-foreground text-white flex items-center justify-center shadow-lg shrink-0">
                             <Headphones className="size-7" />
@@ -395,7 +395,7 @@ function ListeningExamComponent() {
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 {test.level || "CEFR"} · Tinglab tushunish
                             </span>
-                            <h1 className="text-xl sm:text-2xl font-extrabold text-foreground truncate" title={test.title}>
+                            <h1 className="text-xl sm:text-2xl font-semibold text-foreground truncate" title={test.title}>
                                 {test.title}
                             </h1>
                         </div>

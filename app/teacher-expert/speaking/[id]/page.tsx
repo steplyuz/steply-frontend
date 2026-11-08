@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ShieldAlert } from 'lucide-react'
-import { speakingApi } from '@/lib/api'
-import type { SpeakingSubmission, SpeakingResultInput } from '@/lib/api/types'
-import { useAuth } from '@/lib/auth/auth-context'
-import { ApiRequestError } from '@/lib/api/client'
+import { speakingApi } from '@/shared/api'
+import type { SpeakingSubmission, SpeakingResultInput } from '@/shared/api/types'
+import { useAuth } from '@/shared/providers/auth-context'
+import { ApiRequestError } from '@/shared/api/client'
 
 export default function Page() {
   const params = useParams<{ id: string }>()

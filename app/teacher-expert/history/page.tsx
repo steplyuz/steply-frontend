@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { writingApi } from '@/lib/api'
-import type { WritingResult } from '@/lib/api/types'
+import { writingApi } from '@/shared/api'
+import type { WritingResult } from '@/shared/api/types'
 
 export default function TeacherHistoryPage() {
   const [results, setResults] = useState<WritingResult[] | null>(null)

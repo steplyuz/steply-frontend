@@ -1,14 +1,27 @@
-
-import { Nunito_Sans } from 'next/font/google'
+import { Inter, Manrope } from 'next/font/google'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import './imthon/design-system.css'
-import { AuthProvider } from '@/lib/auth/auth-context'
-import TelegramScript from '@/components/TelegramScript'
+// import './imthon/design-system.css'
+import { AuthProvider } from '@/shared/providers/auth-context'
+import TelegramScript from '@/features/auth/components/telegram-script'
+import { AlphabetProvider } from '@/shared/providers/alphabet-provider'
 
-const nunitoSans = Nunito_Sans({
-  subsets: ['latin', 'cyrillic'],
-  variable: '--font-nunito-sans',
+/* Shriftlar (variable nomlari globals.css dagi --font-sans / --font-display bilan bog'langan).
+   MUHIM: next/font qiymatlari to'g'ridan-to'g'ri yozilgan literal bo'lishi shart —
+   `subsets` ni o'zgaruvchiga chiqarib bo'lmaydi (build xatosi beradi).
+   'latin-ext' — o'zbekcha belgilar (oʻ, gʻ, shuningdek o', Ğ, Ş, Ç) uchun, 'cyrillic' — kirill matn uchun. */
+
+// Matn (paragraf, tugma, forma)
+const inter = Inter({
+  subsets: ['latin', 'latin-ext', 'cyrillic'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+// Sarlavha va katta raqamlar
+const manrope = Manrope({
+  subsets: ['latin', 'latin-ext', 'cyrillic'],
+  variable: '--font-manrope',
   display: 'swap',
 })
 
@@ -17,10 +30,10 @@ const SITE_URL = (
 ).replace(/\/+$/, '')
 
 const SITE_NAME = 'Steply'
-const TITLE = 'Steply — CEFR Practice platformasi'
+const TITLE = 'Steply — Milliy sertifikat practice platformasi'
 
 const DESCRIPTION =
-  'Steply — CEFR Multilevel uchun practice platformasi. Reading, Listening, Writing va Speaking ko‘nikmalarini mashqlar hamda AI yordamidagi baholash orqali rivojlantiring.'
+  'Steply — milliy sertifikat imtihonlariga tayyorgarlik platformasi. Barcha yo‘nalishlar bo‘yicha mock imtihonlar, mashqlar hamda AI yordamidagi baholash orqali natijangizni oshiring.'
 
 const LOGO_URL = `${SITE_URL}/logo.png`
 const OG_IMAGE_URL = `${SITE_URL}/og-image.png`
@@ -40,18 +53,13 @@ export const metadata: Metadata = {
 
   keywords: [
     'Steply',
-    'CEFR',
-    'Multilevel',
-    'CEFR Multilevel',
-    'ingliz tili',
-    'IELTS',
-    'Reading',
-    'Listening',
-    'Writing',
-    'Speaking',
+    'milliy sertifikat',
+    'milliy sertifikat imtihoni',
+    'mock imtihon',
+    'DTM',
     'onlayn test',
     'imtihonga tayyorgarlik',
-    'O‘zbekiston',
+    'o‘zbekiston',
   ],
 
   authors: [
@@ -109,7 +117,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE_URL,
         width: 1200,
         height: 630,
-        alt: 'Steply — CEFR Practice platformasi',
+        alt: 'Steply — Milliy sertifikat practice platformasi',
       },
     ],
   },
@@ -121,7 +129,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: TWITTER_IMAGE_URL,
-        alt: 'Steply — CEFR Practice platformasi',
+        alt: 'Steply — Milliy sertifikat practice platformasi',
       },
     ],
   },
@@ -156,7 +164,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   colorScheme: 'light',
-  themeColor: '#FFFFFF',
+  // Mobil brauzer manzil paneli rangi: globals.css dagi --background (#f1f5f2) bilan bir xil
+  themeColor: '#F1F5F2',
 }
 
 const jsonLd = {
@@ -200,11 +209,12 @@ export default function RootLayout({
   return (
     <html
       lang="uz"
-      className="bg-background"
+      // Shrift o'zgaruvchisi <html> da: butun hujjat (body, portal, modal) shriftni oladi
+      className={`bg-background ${inter.variable} ${manrope.variable}`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      <body className={nunitoSans.variable}>
+      <body>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -214,7 +224,10 @@ export default function RootLayout({
 
         <TelegramScript />
 
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {/* o'zbek alifbosi (eski/yangi) tanlovi: useAlphabet() / <Uz> */}
+          <AlphabetProvider>{children}</AlphabetProvider>
+        </AuthProvider>
       </body>
     </html>
   )

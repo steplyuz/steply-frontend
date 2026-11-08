@@ -16,9 +16,9 @@ import {
 } from "lucide-react"
 import { motion, MotionConfig, useReducedMotion, type Variants } from "framer-motion"
 
-import { SiteHeader } from "@/components/layout/header"
-import { publicApi } from "@/lib/api"
-import type { VerifiedResult } from "@/lib/api/types"
+import { SiteHeader } from "@/shared/layout/header"
+import { publicApi } from "@/shared/api"
+import type { VerifiedResult } from "@/shared/api/types"
 
 type SkillKey =
   | "listening"
@@ -229,7 +229,7 @@ function DemoCard({
         className="absolute -inset-5 rounded-[34px] bg-primary/10 blur-3xl"
       />
 
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.3)] sm:p-7">
+      <div className="relative overflow-hidden rounded-3xl bg-white p-5 shadow-[0_24px_70px_-45px_rgba(0,0,0,0.3)] sm:p-7 ring-1 ring-[#0F3D26]/[0.06]">
         <div className="flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.08] p-3.5">
           <div className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
             {!reduceMotion && (
@@ -415,7 +415,7 @@ function SearchForm({
           }}
           disabled={loading}
           placeholder="QR tokenni kiriting (masalan: MK-290706526)"
-          className="h-[54px] w-full rounded-2xl border border-border bg-card pl-12 pr-32 font-mono text-sm font-medium outline-none placeholder:font-sans placeholder:text-muted-foreground focus:border-foreground focus:ring-2 focus:ring-primary/25 disabled:opacity-60"
+          className="h-[54px] w-full rounded-2xl border border-border bg-card pl-12 pr-32 font-mono text-sm font-medium outline-none placeholder:font-sans placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/25 disabled:opacity-60"
         />
 
         <button
@@ -425,7 +425,7 @@ function SearchForm({
             !token.trim()
           }
           aria-busy={loading}
-          className="absolute right-2 top-1/2 inline-flex h-10 -translate-y-1/2 items-center gap-2 rounded-xl bg-foreground px-4 text-sm font-semibold text-background transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute right-2 top-1/2 inline-flex h-10 -translate-y-1/2 items-center gap-2 rounded-full bg-foreground px-4 text-sm font-semibold text-background transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? (
             <Loader2
@@ -605,7 +605,7 @@ function ResultCard({
               </p>
             </div>
 
-            <span className="shrink-0 rounded-2xl bg-primary px-4 py-2 text-xl font-extrabold text-foreground">
+            <span className="shrink-0 rounded-2xl bg-primary px-4 py-2 text-xl font-semibold text-foreground">
               {result.cefr_level || "—"}
             </span>
           </div>

@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Space_Grotesk } from 'next/font/google'
-import { RoleSidebar } from '@/components/layout/role-sidebar'
-import { AdminTopbar } from '@/components/layout/admin-topbar'
-import { useAuth } from '@/lib/auth/auth-context'
+import { RoleSidebar } from '@/features/admin/layout/role-sidebar'
+import { AdminTopbar } from '@/features/admin/layout/admin-topbar'
+import { useAuth } from '@/shared/providers/auth-context'
 
 const displayFont = Space_Grotesk({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--admin-display-font' })
 const ALLOWED_ROLES = ['teacher', 'teacher_expert', 'speaking_evaluator', 'admin', 'super_admin']

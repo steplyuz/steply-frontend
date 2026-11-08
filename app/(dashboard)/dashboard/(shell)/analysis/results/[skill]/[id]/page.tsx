@@ -5,15 +5,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { ArrowLeft, Check, CheckCircle2, Copy, XCircle } from 'lucide-react'
-import { apiUrl } from '@/lib/api/config'
-import { getReadingExamByIdAPI } from '@/lib/practice/api/reading'
-import { ErrorBox, Loading } from '@/components/dashboard/ui'
+import { apiUrl } from '@/shared/api/config'
+import { getReadingExamByIdAPI } from '@/features/practice/lib/api/reading'
+import { ErrorBox, Loading } from '@/shared/ui/dashboard-kit'
 import {
   SKILLS, answerText, authFetch, errorMessage, fmtDay, parseSkill,
   type QuestionReview, type ResultDetail,
-} from '@/components/dashboard/analysis-shared'
-import { Circle } from '@/components/ui/circle'
-import { LIME } from '@/lib/brand'
+} from '@/features/analysis/analysis-shared'
+import { Circle } from '@/shared/ui/circle'
+import { LIME } from '@/shared/lib/brand'
 
 const OK = { tint: '#E7F7EC', accent: '#16A34A' }
 const BAD = { tint: '#FFE4E6', accent: '#E11D48' }
@@ -35,7 +35,7 @@ function PercentRing({ value }: { value: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-black leading-none tabular-nums sm:text-5xl">{value}%</span>
+        <span className="text-4xl font-semibold leading-none tabular-nums sm:text-5xl">{value}%</span>
       </div>
     </div>
   )
@@ -51,7 +51,7 @@ function CopyChip({ label, value }: { label: string; value: string }) {
     } catch {}
   }
   return (
-    <div className="flex min-h-12 items-center gap-2 rounded-2xl bg-white/80 py-1.5 pl-4 pr-1.5 ring-1 ring-black/5">
+    <div className="flex min-h-12 items-center gap-2 rounded-2xl bg-white/80 py-1.5 pl-4 pr-1.5 ring-1 ring-[#0F3D26]/[0.07]">
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-medium text-foreground/60">{label}</p>
         <p className="truncate font-mono text-sm font-bold text-foreground">{value}</p>
@@ -60,7 +60,7 @@ function CopyChip({ label, value }: { label: string; value: string }) {
         type="button"
         onClick={copy}
         aria-label={`${label}ni nusxalash`}
-        className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-foreground/5 text-foreground/70 transition active:scale-95 hover:bg-foreground/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-foreground"
+        className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#0F3D26]/[0.07] text-foreground/70 transition active:scale-95 hover:bg-[#0F3D26]/[0.07] focus-visible:outline focus-visible:outline-2 focus-visible:outline-foreground"
       >
         {copied ? <Check className="size-4 text-[#16A34A]" /> : <Copy className="size-4" />}
       </button>
@@ -104,10 +104,10 @@ function PassagePanel({ title, text, fontSize, accent, tint }: { title: string; 
   return (
     <aside
       aria-label={`${title} matni`}
-      className="overflow-hidden rounded-3xl bg-white ring-1 ring-black/10 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto"
+      className="overflow-hidden rounded-3xl bg-white ring-1 ring-[#0F3D26]/[0.07] lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto"
     >
       <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-5 py-3 backdrop-blur" style={{ background: `${tint}E6` }}>
-        <span className="text-sm font-black tracking-tight" style={{ color: accent }}>Matn</span>
+        <span className="text-sm font-semibold tracking-tight" style={{ color: accent }}>Matn</span>
         <span className="truncate text-xs font-semibold text-foreground/60">{title}</span>
       </div>
       <div
@@ -130,16 +130,16 @@ function QuestionCard({ q, exam }: { q: QuestionReview; exam?: ExamQ }) {
   const has = (set: Set<string>, o: Option) => set.has(o.label.toLowerCase()) || (!!o.text && set.has(o.text.trim().toLowerCase()))
 
   return (
-    <article className="rounded-3xl bg-white p-4 ring-1 ring-black/10 sm:p-5">
+    <article className="rounded-3xl bg-white p-4 ring-1 ring-[#0F3D26]/[0.07] sm:p-5">
       <div className="flex items-center gap-3">
         <span
-          className="flex size-12 shrink-0 items-center justify-center rounded-2xl text-xl font-black tabular-nums"
+          className="flex size-12 shrink-0 items-center justify-center rounded-2xl text-xl font-semibold tabular-nums"
           style={{ background: tone.tint, color: tone.accent }}
         >
           {q.question_number}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-black tracking-tight">Savol {q.question_number}</h3>
+          <h3 className="font-semibold tracking-tight">Savol {q.question_number}</h3>
           {q.type && <p className="truncate text-xs text-foreground/55">{q.type}</p>}
         </div>
         <span
@@ -166,7 +166,7 @@ function QuestionCard({ q, exam }: { q: QuestionReview; exam?: ExamQ }) {
                 style={style ? { background: style.tint } : { background: 'rgba(0,0,0,0.04)' }}
               >
                 <span
-                  className="flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-black"
+                  className="flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
                   style={style ? { background: style.accent, color: '#fff' } : { background: '#fff', color: '#555' }}
                 >
                   {o.label}
@@ -290,7 +290,7 @@ export default function ResultDetailPage() {
   const back = (
     <Link
       href="/dashboard/analysis"
-      className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-foreground/65 transition active:scale-95 hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
+      className="-ml-2 inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-semibold text-foreground/65 transition active:scale-95 hover:bg-[#0F3D26]/[0.07] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/20"
     >
       <ArrowLeft className="size-4" aria-hidden="true" /> Analysis’ga qaytish
     </Link>
@@ -320,7 +320,7 @@ export default function ResultDetailPage() {
       {/* Hero + umumiy natija */}
       <section className="grid gap-3 sm:gap-4 lg:grid-cols-5">
         <div
-          className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl p-5 ring-1 ring-black/5 sm:rounded-[32px] sm:p-8 lg:col-span-3 lg:p-10"
+          className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl p-5 ring-1 ring-[#0F3D26]/[0.07] sm:p-8 lg:col-span-3 lg:p-10"
           style={{ background: tint }}
         >
           <Circle color={`${accent}1A`} width={24} className="-right-16 -top-16 size-48 sm:size-72" />
@@ -331,7 +331,7 @@ export default function ResultDetailPage() {
               <Icon aria-hidden="true" className="size-6 sm:size-7" strokeWidth={1.9} />
             </span>
             <p className="text-sm font-bold" style={{ color: accent }}>Natija tahlili</p>
-            <h1 className="mt-1 text-5xl font-black leading-none tracking-tighter sm:text-7xl">{label}</h1>
+            <h1 className="mt-1 text-5xl font-semibold leading-none tracking-tighter sm:text-7xl">{label}</h1>
             {summary && <p className="mt-3 text-sm font-medium text-foreground/65">{fmtDay(summary.created_at)}</p>}
           </div>
 
@@ -341,7 +341,7 @@ export default function ResultDetailPage() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl bg-foreground p-5 text-white sm:rounded-[32px] sm:p-8 lg:col-span-2">
+        <div className="relative overflow-hidden rounded-3xl bg-brand-texture p-5 text-white sm:p-8 lg:col-span-2">
           <Circle color="rgba(255,255,255,0.06)" width={20} className="-right-16 -top-16 size-44 sm:size-56" />
           <div className="relative z-10">
             <h2 className="text-base font-bold sm:text-lg">Umumiy natija</h2>
@@ -356,16 +356,16 @@ export default function ResultDetailPage() {
                 <dl className="grid flex-1 gap-3">
                   <div className="rounded-2xl bg-white/10 px-4 py-3">
                     <dt className="text-xs font-medium text-white/60">Ball</dt>
-                    <dd className="text-3xl font-black leading-tight tabular-nums" style={{ color: LIME }}>{score ?? '—'}</dd>
+                    <dd className="text-3xl font-semibold leading-tight tabular-nums" style={{ color: LIME }}>{score ?? '—'}</dd>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-2xl bg-white/10 px-4 py-3">
                       <dt className="text-xs font-medium text-white/60">CEFR</dt>
-                      <dd className="text-xl font-black leading-tight">{summary.cefr_level || '—'}</dd>
+                      <dd className="text-xl font-semibold leading-tight">{summary.cefr_level || '—'}</dd>
                     </div>
                     <div className="rounded-2xl bg-white/10 px-4 py-3">
                       <dt className="text-xs font-medium text-white/60">To‘g‘ri</dt>
-                      <dd className="text-xl font-black leading-tight tabular-nums">{right}/{review.length}</dd>
+                      <dd className="text-xl font-semibold leading-tight tabular-nums">{right}/{review.length}</dd>
                     </div>
                   </div>
                 </dl>
@@ -383,14 +383,14 @@ export default function ResultDetailPage() {
       ) : detail ? (
         <section aria-labelledby="questions-heading" className="space-y-4 sm:space-y-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 id="questions-heading" className="text-xl font-black tracking-tight sm:text-3xl">Savollar tahlili</h2>
+            <h2 id="questions-heading" className="text-xl font-semibold tracking-tight sm:text-3xl">Savollar tahlili</h2>
             {hasPassage && (
-              <div className="flex items-center gap-1 rounded-full bg-white p-1 ring-1 ring-black/10" role="group" aria-label="Shrift o‘lchami">
+              <div className="flex items-center gap-1 rounded-full bg-white p-1 ring-1 ring-[#0F3D26]/[0.07]" role="group" aria-label="Shrift o‘lchami">
                 <button
                   type="button"
                   onClick={() => setFontSize((n) => Math.max(14, n - 2))}
                   aria-label="Shriftni kichraytirish"
-                  className="flex size-10 items-center justify-center rounded-full text-sm font-black transition active:scale-95 hover:bg-foreground/5"
+                  className="flex size-10 items-center justify-center rounded-full text-sm font-semibold transition active:scale-95 hover:bg-[#0F3D26]/[0.07]"
                 >
                   A<span className="text-[10px]">−</span>
                 </button>
@@ -398,7 +398,7 @@ export default function ResultDetailPage() {
                   type="button"
                   onClick={() => setFontSize((n) => Math.min(26, n + 2))}
                   aria-label="Shriftni kattalashtirish"
-                  className="flex size-10 items-center justify-center rounded-full text-base font-black transition active:scale-95 hover:bg-foreground/5"
+                  className="flex size-10 items-center justify-center rounded-full text-base font-semibold transition active:scale-95 hover:bg-[#0F3D26]/[0.07]"
                 >
                   A<span className="text-xs">+</span>
                 </button>
@@ -420,13 +420,13 @@ export default function ResultDetailPage() {
                   aria-pressed={on}
                   onClick={() => setFilter(key)}
                   className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-bold transition active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground motion-reduce:transition-none ${
-                    on ? 'bg-foreground text-white' : 'bg-white text-foreground/75 ring-1 ring-black/10 hover:bg-foreground/5'
+                    on ? 'bg-foreground text-white' : 'bg-white text-foreground/75 ring-1 ring-[#0F3D26]/[0.07] hover:bg-[#0F3D26]/[0.07]'
                   }`}
                 >
                   {text}
                   <span
                     className="rounded-full px-2 py-0.5 text-xs tabular-nums"
-                    style={on ? { background: LIME, color: '#111' } : { background: tone?.tint ?? '#F1F1F1', color: tone?.accent ?? '#555' }}
+                    style={on ? { background: LIME, color: '#0F3D26' } : { background: tone?.tint ?? '#F1F1F1', color: tone?.accent ?? '#555' }}
                   >
                     {count}
                   </span>
@@ -445,11 +445,11 @@ export default function ResultDetailPage() {
                 <div key={g.key} className="space-y-3">
                   {g.title && (
                     <div className="flex items-center gap-3">
-                      <h3 className="text-base font-black tracking-tight sm:text-xl">{g.title}</h3>
+                      <h3 className="text-base font-semibold tracking-tight sm:text-xl">{g.title}</h3>
                       <span className="rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums" style={{ background: tint, color: accent }}>
                         {g.items.filter((q) => q.is_correct).length}/{g.items.length}
                       </span>
-                      <span aria-hidden="true" className="h-px flex-1 bg-foreground/10" />
+                      <span aria-hidden="true" className="h-px flex-1 bg-[#0F3D26]/[0.07]" />
                     </div>
                   )}
                   <div className={g.passage ? 'grid items-start gap-3 sm:gap-4 lg:grid-cols-2' : 'grid gap-3 lg:grid-cols-2'}>

@@ -2,20 +2,25 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { Globe2, Loader2, MonitorSmartphone, RefreshCw, Save, Settings2, ShieldCheck, Trash2, X } from 'lucide-react'
-import { useAuth } from '@/lib/auth/auth-context'
-import { profileApi } from '@/lib/api'
-import { getErrorMessage } from '@/lib/api/client'
-import type { Session } from '@/lib/api/types'
-import { FOCUS, LIME } from '@/lib/brand'
-import { fmtDate } from '@/components/dashboard/ui'
-import { Select } from '@/components/dashboard/select'
-import { Circle } from '@/components/ui/circle'
+import { useAuth } from '@/shared/providers/auth-context'
+import { profileApi } from '@/shared/api'
+import { getErrorMessage } from '@/shared/api/client'
+import type { Session } from '@/shared/api/types'
+import { FOCUS, LIME } from '@/shared/lib/brand'
+import { fmtDate } from '@/shared/ui/dashboard-kit'
+import { Select } from '@/shared/ui/select'
+import { Circle } from '@/shared/ui/circle'
+import { toBackendLang, useAlphabet } from '@/shared/providers/alphabet-provider'
+import type { UiLang } from '@/shared/lib/uz-alphabet'
 
-const pillDark = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground px-6 py-2 text-sm font-bold text-white transition hover:bg-foreground/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none ${FOCUS}`
-const pillLight = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-foreground/5 px-6 py-2 text-sm font-bold text-foreground transition hover:bg-foreground/10 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${FOCUS}`
+const pillDark = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-texture px-6 py-2 text-sm font-bold text-white transition hover:bg-foreground/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 motion-reduce:transition-none ${FOCUS}`
+const pillLight = `inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#0F3D26]/[0.07] px-6 py-2 text-sm font-bold text-foreground transition hover:bg-[#0F3D26]/[0.07] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${FOCUS}`
 const pillDanger = `inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-red-50 px-5 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${FOCUS}`
-const LANGUAGES = [
-  { value: 'uz', label: 'O‘zbekcha' },
+// Til nomlari o'z tilida yoziladi va <div data-no-i18n> ichida ko'rsatiladi (tarjima qilinmaydi)
+const LANGUAGES: { value: UiLang; label: string }[] = [
+  { value: 'old', label: 'O‘zbekcha (amaldagi lotin)' },
+  { value: 'new', label: 'Özbekçe (yangi alifbo)' },
+  { value: 'cyrl', label: 'Ўзбекча (кирилл)' },
   { value: 'ru', label: 'Русский' },
   { value: 'en', label: 'English' },
 ]
@@ -30,7 +35,8 @@ const TIMEZONES = [
 
 export default function SettingsPage() {
   const { user, refresh } = useAuth()
-  const [language, setLanguage] = useState('uz')
+  // Til provayderda: o'zgargan zahoti butun interfeysga qo'llanadi va backendga yoziladi
+  const { lang, setLang } = useAlphabet()
   const [timezone, setTimezone] = useState('Asia/Tashkent')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
@@ -40,9 +46,8 @@ export default function SettingsPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null)
 
   useEffect(() => {
-    setLanguage(user?.profile?.language || 'uz')
     setTimezone(user?.profile?.timezone || 'Asia/Tashkent')
-  }, [user?.profile?.language, user?.profile?.timezone])
+  }, [user?.profile?.timezone])
 
   const loadSessions = useCallback(async () => {
     setSessionsError('')
@@ -60,7 +65,7 @@ export default function SettingsPage() {
     setSaving(true)
     setMessage(null)
     try {
-      await profileApi.update({ language, timezone })
+      await profileApi.update({ language: toBackendLang(lang), timezone })
       await refresh()
       setMessage({ ok: true, text: 'Sozlamalar saqlandi.' })
     } catch (e) {
@@ -91,20 +96,20 @@ export default function SettingsPage() {
     <div className="space-y-5 pb-6 sm:space-y-8">
       {/* Hero + statistika */}
       <section className="grid gap-3 sm:gap-4 lg:grid-cols-5">
-        <div className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl p-5 text-foreground sm:p-8 lg:col-span-3 lg:min-h-64 lg:p-10" style={{ background: LIME }}>
-          <Circle color="rgba(0,0,0,0.07)" width={22} className="-right-14 -top-14 size-44 sm:-right-16 sm:-top-16 sm:size-72" />
+        <div className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl ring-1 ring-[#0F3D26]/[0.06] p-5 text-foreground sm:p-8 lg:col-span-3 lg:min-h-64 lg:p-10" style={{ background: 'linear-gradient(110deg, #FFFFFF 0%, #EEF7F1 45%, #CFE9DA 100%)' }}>
+          <Circle color="rgba(31,122,77,0.10)" width={22} className="-right-14 -top-14 size-44 sm:-right-16 sm:-top-16 sm:size-72" />
           <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/10 px-3 py-1 text-xs font-bold uppercase tracking-wide">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E4F1E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#0F3D26]">
               <Settings2 aria-hidden="true" className="size-3.5" /> Hisob
             </span>
-            <h1 className="mt-4 text-5xl font-black leading-none tracking-tighter sm:text-6xl">Sozlamalar</h1>
+            <h1 className="mt-4 text-5xl font-semibold leading-none tracking-tighter sm:text-6xl">Sozlamalar</h1>
             <p className="mt-3 max-w-lg text-[15px] font-medium leading-6 text-foreground/70 sm:mt-4 sm:text-base">
               Til, vaqt zonasi va hisobingiz xavfsizligini boshqaring.
             </p>
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl bg-foreground p-5 text-white sm:p-8 lg:col-span-2">
+        <div className="relative overflow-hidden rounded-3xl bg-brand-texture p-5 text-white sm:p-8 lg:col-span-2">
           <Circle color="rgba(255,255,255,0.06)" width={20} className="-right-16 -top-16 size-44 sm:size-56" />
           <div className="relative z-10 flex h-full flex-col justify-between gap-5">
             <div>
@@ -116,7 +121,7 @@ export default function SettingsPage() {
                 <ShieldCheck aria-hidden="true" className="size-6" strokeWidth={2} />
               </span>
               <p className="min-w-0 flex-1 text-sm font-medium text-white/70">Faol seanslar</p>
-              <p className="text-5xl font-black leading-none tabular-nums sm:text-6xl" style={{ color: LIME }}>
+              <p className="text-5xl font-semibold leading-none tabular-nums sm:text-6xl" style={{ color: LIME }}>
                 {loadingSessions ? '—' : activeSessions.length}
               </p>
             </div>
@@ -125,13 +130,13 @@ export default function SettingsPage() {
       </section>
 
       {/* Ilova sozlamalari */}
-      <section aria-labelledby="settings-app" className="rounded-3xl bg-white p-5 ring-1 ring-black/10 sm:p-8">
+      <section aria-labelledby="settings-app" className="rounded-3xl bg-white p-5 ring-1 ring-[#0F3D26]/[0.07] sm:p-8">
         <div className="flex items-center gap-4">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl text-foreground sm:size-12" style={{ background: LIME }}>
             <Globe2 aria-hidden="true" className="size-5 sm:size-6" strokeWidth={1.75} />
           </span>
           <div>
-            <h2 id="settings-app" className="text-base font-extrabold text-foreground sm:text-lg">Til va vaqt</h2>
+            <h2 id="settings-app" className="text-base font-semibold text-foreground sm:text-lg">Til va vaqt</h2>
             <p className="text-xs text-foreground/55">Bu sozlamalar profil ma’lumotlaridan alohida saqlanadi.</p>
           </div>
         </div>
@@ -140,7 +145,9 @@ export default function SettingsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <span className="mb-1.5 block text-xs font-semibold text-foreground/70">Interfeys tili</span>
-              <Select label="Interfeys tili" value={language} onChange={setLanguage} options={LANGUAGES} />
+              <div data-no-i18n>
+                <Select label="Interfeys tili" value={lang} onChange={(v) => setLang(v as UiLang)} options={LANGUAGES} />
+              </div>
             </div>
             <div>
               <span className="mb-1.5 block text-xs font-semibold text-foreground/70">Vaqt zonasi</span>
@@ -165,7 +172,7 @@ export default function SettingsPage() {
       <section aria-labelledby="settings-sessions" className="space-y-3 sm:space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 id="settings-sessions" className="text-xl font-black tracking-tight text-foreground sm:text-3xl">Faol seanslar</h2>
+            <h2 id="settings-sessions" className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl">Faol seanslar</h2>
             <p className="mt-1 max-w-xl text-sm text-foreground/60">Hisobingiz qaysi qurilmalarda ochiq ekanini tekshiring. Notanish seansni shu yerdan tugatishingiz mumkin.</p>
           </div>
           <button type="button" onClick={() => void loadSessions()} className={pillLight}>
@@ -187,7 +194,7 @@ export default function SettingsPage() {
         ) : (
           <ul className="space-y-3">
             {activeSessions.map((session) => (
-              <li key={session.id} className="flex flex-wrap items-center gap-4 rounded-3xl bg-white p-4 ring-1 ring-black/10 sm:p-6">
+              <li key={session.id} className="flex flex-wrap items-center gap-4 rounded-3xl bg-white p-4 ring-1 ring-[#0F3D26]/[0.07] sm:p-6">
                 <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl" style={{ background: 'rgba(200,255,0,0.22)' }}>
                   <MonitorSmartphone aria-hidden="true" className="size-6" strokeWidth={1.9} />
                 </span>
@@ -217,7 +224,7 @@ export default function SettingsPage() {
                 <X aria-hidden="true" className="size-5" />
               </span>
               <div>
-                <h3 className="text-lg font-black tracking-tight text-foreground">Seansni tugatish</h3>
+                <h3 className="text-lg font-semibold tracking-tight text-foreground">Seansni tugatish</h3>
                 <p className="mt-1 text-sm leading-5 text-foreground/60">Ushbu qurilmadagi seansni tugatmoqchimisiz? Qurilma hisobdan chiqariladi.</p>
               </div>
             </div>

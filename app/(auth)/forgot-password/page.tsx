@@ -5,46 +5,17 @@ import Image from "next/image"
 import Link from "next/link"
 import { AlertCircle, ArrowLeft, ArrowRight, Check, KeyRound, Loader2, Lock, Phone } from "lucide-react"
 
-import { authApi } from "@/lib/api"
-import { ApiRequestError } from "@/lib/api/client"
+import { authApi } from "@/shared/api"
+import { ApiRequestError } from "@/shared/api/client"
+import { fieldClass, prefersReducedMotion, primaryButtonClass, useEntrance } from "@/features/auth/components/auth-shared"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LIME = "#C8FF00"
-const LIME_TEXT = "#7A9A00"
+const LIME = "#5DBB8A"
+const LIME_TEXT = "#1F7A4D"
 const S_PATH =
   "M23 48L12 66L12 68L8 75L4 87L3 95L2 96L2 101L1 102L1 113L0 114L1 131L2 132L2 137L7 155L17 176L22 184L34 198L47 209L61 218L65 219L70 222L87 227L92 227L93 228L316 228L317 229L324 229L330 232L339 242L341 248L341 261L337 270L329 278L324 280L58 280L57 281L45 282L32 287L20 295L13 302L6 312L6 314L1 325L1 330L0 331L0 361L4 366L6 367L300 367L301 368L308 368L309 367L316 367L317 368L324 368L325 367L346 367L347 366L352 366L353 365L357 365L364 363L385 353L399 343L412 330L420 320L421 317L425 312L434 293L439 275L439 270L441 263L441 239L440 238L440 232L439 231L438 222L430 200L428 198L428 196L420 183L407 168L399 161L386 152L376 147L362 142L354 141L353 140L346 140L345 139L115 139L107 135L101 128L97 118L97 109L98 108L98 105L103 96L108 91L114 88L375 88L376 87L386 87L387 86L394 85L402 81L404 81L415 74L426 63L433 51L437 38L437 6L434 2L430 0L108 0L107 1L100 1L99 2L87 4L73 10L71 10L61 15L41 29Z"
 const S_VIEWBOX = "0 0 442 369"
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
-
-function useEntrance<T extends HTMLElement>(keyframes: Keyframe[], options: KeyframeAnimationOptions) {
-  const ref = useRef<T>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || prefersReducedMotion()) return
-    el.animate(keyframes, { fill: "backwards", easing: "cubic-bezier(0.16, 1, 0.3, 1)", ...options })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-  return ref
-}
-
-// ─── Shared styles ────────────────────────────────────────────────────────────
-
-const fieldClass =
-  "h-[52px] w-full rounded-xl border border-border-strong bg-white pl-14 pr-4 text-[15px] font-medium text-foreground " +
-  "outline-none transition-[border-color,box-shadow] placeholder:text-[#B0B1B9] " +
-  "focus:border-foreground focus:ring-4 focus:ring-[#C8FF00]/60 disabled:opacity-60"
-
-const primaryButtonClass =
-  "group mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#D4F53C] px-5 " +
-  "text-[15px] font-semibold text-foreground transition-[transform,background-color,box-shadow] " +
-  "hover:bg-[#CAF02A] hover:shadow-[0_8px_28px_rgba(180,226,0,0.38)] active:scale-[0.99] " +
-  "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-foreground/15 " +
-  "disabled:cursor-wait disabled:opacity-70 motion-reduce:transition-none"
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
 
@@ -118,7 +89,7 @@ function StepDots({ current }: { current: 1 | 2 }) {
 
 function SuccessBanner({ message }: { message: string }) {
   return (
-    <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-[#C8EF4A] bg-[#F3FDD0] p-3.5 text-sm font-medium text-[#4A6300]">
+    <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-[#9BE3BC] bg-[#E4F1E9] p-3.5 text-sm font-medium text-[#0F3D26]">
       <Check className="mt-0.5 size-4 shrink-0" aria-hidden />
       {message}
     </div>
@@ -201,11 +172,11 @@ function ForgotForm() {
   if (done) {
     return (
       <div className="text-center">
-        <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-[#C8FF00]/30">
-          <Check className="size-7 text-[#7A9A00]" aria-hidden />
+        <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-[#CDEBDA]">
+          <Check className="size-7 text-[#1F7A4D]" aria-hidden />
         </div>
         <p className="text-[15px] font-medium text-foreground">Parol yangilandi!</p>
-        <p className="mt-1.5 text-sm text-[#8A8C94]">Endi yangi parolingiz bilan tizimga kirishingiz mumkin.</p>
+        <p className="mt-1.5 text-sm text-[#7A8A80]">Endi yangi parolingiz bilan tizimga kirishingiz mumkin.</p>
         <Link href="/login" className={`${primaryButtonClass} mt-6 no-underline`}>
           Tizimga kirish
           <ArrowRight className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden />
@@ -219,14 +190,14 @@ function ForgotForm() {
     return (
       <form onSubmit={onSend} noValidate className="w-full">
         <StepDots current={1} />
-        <p className="mb-5 text-sm text-[#8A8C94]">
+        <p className="mb-5 text-sm text-[#7A8A80]">
           Telefon raqamingizni kiriting — tasdiqlash kodini SMS orqali yuboramiz.
         </p>
 
         <div ref={shakeRef}>
           <label htmlFor="fp-phone" className="sr-only">Telefon raqam</label>
           <div className="relative">
-            <Phone className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-[#8A8C94]" aria-hidden />
+            <Phone className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-[#7A8A80]" aria-hidden />
             <input
               ref={phoneRef}
               id="fp-phone"
@@ -259,7 +230,7 @@ function ForgotForm() {
           )}
         </button>
 
-        <p className="mt-5 text-center text-sm text-[#8A8C94]">
+        <p className="mt-5 text-center text-sm text-[#7A8A80]">
           Esladingizmi?{" "}
           <Link href="/login" className="font-semibold text-foreground hover:underline">
             Kirish
@@ -276,7 +247,7 @@ function ForgotForm() {
 
       {success && <SuccessBanner message={success} />}
 
-      <p className="mb-5 mt-4 text-sm text-[#8A8C94]">
+      <p className="mb-5 mt-4 text-sm text-[#7A8A80]">
         <span className="font-medium text-foreground">{phone}</span> ga yuborilgan kodni va yangi parolni kiriting.
       </p>
 
@@ -285,7 +256,7 @@ function ForgotForm() {
         <div>
           <label htmlFor="fp-code" className="sr-only">Tasdiqlash kodi</label>
           <div className="relative">
-            <KeyRound className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-[#8A8C94]" aria-hidden />
+            <KeyRound className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-[#7A8A80]" aria-hidden />
             <input
               ref={codeRef}
               id="fp-code"
@@ -307,7 +278,7 @@ function ForgotForm() {
         <div>
           <label htmlFor="fp-password" className="sr-only">Yangi parol</label>
           <div className="relative">
-            <Lock className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-[#8A8C94]" aria-hidden />
+            <Lock className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-[#7A8A80]" aria-hidden />
             <input
               id="fp-password"
               type="password"
@@ -343,7 +314,7 @@ function ForgotForm() {
         type="button"
         onClick={() => { setError(""); setSuccess(""); setStep(1) }}
         disabled={busy}
-        className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm font-medium text-[#8A8C94] transition-colors hover:text-foreground disabled:opacity-60"
+        className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm font-medium text-[#7A8A80] transition-colors hover:text-foreground disabled:opacity-60"
       >
         <ArrowLeft className="size-4" aria-hidden />
         Raqamni o'zgartirish
@@ -386,7 +357,7 @@ export default function ForgotPasswordPage() {
       >
         {/* Left headline (desktop only) */}
         <div ref={headlineRef} className="hidden items-center self-stretch lg:flex lg:pl-[8vw] xl:pl-[10vw]">
-          <h1 className="text-[clamp(2.4rem,3.6vw,3.8rem)] font-extrabold leading-[1.1] tracking-[-0.03em]">
+          <h1 className="text-[clamp(2.4rem,3.6vw,3.8rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
             Parolni unutdingizmi?
             <br />
             <span style={{ color: LIME_TEXT }}>Xavotir olmang!</span>
@@ -396,7 +367,7 @@ export default function ForgotPasswordPage() {
         {/* Card */}
         <div
           ref={cardRef}
-          className="mx-auto w-full max-w-[480px] rounded-[28px] bg-white/92 px-6 py-10 shadow-[0_24px_64px_rgba(20,24,0,0.07)]
+          className="mx-auto w-full max-w-[480px] rounded-[28px] bg-white/92 px-6 py-10 shadow-[0_24px_64px_rgba(15,61,38,0.10)] ring-1 ring-[#0F3D26]/[0.06]
                      ring-1 ring-black/[0.045] backdrop-blur-sm sm:px-12 sm:py-14
                      lg:mx-auto lg:max-w-[420px] lg:rounded-[32px] lg:px-[52px] lg:py-[68px]"
         >
