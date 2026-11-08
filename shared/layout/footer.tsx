@@ -18,10 +18,10 @@ const COLUMNS: {
     {
       title: "Mashqlar",
       links: [
-        { href: "/dashboard/practice?skill=reading", label: "Reading", en: true },
-        { href: "/dashboard/practice?skill=listening", label: "Listening", en: true },
-        { href: "/dashboard/practice?skill=writing", label: "Writing", en: true },
-        { href: "/dashboard/practice?skill=speaking", label: "Speaking", en: true },
+        { href: "/dashboard/cefr?skill=reading", label: "Reading", en: true },
+        { href: "/dashboard/cefr?skill=listening", label: "Listening", en: true },
+        { href: "/dashboard/cefr?skill=writing", label: "Writing", en: true },
+        { href: "/dashboard/cefr?skill=speaking", label: "Speaking", en: true },
       ],
     },
     {

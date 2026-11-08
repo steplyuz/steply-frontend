@@ -74,7 +74,7 @@ const PUBLIC_LINKS: NavLink[] = [
 ]
 
 const DASHBOARD_LINKS: NavLink[] = [
-  { href: '/dashboard/practice', label: 'Practice' },
+  { href: '/dashboard/cefr', label: 'Practice' },
   { href: '/dashboard', label: 'Kabinet' },
 ]
 

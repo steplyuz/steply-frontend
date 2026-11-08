@@ -18,7 +18,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
   {
     title: 'Mashq',
     items: [
-      { href: '/dashboard/practice', label: 'Practice', icon: BookOpen, tone: 'blue', also: ['/dashboard/reading', '/dashboard/listening', '/dashboard/writing', '/dashboard/speaking'] },
+      { href: '/dashboard/cefr', label: 'CEFR', icon: BookOpen, tone: 'blue', also: ['/dashboard/reading', '/dashboard/listening', '/dashboard/writing', '/dashboard/speaking'] },
       { href: '/dashboard/analysis', label: 'Analysis', icon: ChartNoAxesCombined, tone: 'blue' },
       { href: '/dashboard/mock-exams', label: 'Mock Exam', icon: GraduationCap, tone: 'purple' },
     ],
@@ -38,7 +38,7 @@ export const isExternalHref = (href: string) => /^https?:\/\//.test(href)
 
 const PAGE_DESC: Record<string, string> = {
   '/dashboard': 'Practice bo‘limlari va o‘quv rejangiz',
-  '/dashboard/practice': 'Reading, Listening, Writing va Speaking testlari',
+  '/dashboard/cefr': 'Reading, Listening, Writing va Speaking testlari',
   '/dashboard/analysis': 'Mavjud tahlil videolari va foydalanish limiti',
   '/dashboard/mock-exams': 'Mock Exam katalogi va xaridlar',
   '/dashboard/billing': 'Obuna, buyurtmalar va to‘lovlar',
