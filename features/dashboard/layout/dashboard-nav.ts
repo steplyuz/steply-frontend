@@ -16,7 +16,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
     ],
   },
   {
-    title: 'Mashq',
+    title: 'Mashqlar',
     items: [
       { href: '/dashboard/cefr', label: 'CEFR', icon: BookOpen, tone: 'blue', also: ['/dashboard/reading', '/dashboard/listening', '/dashboard/writing', '/dashboard/speaking'] },
       { href: '/dashboard/analysis', label: 'Analysis', icon: ChartNoAxesCombined, tone: 'blue' },
