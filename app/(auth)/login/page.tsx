@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight, Eye, EyeOff, Loader2, Lock } from "lucide-react"
 
-import { useAlphabet } from "@/shared/providers/alphabet-provider"
+import { toBackendLang, useAlphabet } from "@/shared/providers/alphabet-provider"
 import {
   AuthDivider,
   AuthError,
@@ -26,7 +26,7 @@ import { useTelegramLogin } from "@/features/auth/lib/telegram-login"
 import { useGoogleLogin } from "@/features/auth/lib/google-login"
 
 function LoginForm() {
-  const { t } = useAlphabet()
+  const { t, lang } = useAlphabet()
   const router = useRouter()
   const searchParams = useSearchParams()
   const phoneRef = useRef<HTMLInputElement>(null)
@@ -45,8 +45,9 @@ function LoginForm() {
     if (window.matchMedia("(min-width: 1024px)").matches) phoneRef.current?.focus()
   }, [])
 
+  /* Server va hooklardan kelgan xabarlar ham tanlangan til/alifboga o‘tadi (t() lug‘atda topilmasa, matn o‘zgarmaydi) */
   function fail(message: string) {
-    setError(message)
+    setError(t(message))
     setLoading(false)
     shake(fieldRef.current)
   }
@@ -56,7 +57,7 @@ function LoginForm() {
     setError("")
 
     if (phoneDigits.length !== PHONE_DIGITS) {
-      fail(t("Telefon raqam to'liq kiritilmagan"))
+      fail("Telefon raqam to'liq kiritilmagan")
       return
     }
 
@@ -69,7 +70,7 @@ function LoginForm() {
         return
       }
       if (res.status !== "success") {
-        fail(res.message || t("Kirishda xatolik yuz berdi"))
+        fail(res.message || "Kirishda xatolik yuz berdi")
         return
       }
       if (next) {
@@ -79,7 +80,7 @@ function LoginForm() {
       const me = await authApi.me().catch(() => null)
       router.push(homeUrlForRole(me?.global_role))
     } catch (err) {
-      fail(err instanceof ApiRequestError ? err.message : t("Kirishda xatolik yuz berdi"))
+      fail(err instanceof ApiRequestError ? err.message : "Kirishda xatolik yuz berdi")
     }
   }
 
@@ -89,6 +90,8 @@ function LoginForm() {
   })
 
   const google = useGoogleLogin({
+    // Google tugmasi tili tanlangan tilga ergashadi: uz | en | ru
+    locale: toBackendLang(lang),
     onSuccess: (me) => router.push(next || homeUrlForRole(me.global_role)),
     onError: fail,
   })

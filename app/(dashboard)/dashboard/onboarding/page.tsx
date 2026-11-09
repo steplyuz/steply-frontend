@@ -34,9 +34,9 @@ export default function OnboardingPage() {
     <main className="relative flex min-h-screen items-start overflow-hidden bg-background px-4 py-6 pb-12 sm:px-6 sm:py-12 lg:items-center">
       <OnboardingStyles />
 
-      {/* Bezak: orqa fondagi sekin suzuvchi halqalar */}
-      <Circle color="rgba(200,255,0,0.35)" width={36} className="ob-drift -bottom-40 -left-32 size-[28rem]" />
-      <Circle color="rgba(0,0,0,0.04)" width={28} className="ob-float -right-32 -top-32 size-[26rem]" />
+      {/* Bezak: orqa fondagi sekin suzuvchi yashil halqalar */}
+      <Circle color="rgba(93,187,138,0.28)" width={36} className="ob-drift -bottom-40 -left-32 size-[28rem]" />
+      <Circle color="rgba(15,61,38,0.05)" width={28} className="ob-float -right-32 -top-32 size-[26rem]" />
 
       <div className="relative z-10 mx-auto w-full max-w-6xl">
         <OnboardingWizard />

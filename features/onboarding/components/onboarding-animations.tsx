@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from 'react'
  *
  * Eslatma: fill-mode `backwards` ishlatilgan — animatsiya tugagach Tailwind'ning
  * hover/active transformlari (ko‘tarilish, siqilish) yana ishlaydi.
+ *
+ * Ranglar: faqat yashil (--primary #1f7a4d). Lime (200,255,0) butunlay olib tashlangan.
  */
 const EASE = 'cubic-bezier(.22,1,.36,1)'
 const SPRING = 'cubic-bezier(.34,1.56,.64,1)'
@@ -26,8 +28,8 @@ const CSS = `
   @keyframes ob-title { from { opacity: 0; transform: translateY(18px); filter: blur(6px) } to { opacity: 1; transform: none; filter: blur(0) } }
   @keyframes ob-fade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes ob-pop { 0% { transform: scale(0) rotate(-30deg); opacity: 0 } 60% { transform: scale(1.25) rotate(6deg); opacity: 1 } 100% { transform: scale(1) rotate(0) } }
-  @keyframes ob-ripple { from { box-shadow: 0 0 0 0 rgba(200,255,0,.85) } to { box-shadow: 0 0 0 14px rgba(200,255,0,0) } }
-  @keyframes ob-glow { from { box-shadow: 0 0 0 0 rgba(200,255,0,.7) } to { box-shadow: 0 0 0 16px rgba(200,255,0,0) } }
+  @keyframes ob-ripple { from { box-shadow: 0 0 0 0 rgba(31,122,77,.35) } to { box-shadow: 0 0 0 12px rgba(31,122,77,0) } }
+  @keyframes ob-glow { from { box-shadow: 0 0 0 0 rgba(93,187,138,.55) } to { box-shadow: 0 0 0 16px rgba(93,187,138,0) } }
   @keyframes ob-shake { 10%,90% { transform: translateX(-1px) } 20%,80% { transform: translateX(3px) } 30%,50%,70% { transform: translateX(-5px) } 40%,60% { transform: translateX(5px) } }
   @keyframes ob-float { 0%,100% { transform: translate3d(0,0,0) scale(1) } 50% { transform: translate3d(-14px,12px,0) scale(1.06) } }
   @keyframes ob-drift { 0%,100% { transform: translate3d(0,0,0) rotate(0) } 50% { transform: translate3d(28px,-20px,0) rotate(8deg) } }
@@ -49,7 +51,7 @@ const CSS = `
   .ob-grow { transform-origin: left center; animation: ob-grow .9s ${EASE} backwards }
   .ob-wiggle { animation: ob-wiggle 1.2s ease-in-out .6s 2 }
   .ob-shimmer { position: relative; overflow: hidden }
-  .ob-shimmer::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.2) 50%, transparent 70%); animation: ob-sweep 1.4s ease-in-out infinite }
+  .ob-shimmer::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%); animation: ob-sweep 1.4s ease-in-out infinite }
 
   .ob-stagger > * { animation: ob-rise .5s ${EASE} backwards }
   ${staggerDelays}

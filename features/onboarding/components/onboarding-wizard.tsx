@@ -14,21 +14,29 @@ import {
   CEFR_LEVELS, DAILY_OPTIONS, SKILLS, TARGET_LEVELS, TEACHER_OPTIONS, VOCAB_BANDS, formatExamDate,
 } from './onboarding-constants'
 import { Circle } from '@/shared/ui/circle'
-import { LIME } from '@/shared/lib/brand'
+import { Uz, useAlphabet } from '@/shared/providers/alphabet-provider'
 
 type StepId = 'cefr' | 'target' | 'skills' | 'exam' | 'time' | 'review'
 const STEP_ORDER: StepId[] = ['cefr', 'target', 'skills', 'exam', 'time', 'review']
+
+/* Matnlar amaldagi alifboda yoziladi; ekranda t() orqali tanlangan alifboga o‘tadi. */
 const STEP_TITLES: Record<StepId, { title: string; hint: string }> = {
-  cefr: { title: 'CEFR imtihonini topshirganmisiz?', hint: 'Agar topshirgan bo‘lsangiz, darajasini kiriting. Aks holda taxminiy darajangizni tanlang.' },
+  cefr: {
+    title: 'Milliy sertifikat (CEFR) imtihonini topshirganmisiz?',
+    hint: 'Topshirgan bo‘lsangiz, natijangizni kiriting. Aks holda taxminiy darajangizni tanlang.',
+  },
   target: { title: 'Maqsad darajangiz va so‘z boyligingiz', hint: 'Qaysi darajaga erishmoqchisiz va hozir taxminan nechta so‘z bilasiz?' },
   skills: { title: 'Kuchli va zaif tomonlaringiz', hint: 'Bir tomon ham kuchli, ham zaif bo‘lishi mumkin emas. Zaif tomonlar rejada ko‘proq vaqt oladi.' },
-  exam: { title: 'Qaysi oyda topshirmoqchisiz?', hint: 'Ro‘yxatdagi sanalardan birini tanlang. Ro‘yxatdan o‘tish uchun mygov linkidan foydalaning.' },
-  time: { title: 'Kuniga qancha vaqt ajratasiz?', hint: 'o‘qituvchi yordami kunlik vaqtning bir qismi hisoblanadi.' },
+  exam: { title: 'Qaysi oyda topshirmoqchisiz?', hint: 'Ro‘yxatdagi sanalardan birini tanlang. Ro‘yxatdan o‘tish uchun mygov havolasidan foydalaning.' },
+  time: { title: 'Kuniga qancha vaqt ajratasiz?', hint: 'O‘qituvchi yordami kunlik vaqtning bir qismi hisoblanadi.' },
   review: { title: 'Tekshirib, AI rejani yarating', hint: 'Javoblaringizni tekshiring. Keyin reja tayyorlanadi.' },
 }
 
 const focusRing =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground'
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+
+/* Yagona yashil gradient (tugma, sarlavha): globals.css dagi tokenlar */
+const BRAND_GRADIENT = 'linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%)'
 
 type Draft = {
   cefrTaken: boolean | null
@@ -110,17 +118,18 @@ function firstIncompleteStep(d: Draft, hasExamDates: boolean): StepId {
 
 function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`rounded-3xl bg-white p-5 ring-1 ring-[#0F3D26]/[0.07] sm:p-8 ${className}`}>
+    <div className={`rounded-3xl bg-white p-5 ring-1 ring-[#0F3D26]/[0.06] sm:p-8 ${className}`}>
       {children}
     </div>
   )
 }
 
 function Label({ children, note }: { children: ReactNode; note?: string }) {
+  const { t } = useAlphabet()
   return (
     <p className="mb-3 text-sm font-semibold text-foreground">
       {children}
-      {note ? <span className="ml-1.5 font-medium text-muted-foreground">{note}</span> : null}
+      {note ? <span className="ml-1.5 font-medium text-muted-foreground">{t(note)}</span> : null}
     </p>
   )
 }
@@ -143,28 +152,27 @@ function Choice({
       aria-checked={selected}
       disabled={disabled}
       onClick={onClick}
-      className={`group relative flex w-full items-center gap-3 rounded-full px-4 text-sm font-semibold ring-1 transition duration-200 disabled:cursor-not-allowed disabled:opacity-40 enabled:active:scale-[0.97] motion-reduce:transition-none ${focusRing} ${compact ? 'min-h-14 justify-center py-3 text-center' : 'min-h-14 justify-between py-3 text-left'
+      className={`group relative flex w-full items-center gap-3 rounded-full px-5 text-sm font-semibold ring-1 transition duration-200 disabled:cursor-not-allowed disabled:opacity-40 enabled:active:scale-[0.97] motion-reduce:transition-none ${focusRing} ${compact ? 'min-h-14 justify-center py-3 text-center' : 'min-h-14 justify-between py-3 text-left'
         } ${selected
-          ? 'bg-foreground text-white shadow-lg shadow-black/15 ring-foreground'
-          : 'bg-white text-foreground ring-[#0F3D26]/[0.07] enabled:hover:-translate-y-0.5 enabled:hover:shadow-md enabled:hover:shadow-black/5 enabled:hover:ring-black/30 motion-reduce:enabled:hover:translate-y-0'
+          ? 'bg-[#E4F1E9] text-[#0F3D26] ring-2 ring-primary'
+          : 'bg-white text-foreground ring-[#C7D3CA] enabled:hover:-translate-y-0.5 enabled:hover:bg-[#F6FAF7] enabled:hover:shadow-md enabled:hover:shadow-[#0F3D26]/5 enabled:hover:ring-primary/50 motion-reduce:enabled:hover:translate-y-0'
         }`}
     >
-      {/* Tanlanganda LIME to‘lqin — element tanlanganda mount bo‘lgani uchun bir marta o‘ynaydi */}
-      {selected ? <span aria-hidden="true" className="ob-ripple pointer-events-none absolute inset-0 rounded-2xl" /> : null}
+      {/* Tanlanganda yashil to‘lqin — element tanlanganda mount bo‘lgani uchun bir marta o‘ynaydi */}
+      {selected ? <span aria-hidden="true" className="ob-ripple pointer-events-none absolute inset-0 rounded-full" /> : null}
 
       <span className={compact ? 'text-base font-semibold' : 'min-w-0'}>
         {children}
         {hint ? (
-          <span className={`mt-0.5 block text-xs font-medium transition-colors ${selected ? 'text-white/60' : 'text-muted-foreground'}`}>{hint}</span>
+          <span className={`mt-0.5 block text-xs font-medium transition-colors ${selected ? 'text-[#0F3D26]/70' : 'text-muted-foreground'}`}>{hint}</span>
         ) : null}
       </span>
       {compact ? null : (
         <span
           aria-hidden="true"
-          className={`flex size-6 shrink-0 items-center justify-center rounded-full transition-colors duration-200 ${selected ? '' : 'ring-1 ring-black/20'}`}
-          style={selected ? { background: LIME } : undefined}
+          className={`flex size-6 shrink-0 items-center justify-center rounded-full transition-colors duration-200 ${selected ? 'bg-primary' : 'ring-1 ring-[#C7D3CA]'}`}
         >
-          {selected ? <Check className="ob-pop size-3.5 text-foreground" strokeWidth={3} /> : null}
+          {selected ? <Check className="ob-pop size-3.5 text-white" strokeWidth={3} /> : null}
         </span>
       )}
     </button>
@@ -173,20 +181,20 @@ function Choice({
 
 function Toggle({
   selected, onClick, children, tone = 'dark',
-}: { selected: boolean; onClick: () => void; children: ReactNode; tone?: 'dark' | 'lime' }) {
+}: { selected: boolean; onClick: () => void; children: ReactNode; tone?: 'dark' | 'soft' }) {
+  // dark — kuchli tomon (to‘q yashil), soft — zaif tomon (och yashil, ring bilan)
   const on =
-    tone === 'lime'
-      ? 'text-foreground ring-foreground'
-      : 'bg-foreground text-white ring-foreground'
+    tone === 'soft'
+      ? 'bg-[#CDEBDA] text-[#0F3D26] ring-2 ring-primary'
+      : 'bg-primary text-white ring-primary'
   return (
     <button
       type="button"
       role="checkbox"
       aria-checked={selected}
       onClick={onClick}
-      className={`relative inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold ring-1 transition duration-200 active:scale-95 motion-reduce:transition-none ${focusRing} ${selected ? on : 'bg-white text-foreground ring-black/15 hover:-translate-y-0.5 hover:ring-black/40 motion-reduce:hover:translate-y-0'
+      className={`relative inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold ring-1 transition duration-200 active:scale-95 motion-reduce:transition-none ${focusRing} ${selected ? on : 'bg-white text-foreground ring-[#C7D3CA] hover:-translate-y-0.5 hover:bg-[#F6FAF7] hover:ring-primary/50 motion-reduce:hover:translate-y-0'
         }`}
-      style={selected && tone === 'lime' ? { background: LIME } : undefined}
     >
       {selected ? <span aria-hidden="true" className="ob-ripple pointer-events-none absolute inset-0 rounded-full" /> : null}
       {selected ? <Check aria-hidden="true" className="ob-pop size-4" strokeWidth={3} /> : null}
@@ -195,7 +203,7 @@ function Toggle({
   )
 }
 
-/** Asosiy tugma: to‘q pill + LIME aylana ikonka (dashboarddagi "Mashqni boshlash" kabi) */
+/** Asosiy tugma: yashil gradient pill + yarim shaffof oq aylana ikonka */
 function PrimaryButton({
   onClick, disabled = false, busy = false, icon, children, className = '',
 }: {
@@ -212,14 +220,12 @@ function PrimaryButton({
       onClick={onClick}
       disabled={disabled}
       aria-busy={busy || undefined}
-      className={`group inline-flex min-h-12 items-center justify-between gap-3 rounded-full bg-foreground py-2 pl-6 pr-2 text-[15px] font-bold text-white shadow-lg shadow-black/15 transition hover:bg-foreground/90 disabled:shadow-none enabled:active:scale-[0.98] motion-reduce:transition-none ${busy ? 'ob-shimmer disabled:cursor-wait' : 'disabled:cursor-not-allowed disabled:opacity-40'
+      style={{ backgroundImage: BRAND_GRADIENT }}
+      className={`group inline-flex min-h-12 items-center justify-between gap-3 rounded-full py-2 pl-6 pr-2 text-[15px] font-bold text-white shadow-lg shadow-[#0F3D26]/20 transition hover:brightness-110 disabled:shadow-none enabled:active:scale-[0.98] motion-reduce:transition-none ${busy ? 'ob-shimmer disabled:cursor-wait' : 'disabled:cursor-not-allowed disabled:opacity-40'
         } ${disabled ? '' : 'ob-glow'} ${focusRing} ${className}`}
     >
       {children}
-      <span
-        className="flex size-9 items-center justify-center rounded-full text-foreground transition-transform group-enabled:group-hover:translate-x-0.5 motion-reduce:transition-none"
-        style={{ background: LIME }}
-      >
+      <span className="flex size-9 items-center justify-center rounded-full bg-white/15 text-white transition-transform group-enabled:group-hover:translate-x-0.5 motion-reduce:transition-none">
         {busy ? <Loader2 aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" /> : icon}
       </span>
     </button>
@@ -235,9 +241,9 @@ function ReviewRow({ label, value, onEdit }: { label: string; value: string; onE
         <button
           type="button"
           onClick={onEdit}
-          className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-1 text-xs font-bold underline underline-offset-4 transition hover:text-foreground/70 motion-reduce:transition-none ${focusRing}`}
+          className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-1 text-xs font-bold text-primary underline underline-offset-4 transition hover:text-primary-strong motion-reduce:transition-none ${focusRing}`}
         >
-          Tahrirlash
+          <Uz>Tahrirlash</Uz>
         </button>
       </dd>
     </div>
@@ -248,6 +254,7 @@ function ReviewRow({ label, value, onEdit }: { label: string; value: string; onE
 
 export default function OnboardingWizard() {
   const router = useRouter()
+  const { t } = useAlphabet()
   const [loading, setLoading] = useState(true)
   const [step, setStep] = useState<StepId>('cefr')
   const [dir, setDir] = useState<'fwd' | 'back'>('fwd')
@@ -336,7 +343,7 @@ export default function OnboardingWizard() {
       const res = await onboardingApi.generatePlan()
       setPlan(res.plan)
     } catch (e) {
-      setError(getErrorMessage(e, 'AI reja yaratib bo‘lmadi. Qayta urinib ko‘ring.'))
+      setError(getErrorMessage(e, t('AI reja yaratib bo‘lmadi. Qayta urinib ko‘ring.')))
     } finally {
       setGenerating(false)
     }
@@ -350,9 +357,9 @@ export default function OnboardingWizard() {
     return (
       <div className="space-y-4" aria-busy="true">
         <OnboardingStyles />
-        <div className="h-56 animate-pulse rounded-3xl bg-[#0F3D26]/[0.07] motion-reduce:animate-none sm:h-64 " />
-        <div className="h-72 animate-pulse rounded-3xl bg-[#0F3D26]/[0.07] motion-reduce:animate-none " />
-        <span className="sr-only">Yuklanmoqda</span>
+        <div className="h-56 animate-pulse rounded-3xl bg-[#0F3D26]/[0.07] motion-reduce:animate-none sm:h-64" />
+        <div className="h-72 animate-pulse rounded-3xl bg-[#0F3D26]/[0.07] motion-reduce:animate-none" />
+        <span className="sr-only">{t('Yuklanmoqda')}</span>
       </div>
     )
   }
@@ -362,21 +369,28 @@ export default function OnboardingWizard() {
       ? { title: 'AI rejangiz tayyor', hint: 'Rejani ko‘rib chiqing va kabinetga o‘ting.' }
       : STEP_TITLES[step]
 
+  const examLabel = (() => {
+    const ex = examDates.find((x) => x.id === draft.examDateId)
+    if (ex) return `${ex.title} — ${formatExamDate(ex.exam_date)}`
+    return hasExamDates ? '—' : t('E’lon qilinmagan (keyinroq tanlanadi)')
+  })()
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <OnboardingStyles />
 
-      {/* ───── Sarlavha + jarayon ───── */}
+      {/* ───── Sarlavha + jarayon: to‘q yashil gradient karta ───── */}
       <header
-        className="ob-rise relative overflow-hidden rounded-3xl p-6 text-foreground sm:p-10"
-        style={{ background: LIME }}
+        className="ob-rise relative overflow-hidden rounded-3xl p-6 text-white sm:p-10"
+        style={{ backgroundImage: BRAND_GRADIENT }}
       >
-        <Circle color="rgba(31,122,77,0.10)" width={22} className="ob-float -right-14 -top-14 size-44 sm:-right-16 sm:-top-16 sm:size-72" />
+        <Circle color="rgba(255,255,255,0.08)" width={22} className="ob-float -right-14 -top-14 size-44 sm:-right-16 sm:-top-16 sm:size-72" />
+        <Circle color="rgba(155,227,188,0.16)" width={18} className="ob-drift -bottom-20 -left-16 size-48 sm:size-64" />
 
         <div className="relative z-10">
           <div className="flex items-center justify-between gap-3">
-            <span className="inline-flex items-center rounded-full bg-[#E4F1E9] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#0F3D26]">
-              Qadam {stepIndex + 1} / {STEP_ORDER.length}
+            <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+              {t('Qadam')} {stepIndex + 1} / {STEP_ORDER.length}
             </span>
             <span className="text-sm font-semibold tabular-nums">{pct}%</span>
           </div>
@@ -387,12 +401,12 @@ export default function OnboardingWizard() {
             aria-valuenow={progress}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="Onboarding jarayoni"
+            aria-label={t('Onboarding jarayoni')}
           >
             {STEP_ORDER.map((s, i) => (
-              <div key={s} className="h-1.5 flex-1 overflow-hidden rounded-full bg-foreground/15">
+              <div key={s} className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/20">
                 <div
-                  className="h-full origin-left rounded-full bg-foreground transition-transform duration-700 ease-out motion-reduce:transition-none"
+                  className="h-full origin-left rounded-full bg-[#9BE3BC] transition-transform duration-700 ease-out motion-reduce:transition-none"
                   style={{ transform: `scaleX(${i <= stepIndex ? 1 : 0})`, transitionDelay: i <= stepIndex ? `${i * 40}ms` : '0ms' }}
                 />
               </div>
@@ -401,16 +415,16 @@ export default function OnboardingWizard() {
 
           <h1
             key={info.title}
-            className="ob-title mt-6 break-words text-[1.75rem] font-semibold leading-[1.05] tracking-tighter sm:mt-8 sm:text-5xl sm:leading-[1]"
+            className="ob-title mt-6 break-words text-[1.75rem] font-extrabold leading-[1.08] tracking-tight sm:mt-8 sm:text-5xl sm:leading-[1.05]"
           >
-            {info.title}
+            {t(info.title)}
           </h1>
           <p
             key={info.hint}
-            className="ob-rise mt-3 max-w-xl text-[15px] font-medium leading-6 text-foreground/70 sm:text-base"
+            className="ob-rise mt-3 max-w-xl text-[15px] font-medium leading-6 text-white/75 sm:text-base"
             style={{ animationDelay: '.1s' }}
           >
-            {info.hint}
+            {t(info.hint)}
           </p>
         </div>
       </header>
@@ -419,7 +433,7 @@ export default function OnboardingWizard() {
         <div
           key={error}
           role="alert"
-          className="ob-shake rounded-2xl bg-[#FFF1E6] px-4 py-3 text-sm font-semibold text-foreground ring-1 ring-[#F97316]/40 sm:rounded-3xl sm:p-4"
+          className="ob-shake rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-[#991B1B] ring-1 ring-[#DC2626]/30 sm:rounded-3xl sm:p-4"
         >
           {error}
         </div>
@@ -433,14 +447,14 @@ export default function OnboardingWizard() {
       >
         {step === 'cefr' && (
           <Panel>
-            <div className="ob-stagger grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="CEFR topshirganmisiz">
-              <Choice selected={draft.cefrTaken === true} onClick={() => update('cefrTaken', true)}>Ha, topshirganman</Choice>
-              <Choice selected={draft.cefrTaken === false} onClick={() => update('cefrTaken', false)}>Yo‘q, topshirmaganman</Choice>
+            <div className="ob-stagger grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label={t('Imtihon topshirganmisiz')}>
+              <Choice selected={draft.cefrTaken === true} onClick={() => update('cefrTaken', true)}><Uz>Ha, topshirganman</Uz></Choice>
+              <Choice selected={draft.cefrTaken === false} onClick={() => update('cefrTaken', false)}><Uz>Yo‘q, topshirmaganman</Uz></Choice>
             </div>
             {draft.cefrTaken !== null && (
-              <div className="ob-rise mt-6 border-t border-black/10 pt-6">
-                <Label>{draft.cefrTaken ? 'Qaysi darajani oldingiz?' : 'Taxminiy darajangiz qanday?'}</Label>
-                <div className="ob-stagger grid grid-cols-5 gap-2 sm:gap-3" role="radiogroup" aria-label="Daraja">
+              <div className="ob-rise mt-6 border-t border-[#DFE8E1] pt-6">
+                <Label>{draft.cefrTaken ? t('Qaysi darajani oldingiz?') : t('Taxminiy darajangiz qanday?')}</Label>
+                <div className="ob-stagger grid grid-cols-5 gap-2 sm:gap-3" role="radiogroup" aria-label={t('Daraja')}>
                   {CEFR_LEVELS.map((lvl) => {
                     const selected = draft.cefrTaken ? draft.cefrLevel === lvl : draft.estimatedLevel === lvl
                     return (
@@ -462,8 +476,8 @@ export default function OnboardingWizard() {
 
         {step === 'target' && (
           <Panel>
-            <Label>Maqsad daraja</Label>
-            <div className="ob-stagger grid grid-cols-2 gap-3 sm:grid-cols-4" role="radiogroup" aria-label="Maqsad daraja">
+            <Label><Uz>Maqsad daraja</Uz></Label>
+            <div className="ob-stagger grid grid-cols-2 gap-3 sm:grid-cols-4" role="radiogroup" aria-label={t('Maqsad daraja')}>
               {TARGET_LEVELS.map((lvl) => (
                 <Choice key={lvl} compact selected={draft.targetLevel === lvl} onClick={() => update('targetLevel', lvl)}>
                   {lvl}
@@ -471,12 +485,12 @@ export default function OnboardingWizard() {
               ))}
             </div>
 
-            <div className="mt-6 border-t border-black/10 pt-6">
-              <Label note="(taxminan)">So‘z boyligi</Label>
-              <div className="ob-stagger grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="So‘z boyligi">
+            <div className="mt-6 border-t border-[#DFE8E1] pt-6">
+              <Label note="(taxminan)"><Uz>So‘z boyligi</Uz></Label>
+              <div className="ob-stagger grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label={t('So‘z boyligi')}>
                 {VOCAB_BANDS.map((b) => (
                   <Choice key={b.value} selected={draft.vocabBand === b.value} onClick={() => update('vocabBand', b.value)}>
-                    {b.label}
+                    {t(b.label)}
                   </Choice>
                 ))}
               </div>
@@ -486,7 +500,7 @@ export default function OnboardingWizard() {
 
         {step === 'skills' && (
           <Panel>
-            <Label>Kuchli tomonlar</Label>
+            <Label><Uz>Kuchli tomonlar</Uz></Label>
             <div className="ob-stagger flex flex-wrap gap-2">
               {SKILLS.map((s) => (
                 <Toggle key={s.value} selected={draft.strengths.includes(s.value)} onClick={() => toggleSkill('strengths', s.value)}>
@@ -495,13 +509,13 @@ export default function OnboardingWizard() {
               ))}
             </div>
 
-            <div className="mt-6 border-t border-black/10 pt-6">
-              <Label note="(kamida bittasi)">Zaif tomonlar</Label>
+            <div className="mt-6 border-t border-[#DFE8E1] pt-6">
+              <Label note="(kamida bittasi)"><Uz>Zaif tomonlar</Uz></Label>
               <div className="ob-stagger flex flex-wrap gap-2">
                 {SKILLS.map((s) => (
                   <Toggle
                     key={s.value}
-                    tone="lime"
+                    tone="soft"
                     selected={draft.weaknesses.includes(s.value)}
                     onClick={() => toggleSkill('weaknesses', s.value)}
                   >
@@ -516,11 +530,11 @@ export default function OnboardingWizard() {
         {step === 'exam' && (
           examDates.length === 0 ? (
             <Panel className="text-sm font-medium leading-6 text-muted-foreground">
-              Hozircha imtihon sanalari e’lon qilinmagan. Davom etishingiz mumkin: sana e’lon qilingach, onboardingda sanani tanlaysiz.
+              <Uz>Hozircha imtihon sanalari e’lon qilinmagan. Davom etishingiz mumkin: sana e’lon qilingach, onboardingda sanani tanlaysiz.</Uz>
             </Panel>
           ) : (
             <Panel>
-              <div className="ob-stagger space-y-3" role="radiogroup" aria-label="Imtihon sanasi">
+              <div className="ob-stagger space-y-3" role="radiogroup" aria-label={t('Imtihon sanasi')}>
                 {examDates.map((ex) => (
                   <div key={ex.id} className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <div className="flex-1">
@@ -536,9 +550,9 @@ export default function OnboardingWizard() {
                       href={ex.register_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`group/link inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold text-foreground ring-1 ring-black/15 transition hover:bg-black/5 motion-reduce:transition-none ${focusRing}`}
+                      className={`group/link inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold text-primary-strong ring-1 ring-[#C7D3CA] transition hover:bg-[#E4F1E9] motion-reduce:transition-none ${focusRing}`}
                     >
-                      mygov’da ro‘yxatdan o‘tish
+                      {t('mygov’da ro‘yxatdan o‘tish')}
                       <ExternalLink aria-hidden="true" className="size-3.5 transition-transform group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5 motion-reduce:transition-none" />
                     </a>
                   </div>
@@ -550,8 +564,8 @@ export default function OnboardingWizard() {
 
         {step === 'time' && (
           <Panel>
-            <Label>Kunlik o‘quv vaqti</Label>
-            <div className="ob-stagger grid grid-cols-2 gap-3 sm:grid-cols-4" role="radiogroup" aria-label="Kunlik vaqt">
+            <Label><Uz>Kunlik o‘quv vaqti</Uz></Label>
+            <div className="ob-stagger grid grid-cols-2 gap-3 sm:grid-cols-4" role="radiogroup" aria-label={t('Kunlik vaqt')}>
               {DAILY_OPTIONS.map((o) => (
                 <Choice
                   key={o.value}
@@ -562,14 +576,14 @@ export default function OnboardingWizard() {
                     if (draft.teacherHours !== null && draft.teacherHours > o.value) update('teacherHours', null)
                   }}
                 >
-                  {o.label}
+                  {t(o.label)}
                 </Choice>
               ))}
             </div>
 
-            <div className="mt-6 border-t border-black/10 pt-6">
-              <Label note="(kuniga)">O‘qituvchi yordami</Label>
-              <div className="ob-stagger grid grid-cols-2 gap-3 sm:grid-cols-3" role="radiogroup" aria-label="O‘qituvchi yordami">
+            <div className="mt-6 border-t border-[#DFE8E1] pt-6">
+              <Label note="(kuniga)"><Uz>O‘qituvchi yordami</Uz></Label>
+              <div className="ob-stagger grid grid-cols-2 gap-3 sm:grid-cols-3" role="radiogroup" aria-label={t('O‘qituvchi yordami')}>
                 {teacherOptions.map((o) => (
                   <Choice
                     key={o.value}
@@ -578,7 +592,7 @@ export default function OnboardingWizard() {
                     onClick={() => update('teacherHours', o.value)}
                     disabled={draft.dailyHours === null}
                   >
-                    {o.label}
+                    {t(o.label)}
                   </Choice>
                 ))}
               </div>
@@ -593,27 +607,31 @@ export default function OnboardingWizard() {
             ) : (
               <>
                 <Panel>
-                  <dl className="ob-stagger divide-y divide-black/10 text-sm">
-                    <ReviewRow label="CEFR" value={draft.cefrTaken ? `Topshirgan: ${draft.cefrLevel ?? '—'}` : `Taxminiy: ${draft.estimatedLevel ?? '—'}`} onEdit={() => go('cefr')} />
-                    <ReviewRow label="Maqsad" value={`${draft.targetLevel ?? '—'} · ${VOCAB_BANDS.find((b) => b.value === draft.vocabBand)?.label ?? '—'}`} onEdit={() => go('target')} />
-                    <ReviewRow label="Kuchli" value={draft.strengths.map((s) => SKILLS.find((x) => x.value === s)?.label).join(', ') || '—'} onEdit={() => go('skills')} />
-                    <ReviewRow label="Zaif" value={draft.weaknesses.map((s) => SKILLS.find((x) => x.value === s)?.label).join(', ') || '—'} onEdit={() => go('skills')} />
+                  <dl className="ob-stagger divide-y divide-[#DFE8E1] text-sm">
                     <ReviewRow
-                      label="Imtihon"
-                      value={(() => {
-                        const ex = examDates.find((x) => x.id === draft.examDateId)
-                        if (ex) return `${ex.title} — ${formatExamDate(ex.exam_date)}`
-                        return hasExamDates ? '—' : 'E’lon qilinmagan (keyinroq tanlanadi)'
-                      })()}
-                      onEdit={() => go('exam')}
+                      label={t('Daraja')}
+                      value={draft.cefrTaken ? `${t('Topshirgan')}: ${draft.cefrLevel ?? '—'}` : `${t('Taxminiy')}: ${draft.estimatedLevel ?? '—'}`}
+                      onEdit={() => go('cefr')}
                     />
-                    <ReviewRow label="Vaqt" value={`${draft.dailyHours ? DAILY_OPTIONS.find((o) => o.value === draft.dailyHours)?.label : '—'} · o‘qituvchi: ${draft.teacherHours !== null ? TEACHER_OPTIONS.find((o) => o.value === draft.teacherHours)?.label : '—'}`} onEdit={() => go('time')} />
+                    <ReviewRow
+                      label={t('Maqsad')}
+                      value={`${draft.targetLevel ?? '—'} · ${t(VOCAB_BANDS.find((b) => b.value === draft.vocabBand)?.label ?? '—')}`}
+                      onEdit={() => go('target')}
+                    />
+                    <ReviewRow label={t('Kuchli')} value={draft.strengths.map((s) => SKILLS.find((x) => x.value === s)?.label).join(', ') || '—'} onEdit={() => go('skills')} />
+                    <ReviewRow label={t('Zaif')} value={draft.weaknesses.map((s) => SKILLS.find((x) => x.value === s)?.label).join(', ') || '—'} onEdit={() => go('skills')} />
+                    <ReviewRow label={t('Imtihon')} value={examLabel} onEdit={() => go('exam')} />
+                    <ReviewRow
+                      label={t('Vaqt')}
+                      value={`${draft.dailyHours ? t(DAILY_OPTIONS.find((o) => o.value === draft.dailyHours)?.label ?? '—') : '—'} · ${t('o‘qituvchi')}: ${draft.teacherHours !== null ? t(TEACHER_OPTIONS.find((o) => o.value === draft.teacherHours)?.label ?? '—') : '—'}`}
+                      onEdit={() => go('time')}
+                    />
                   </dl>
                 </Panel>
 
                 {!allDone ? (
                   <p className="px-1 text-sm font-medium text-muted-foreground">
-                    Barcha savollarga javob bering. Yetishmayotgan qadamlar tahrirlash orqali to‘ldiriladi.
+                    <Uz>Barcha savollarga javob bering. Yetishmayotgan qadamlar tahrirlash orqali to‘ldiriladi.</Uz>
                   </p>
                 ) : null}
 
@@ -624,7 +642,7 @@ export default function OnboardingWizard() {
                   icon={<Sparkles aria-hidden="true" className="size-4" />}
                   className="w-full sm:min-h-14 sm:text-base"
                 >
-                  {generating ? 'Reja tayyorlanmoqda…' : 'AI reja yaratish'}
+                  {generating ? t('Reja tayyorlanmoqda…') : t('AI reja yaratish')}
                 </PrimaryButton>
               </>
             )}
@@ -638,16 +656,16 @@ export default function OnboardingWizard() {
           <button
             type="button"
             onClick={goBack}
-            className={`ob-fade group inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-foreground ring-1 ring-black/15 transition hover:bg-black/5 active:scale-95 motion-reduce:transition-none ${focusRing}`}
+            className={`ob-fade group inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-primary-strong ring-1 ring-[#C7D3CA] transition hover:bg-[#E4F1E9] active:scale-95 motion-reduce:transition-none ${focusRing}`}
           >
-            <ArrowLeft aria-hidden="true" className="size-4 transition-transform group-hover:-translate-x-0.5 motion-reduce:transition-none" /> Orqaga
+            <ArrowLeft aria-hidden="true" className="size-4 transition-transform group-hover:-translate-x-0.5 motion-reduce:transition-none" /> <Uz>Orqaga</Uz>
           </button>
         ) : <span />}
 
         {step === 'review' ? (
           plan ? (
             <PrimaryButton onClick={() => router.replace('/dashboard')} icon={<ArrowUpRight aria-hidden="true" className="size-4" />}>
-              Kabinetga o‘tish
+              <Uz>Kabinetga o‘tish</Uz>
             </PrimaryButton>
           ) : null
         ) : (
@@ -657,7 +675,7 @@ export default function OnboardingWizard() {
             busy={saving}
             icon={<ArrowRight aria-hidden="true" className="size-4" />}
           >
-            Keyingisi
+            <Uz>Keyingisi</Uz>
           </PrimaryButton>
         )}
       </footer>

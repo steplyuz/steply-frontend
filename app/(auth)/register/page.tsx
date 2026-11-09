@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Eye, EyeOff, Loader2, Lock, MessageSquare, User } from "lucide-react"
 
-import { useAlphabet } from "@/shared/providers/alphabet-provider"
+import { toBackendLang, useAlphabet } from "@/shared/providers/alphabet-provider"
 import {
   AuthDivider,
   AuthError,
@@ -337,7 +337,7 @@ function formatCountdown(totalSeconds: number) {
 // ─── Form ────────────────────────────────────────────────────────────────────
 
 function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => void }) {
-  const { t } = useAlphabet()
+  const { t, lang } = useAlphabet()
   const router = useRouter()
   const searchParams = useSearchParams()
   const nameRef = useRef<HTMLInputElement>(null)
@@ -379,8 +379,9 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
     return () => clearInterval(id)
   }, [step, expiresIn])
 
+  /* Server va hooklardan kelgan xabarlar ham tanlangan til/alifboga o‘tadi (t() lug‘atda topilmasa, matn o‘zgarmaydi) */
   function fail(message: string) {
-    setError(message)
+    setError(t(message))
     setLoading(false)
     shake(shakeRef.current)
   }
@@ -390,7 +391,7 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
     setError("")
 
     if (phoneDigits.length !== PHONE_DIGITS) {
-      fail(t("Telefon raqam to'liq kiritilmagan"))
+      fail("Telefon raqam to'liq kiritilmagan")
       return
     }
 
@@ -409,7 +410,7 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
       setLoading(false)
       setStep("verify")
     } catch (err) {
-      fail(err instanceof ApiRequestError ? err.message : t("Ro'yxatdan o'tishda xatolik"))
+      fail(err instanceof ApiRequestError ? err.message : "Ro'yxatdan o'tishda xatolik")
     }
   }
 
@@ -420,7 +421,8 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
 
   const google = useGoogleLogin({
     text: "signup_with",
-    locale: "uz",
+    // Google tugmasi tili: uz (lotin/kirill) | en | ru — tanlangan tilga ergashadi
+    locale: toBackendLang(lang),
     onSuccess: (me) => router.push(next || homeUrlForRole(me.global_role)),
     onError: fail,
   })
@@ -438,7 +440,7 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
       const me = await authApi.me().catch(() => null)
       router.push(homeUrlForRole(me?.global_role))
     } catch (err) {
-      fail(err instanceof ApiRequestError ? err.message : t("Kod tasdiqlanmadi"))
+      fail(err instanceof ApiRequestError ? err.message : "Kod tasdiqlanmadi")
     }
   }
 
