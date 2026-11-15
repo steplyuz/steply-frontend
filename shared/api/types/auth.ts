@@ -21,6 +21,8 @@ export interface RegisterInput {
 export interface RegisterVerifyInput {
   phone: string
   code: string
+  /** Ixtiyoriy: taklif qilgan do'stning referal kodi */
+  referral_code?: string
 }
 
 export interface ResetPasswordInput {

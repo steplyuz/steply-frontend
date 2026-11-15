@@ -10,6 +10,9 @@ export const ROUTES = {
   profile: '/users/me',
   public: '/public',
   activity: '/activity',
+  referral: '/referral',
+  adminReferral: '/admin/referral',
+  adminTiers: '/admin/tiers',
 
   mockExams: '/mock-exams',
   mockExamsAdmin: '/admin/mock-exams',

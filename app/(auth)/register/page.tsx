@@ -354,6 +354,8 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
   const [showPassword, setShowPassword] = useState(false)
   const [birthDate, setBirthDate] = useState("")
   const [gender, setGender] = useState<Gender>("male")
+  // Referal kod: ?ref=KOD havoladan keladi yoki user o'zi kiritadi
+  const [referralCode, setReferralCode] = useState(() => (searchParams.get("ref") || "").trim().toUpperCase())
   const [code, setCode] = useState("")
   const [botLink, setBotLink] = useState("")
   const [expiresIn, setExpiresIn] = useState(0)
@@ -432,7 +434,7 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
     setError("")
     setLoading(true)
     try {
-      await authApi.registerVerify({ phone, code: code.trim() })
+      await authApi.registerVerify({ phone, code: code.trim(), referral_code: referralCode.trim() || undefined })
       if (next) {
         router.push(next)
         return
@@ -607,6 +609,21 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
           options={GENDER_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))}
           disabled={loading}
         />
+
+        {/* Referal kod (ixtiyoriy) */}
+        <div>
+          <label htmlFor="referralCode" className="sr-only">{t("Referal kod")}</label>
+          <input
+            id="referralCode"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value.toUpperCase().replace(/\s/g, ""))}
+            placeholder={t("Referal kod (ixtiyoriy)")}
+            maxLength={32}
+            autoComplete="off"
+            disabled={loading}
+            className={fieldClass}
+          />
+        </div>
 
         {/* Password */}
         <div>

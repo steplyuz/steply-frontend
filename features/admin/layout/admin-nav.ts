@@ -1,6 +1,8 @@
 import type { ElementType } from 'react'
 import {
   Activity,
+  Gift,
+  Layers,
   BookOpen,
   CalendarDays,
   CheckCircle2,
@@ -60,6 +62,13 @@ const ADMIN_NAV: NavSection[] = [
     items: [
       { href: '/admin/writing/grading', label: 'Writing baholash', icon: CheckCircle2 },
       { href: '/admin/speaking/assessments', label: 'Speaking baholash', icon: CheckCircle2 },
+    ],
+  },
+  {
+    title: 'Tarif va mukofot',
+    items: [
+      { href: '/admin/tiers', label: 'Tariflar va testlar', icon: Layers },
+      { href: '/admin/referral', label: 'Referal', icon: Gift },
     ],
   },
   {
