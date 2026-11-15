@@ -23,12 +23,6 @@ const PAGE_SIZE = 12
 
 type Card = HubTest & { raw: any; part: string | null; locked: boolean; premium: boolean }
 
-/** Sarlavhadan test raqamini ajratadi (faqat tartiblash uchun): "Speaking Test 43" → 43 */
-function testNumber(title: string): number | null {
-  const m = title.match(/(?:test|paper|#)\s*(\d+)/i) ?? title.match(/(\d+)(?!.*\d)/)
-  return m ? parseInt(m[1], 10) : null
-}
-
 /** Katta raqam ko'rinadigan sarlavha: ko'nikma nomini olib tashlaydi */
 function cleanTitle(title: string, label: string) {
   return baseTitle(title).replace(new RegExp(`^${label}\\s*[-—:]?\\s*`, 'i'), '').trim() || baseTitle(title)
@@ -53,9 +47,11 @@ export function PracticeHub() {
 
   const select = (s: PracticeSkill) => router.replace(`${pathname}?skill=${s}`, { scroll: false })
 
-  // Kartalar tartiblangan ro'yxat. Raqam shu ro'yxatdagi o'rnidan hisoblanadi,
-  // shuning uchun sarlavhadagi raqamlar takrorlanganda ham karta raqamlari takrorlanmaydi.
+  // Kartalar nom bo'yicha teskari tartibda chiqadi (raqamlar sonli taqqoslanadi):
+  // Test #6 … Test #1, keyin Record Mock - Test 3 … Test 1
   const cards: Card[] = useMemo(() => {
+    const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+
     const list = (catalog.data?.items?.[active] ?? []).filter(isPracticeVisible).map((raw: any) => {
       const t = cfg.toTest(raw)
       return {
@@ -67,13 +63,7 @@ export function PracticeHub() {
       }
     })
 
-    // Yangi (katta raqamli) testlar tepada; bir xil raqamda sarlavha bo'yicha tartiblanadi
-    return [...list].sort((a, b) => {
-      const na = testNumber(a.title)
-      const nb = testNumber(b.title)
-      if (na !== null && nb !== null && na !== nb) return nb - na
-      return a.title.localeCompare(b.title)
-    })
+    return [...list].sort((a, b) => collator.compare(b.title, a.title))
   }, [catalog.data, active, cfg])
 
   const pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE))
@@ -186,7 +176,7 @@ export function PracticeHub() {
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
               {visible.map((t, i) => {
                 const metas = t.meta.filter((m): m is string => !!m && !/mini-?test/i.test(m))
-                // Ro'yxatdagi o'rin bo'yicha raqam: eng yangi (birinchi) karta eng katta raqamni oladi
+                // Ro'yxatdagi o'rin bo'yicha raqam: birinchi karta eng katta raqamni oladi
                 const num = cards.length - (offset + i)
                 return (
                   <article
