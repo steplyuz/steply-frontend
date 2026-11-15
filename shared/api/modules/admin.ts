@@ -9,6 +9,10 @@ import type {
   AdminUserUpdateInput, AdminUsersQuery, JsonObject, SmsRegistrationSetting, StatusMessage, TrafficPeriod,
 } from '../types'
 
+import type {
+  AdminActivitySeries, AdminStatsOverview, AdminStatsUserDetail, AdminStatsUsersPage, AdminStatsUsersQuery,
+} from '../types'
+
 const BASE = ROUTES.admin
 
 export const adminApi = {
@@ -40,6 +44,12 @@ export const adminApi = {
   omrSubmission: (submissionId: number) => apiGet<JsonObject>(`${BASE}/omr/submissions/${enc(submissionId)}`),
   setOmrStatus: (submissionId: number, status: string) =>
     apiPatch<JsonObject>(`${BASE}/omr/submissions/${enc(submissionId)}/status`, undefined, { query: { status } }),
+
+  // --- Statistika: faol vaqt va yechilgan testlar ---
+  statsOverview: () => apiGet<AdminStatsOverview>(`${BASE}/statistics/overview`),
+  statsActivity: (days = 30) => apiGet<AdminActivitySeries>(`${BASE}/statistics/activity`, { query: { days } }),
+  statsUsers: (params?: AdminStatsUsersQuery) => apiGet<AdminStatsUsersPage>(`${BASE}/statistics/users`, { query: params }),
+  statsUserDetail: (userId: string) => apiGet<AdminStatsUserDetail>(`${BASE}/statistics/users/${enc(userId)}`),
 
   // --- SMS orqali ro'yxatdan o'tishni yoqish/o'chirish (DB'da saqlanadi) ---
   smsRegistration: () => apiGet<SmsRegistrationSetting>(`${BASE}/settings/sms-registration`),

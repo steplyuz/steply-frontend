@@ -37,6 +37,7 @@ export { examsApi, examsAuthApi } from './modules/exam/exams'
 // platforma
 export { billingApi } from './modules/billing'
 export { adminApi } from './modules/admin'
+export { activityApi } from './modules/activity'
 export { applyApi } from './modules/apply'
 export { analysisApi } from './modules/analysis'
 export { onboardingApi, onboardingAdminApi } from './modules/onboarding'

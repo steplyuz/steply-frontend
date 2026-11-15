@@ -7,6 +7,7 @@ import { DashboardTopbar } from '@/features/dashboard/layout/dashboard-topbar'
 import { DashboardBottomNav } from '@/features/dashboard/layout/dashboard-bottom-nav'
 import { useAuth } from '@/shared/providers/auth-context'
 import { onboardingApi } from '@/shared/api'
+import { useActivityHeartbeat } from '@/shared/hooks/use-activity-heartbeat'
 
 /* Kabinet foni: yashilga moyil och kulrang. Sahifalardagi oq kartalar shu fonda ko‘rinadi,
    shuning uchun sahifalar o‘z ichida alohida fon panel yasashi shart emas. */
@@ -65,6 +66,8 @@ export default function DashboardCabinetLayout({ children }: { children: React.R
   // Talaba onboardingni tugatmaguncha kabinetga kiritilmaydi
   const [onboardingReady, setOnboardingReady] = useState(false)
   const isStudent = user?.global_role === 'student'
+  // Faol vaqtni hisoblash: faqat tayyor (login + onboarding) kabinetda
+  useActivityHeartbeat(isAuthenticated && onboardingReady)
   const router = useRouter()
   const pathname = usePathname()
   const close = useCallback(() => setOpen(false), [])

@@ -1,5 +1,6 @@
 import type { ElementType } from 'react'
 import {
+  Activity,
   BookOpen,
   CalendarDays,
   CheckCircle2,
@@ -39,6 +40,7 @@ const ADMIN_NAV: NavSection[] = [
     items: [
       { href: '/admin', label: 'Boshqaruv paneli', icon: LayoutDashboard },
       { href: '/admin/users', label: 'Foydalanuvchilar', icon: Users },
+      { href: '/admin/statistics', label: 'Statistika', icon: Activity },
       { href: '/admin/mock-exams', label: 'Mock imtihonlar', icon: GraduationCap },
       { href: '/admin/analysis', label: 'Analysis videolari', icon: ChartNoAxesCombined },
       { href: '/admin/exam-dates', label: 'Imtihon sanalari', icon: CalendarDays },

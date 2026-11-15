@@ -86,3 +86,88 @@ export interface AdminPageQuery extends Record<string, string | number | boolean
   offset?: number
   limit?: number
 }
+
+// ---------- Statistika: faol vaqt va yechilgan testlar (backend: /admin/statistics/*) ----------
+
+export interface SkillTestCounts {
+  reading: number
+  listening: number
+  writing: number
+  speaking: number
+  total: number
+}
+
+/** GET /admin/statistics/overview */
+export interface AdminStatsOverview {
+  total_users: number
+  active_today: number
+  active_7d: number
+  active_30d: number
+  time_30d_seconds: number
+  avg_time_per_active_user_30d_seconds: number
+  test_takers_all_time: number
+  test_takers_30d: number
+  tests_all_time: SkillTestCounts
+  tests_30d: SkillTestCounts
+}
+
+export interface AdminActivityPoint {
+  date: string
+  active_users: number
+  active_seconds: number
+}
+
+/** GET /admin/statistics/activity */
+export interface AdminActivitySeries {
+  days: number
+  points: AdminActivityPoint[]
+}
+
+export type AdminStatsSort =
+  | 'total_tests' | 'reading' | 'listening' | 'writing' | 'speaking'
+  | 'active_seconds' | 'last_seen_at' | 'last_login_at' | 'created_at'
+
+export type AdminStatsUsersQuery = {
+  sort?: AdminStatsSort
+  desc?: boolean
+  search?: string
+  offset?: number
+  limit?: number
+}
+
+export interface AdminStatsUserRow {
+  id: string
+  full_name: string | null
+  username: string | null
+  role: string
+  created_at: string
+  last_login_at: string | null
+  last_seen_at: string | null
+  active_seconds: number
+  reading: number
+  listening: number
+  writing: number
+  speaking: number
+  total_tests: number
+}
+
+/** GET /admin/statistics/users */
+export interface AdminStatsUsersPage {
+  total: number
+  offset: number
+  limit: number
+  items: AdminStatsUserRow[]
+}
+
+/** GET /admin/statistics/users/{id} */
+export interface AdminStatsUserDetail {
+  id: string
+  full_name: string | null
+  username: string | null
+  role: string
+  last_login_at: string | null
+  last_seen_at: string | null
+  active_seconds_all_time: number
+  tests: SkillTestCounts
+  daily: Array<{ date: string; active_seconds: number; heartbeats: number }>
+}

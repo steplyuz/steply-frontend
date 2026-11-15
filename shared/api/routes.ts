@@ -9,6 +9,7 @@ export const ROUTES = {
   auth: '/auth',
   profile: '/users/me',
   public: '/public',
+  activity: '/activity',
 
   mockExams: '/mock-exams',
   mockExamsAdmin: '/admin/mock-exams',
