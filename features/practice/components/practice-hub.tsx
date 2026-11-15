@@ -21,15 +21,15 @@ import { Badge, Empty, ErrorBox, Loading, PageHeader, btn, fmtDate } from '@/sha
 
 const PAGE_SIZE = 12
 
-type Card = HubTest & { raw: any; num: number | null; part: string | null; locked: boolean; premium: boolean }
+type Card = HubTest & { raw: any; part: string | null; locked: boolean; premium: boolean }
 
-/** Sarlavhadan test raqamini ajratadi: "Speaking Test 43 (Energy)" → 43, "Paper 2 — Part 1" → 2 */
+/** Sarlavhadan test raqamini ajratadi (faqat tartiblash uchun): "Speaking Test 43" → 43 */
 function testNumber(title: string): number | null {
   const m = title.match(/(?:test|paper|#)\s*(\d+)/i) ?? title.match(/(\d+)(?!.*\d)/)
   return m ? parseInt(m[1], 10) : null
 }
 
-/** Katta raqam ko'rinadigan sarlavha: "Speaking Test 43 (Energy)" → "Test 43 (Energy)" ning o'rniga ko'nikma nomini olib tashlaymiz */
+/** Katta raqam ko'rinadigan sarlavha: ko'nikma nomini olib tashlaydi */
 function cleanTitle(title: string, label: string) {
   return baseTitle(title).replace(new RegExp(`^${label}\\s*[-—:]?\\s*`, 'i'), '').trim() || baseTitle(title)
 }
@@ -53,24 +53,33 @@ export function PracticeHub() {
 
   const select = (s: PracticeSkill) => router.replace(`${pathname}?skill=${s}`, { scroll: false })
 
+  // Kartalar tartiblangan ro'yxat. Raqam shu ro'yxatdagi o'rnidan hisoblanadi,
+  // shuning uchun sarlavhadagi raqamlar takrorlanganda ham karta raqamlari takrorlanmaydi.
   const cards: Card[] = useMemo(() => {
     const list = (catalog.data?.items?.[active] ?? []).filter(isPracticeVisible).map((raw: any) => {
       const t = cfg.toTest(raw)
       return {
-        ...t, raw,
-        num: testNumber(t.title),
+        ...t,
+        raw,
         part: raw.practice_part_number ? `Part ${raw.practice_part_number}` : null,
         locked: isLockedTest(raw ?? {}),
         premium: raw?.access === 'premium',
       }
     })
-    // Yangi (katta raqamli) testlar tepada
-    return list.every((c) => c.num !== null) ? [...list].sort((a, b) => (b.num! - a.num!) || (a.part ?? '').localeCompare(b.part ?? '')) : list
+
+    // Yangi (katta raqamli) testlar tepada; bir xil raqamda sarlavha bo'yicha tartiblanadi
+    return [...list].sort((a, b) => {
+      const na = testNumber(a.title)
+      const nb = testNumber(b.title)
+      if (na !== null && nb !== null && na !== nb) return nb - na
+      return a.title.localeCompare(b.title)
+    })
   }, [catalog.data, active, cfg])
 
   const pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE))
   const safePage = Math.min(page, pages)
-  const visible = cards.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+  const offset = (safePage - 1) * PAGE_SIZE
+  const visible = cards.slice(offset, offset + PAGE_SIZE)
   const counts = (s: PracticeSkill) => (catalog.data?.items?.[s] ?? []).filter(isPracticeVisible).length
 
   const speakingState = active === 'speaking' ? (speaking.loading ? 'loading' : speaking.canGrade ? 'open' : 'locked') : 'open'
@@ -177,7 +186,8 @@ export function PracticeHub() {
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
               {visible.map((t, i) => {
                 const metas = t.meta.filter((m): m is string => !!m && !/mini-?test/i.test(m))
-                const num = t.num ?? (safePage - 1) * PAGE_SIZE + i + 1
+                // Ro'yxatdagi o'rin bo'yicha raqam: eng yangi (birinchi) karta eng katta raqamni oladi
+                const num = cards.length - (offset + i)
                 return (
                   <article
                     key={t.id}
@@ -194,11 +204,17 @@ export function PracticeHub() {
 
                     <div className="relative z-10 min-w-0 pr-16">
                       <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                        {t.part && <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: tint, color: accent }}>{t.part}</span>}
+                        {t.part && (
+                          <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: tint, color: accent }}>
+                            {t.part}
+                          </span>
+                        )}
                         {t.free && <Badge tone="green"><Uz>Bepul</Uz></Badge>}
                         {t.locked ? <LockedBadge /> : t.premium ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge> : null}
                       </div>
-                      <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-foreground">{cleanTitle(t.title, cfg.label)}</h3>
+                      <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-foreground">
+                        {cleanTitle(t.title, cfg.label)}
+                      </h3>
                       {metas.length > 0 && (
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
                           {metas.map((m, k) => (
@@ -227,7 +243,9 @@ export function PracticeHub() {
                 >
                   <ChevronLeft className="size-4" aria-hidden="true" /> <Uz>Oldingi</Uz>
                 </button>
-                <span className="px-2 text-sm font-semibold tabular-nums text-muted-foreground">{safePage} / {pages}</span>
+                <span className="px-2 text-sm font-semibold tabular-nums text-muted-foreground">
+                  {safePage} / {pages}
+                </span>
                 <button
                   type="button"
                   disabled={safePage === pages}
@@ -258,7 +276,10 @@ export function PracticeHub() {
             {results.data.map((raw) => {
               const r = cfg.toResult(raw)
               return (
-                <li key={r.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-3xl bg-white p-4 ring-1 ring-[#0F3D26]/[0.06] sm:px-6 sm:py-5">
+                <li
+                  key={r.id}
+                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-3xl bg-white p-4 ring-1 ring-[#0F3D26]/[0.06] sm:px-6 sm:py-5"
+                >
                   <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
                     <span className="flex size-11 shrink-0 items-center justify-center rounded-xl" style={{ background: tint, color: accent }}>
                       <CheckCircle2 aria-hidden="true" className="size-5" />
