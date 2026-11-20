@@ -51,7 +51,7 @@ export function PracticeHub() {
   // Tier aniqlanguncha (loading) premium testlarni lock qilib turmaymiz —
   // agar tier FREE bo'lsa backend allaqachon ularni filtrlagan bo'ladi.
   // Tier ma'lum bo'lgach, FREE bo'lsa premium testlar locked ko'rsatiladi.
-  const hasPremium = !limits.loading && limits.data != null && limits.data.tier !== 'FREE'
+  const hasPremium = limits.data != null && limits.data.tier !== 'FREE'
 
   const select = (s: PracticeSkill) => router.replace(`${pathname}?skill=${s}`, { scroll: false })
 

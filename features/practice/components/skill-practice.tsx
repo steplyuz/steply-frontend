@@ -231,7 +231,7 @@ export function SkillPractice(props: {
   // Tier aniqlanguncha premium testlarni lock qilib turmaymiz.
   // FREE tier: backend katalogdan premium testlarni filtrlaydi,
   // lekin obuna yangi tugagan holatlar uchun frontend ham himoya qiladi.
-  const hasPremium = !limits.loading && limits.data != null && limits.data.tier !== 'FREE'
+  const hasPremium = limits.data != null && limits.data.tier !== 'FREE'
 
   const cards = (tests.data ?? []).filter(isPracticeVisible).map((raw) => {
     const t = toTest(raw)
