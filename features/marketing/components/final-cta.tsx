@@ -198,7 +198,7 @@ export function FinalCta() {
             <div className="mt-7 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
               <motion.div whileTap={tap} className="flex">
                 <Link
-                  href="/mock"
+                  href="/dashboard/mock-exams"
                   className={`group inline-flex min-h-12 w-full items-center justify-between gap-3 rounded-full bg-gradient-to-br from-primary to-primary-strong py-2 pl-6 pr-2 text-[15px] font-bold text-white shadow-[0_12px_30px_-14px_rgba(31,122,77,0.75)] transition hover:-translate-y-0.5 motion-reduce:transition-none sm:w-auto sm:justify-start ${FOCUS}`}
                 >
                   <span>

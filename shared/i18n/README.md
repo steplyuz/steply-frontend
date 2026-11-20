@@ -6,6 +6,8 @@
   Matnni o‘tkazmaslik: elementga `data-no-i18n` qo‘ying (test matni, foydalanuvchi kontenti).
 - `shared/lib/uz-alphabet.ts` — lotin→yangi, lotin→kirill, kirill/yangi→eski konvertorlari.
 - `shared/i18n/dict/en.ts`, `ru.ts` — kalit: manba matn; qiymat: tarjima. Raqamli andoza: `"# kun qoldi": "# days left"`.
+- `shared/i18n/dict/uz.ts` — yangi lotin (ö, ğ, ş, ç), `oz.ts` — kirill. Kalit: manba matn (en.ts bilan bir xil); qiymat: alifbo varianti. Lug‘atda yo‘q matn konvertor orqali o‘tkaziladi. Lug‘atni tahrirlash — qiymatni qo‘lda tuzating.
+- Manba (`old`) alifbo uchun lug‘at kerak emas.
 - Yangi matn qo‘shgach: `python3 scripts/i18n-missing.py` — tarjimasizlarni ko‘rsatadi.
 - Tarjima topilmasa, matn o‘zbekcha (amaldagi lotin) qoladi.
 - Til almashtirgich: `shared/ui/language-switch.tsx` (`<LanguageSwitch />`) — public header, kabinet topbar/sidebar, kirish sahifalari va Sozlamalarda bitta komponent.

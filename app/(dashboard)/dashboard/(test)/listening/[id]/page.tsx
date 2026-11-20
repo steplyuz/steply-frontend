@@ -246,7 +246,7 @@ function ListeningExamComponent() {
                 }
             }
             toast.success("Listening imtihoni yakunlandi!")
-            router.push(mode === "mock" ? "/dashboard" : "/dashboard/listening")
+            router.push(mode === "mock" ? "/dashboard" : "/dashboard/cefr?skill=listening")
         } catch (err: any) {
             console.error("Listening submit error:", err)
             toast.error(err?.message || "Natijani saqlashda xatolik yuz berdi.")
@@ -429,7 +429,7 @@ function ListeningExamComponent() {
                         </ul>
                     </div>
 
-                    <PreflightStart needs={{ mic: 'optional', speaker: true, fullscreen: mode === "mock" }} onBack={() => router.push(mode === "mock" ? "/dashboard" : "/dashboard/listening")} onStart={handleStartExam} />
+                    <PreflightStart needs={{ mic: 'optional', speaker: true, fullscreen: mode === "mock" }} onBack={() => router.push(mode === "mock" ? "/dashboard" : "/dashboard/cefr?skill=listening")} onStart={handleStartExam} />
                 </div>
             </div>
         )

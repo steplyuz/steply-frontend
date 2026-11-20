@@ -335,7 +335,7 @@ function SpeakingExamComponent() {
                 questions={snapshot}
                 recordings={recordings}
                 practiceAttemptId={Object.values(recordings).find((r) => r.practiceAttemptId != null)?.practiceAttemptId ?? null}
-                onExit={() => router.push("/dashboard/speaking")}
+                onExit={() => router.push("/dashboard/cefr?skill=speaking")}
             />
         )
     }
@@ -384,7 +384,7 @@ function SpeakingExamComponent() {
                         </ul>
                     </div>
 
-                    <PreflightStart needs={{ mic: 'required', fullscreen: mode === "mock" }} onBack={() => router.push("/dashboard/speaking")} onStart={handleStartExam} />
+                    <PreflightStart needs={{ mic: 'required', fullscreen: mode === "mock" }} onBack={() => router.push("/dashboard/cefr?skill=speaking")} onStart={handleStartExam} />
                 </div>
             </div>
         )

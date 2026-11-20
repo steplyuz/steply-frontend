@@ -143,7 +143,7 @@ export function PracticeHub() {
       {active === 'speaking' && (
         <div className="space-y-3">
           <SpeakingGradingNotice />
-          <Link href="/dashboard/speaking/ai" className={btn.outline}>
+          <Link href="/dashboard/cefr?skill=speaking" className={btn.outline}>
             <Sparkles className="size-4" /> <Uz>AI baholash va kamchiliklar</Uz>
           </Link>
         </div>

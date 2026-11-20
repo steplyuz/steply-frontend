@@ -226,7 +226,7 @@ export default function StudyPathWizard({ onGenerate }: { onGenerate: (answers: 
                   return (
                     <li key={i}>
                       <Link
-                        href={`/dashboard/${t.skill}`}
+                        href={`/dashboard/cefr?skill=${t.skill}`}
                         className="group flex items-center gap-4 rounded-3xl p-4 ring-1 ring-[#0F3D26]/[0.07] transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                         style={{ background: s.tint }}
                       >

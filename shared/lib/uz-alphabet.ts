@@ -218,13 +218,22 @@ export function translateWith(text: string, dict: Dict | null): string {
     return text
 }
 
+/** Alifbo lug‘ati: to‘liq moslik bo‘lsa lug‘atdan, aks holda konvertordan (qisman o‘tkazilmaydi). */
+function alphabetWith(text: string, dict: Dict | null, fallback: (t: string) => string): string {
+    if (!dict) return fallback(text)
+    const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(text)
+    if (!m || !m[2]) return text
+    const hit = dict[normKey(m[2])]
+    return hit !== undefined ? m[1] + hit + m[3] : fallback(text)
+}
+
 /** Matnni kerakli alifbo/tilga o‘tkazadi (manba matn amaldagi alifboda deb hisoblanadi). */
 export function convertUz(text: string, lang: UiLang, dict: Dict | null = null): string {
     switch (lang) {
         case 'new':
-            return toNewAlphabet(text)
+            return alphabetWith(text, dict, toNewAlphabet)
         case 'cyrl':
-            return toCyrillic(text)
+            return alphabetWith(text, dict, toCyrillic)
         case 'en':
         case 'ru':
             return translateWith(text, dict)

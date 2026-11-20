@@ -298,7 +298,7 @@ function WritingExamComponent() {
 
                     <PreflightStart
                         needs={{ mic: "optional" }}
-                        onBack={() => router.push("/dashboard/writing")}
+                        onBack={() => router.push("/dashboard/cefr?skill=writing")}
                         onStart={handleStartExam}
                     />
                 </div>

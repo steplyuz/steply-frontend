@@ -89,11 +89,20 @@ function readStored(): UiLang | null {
 
 const dictCache: Partial<Record<UiLang, Dict>> = {}
 
+/** Har bir til/alifbo uchun lug‘at fayli. 'old' manba alifbo — lug‘at kerak emas. */
+const DICT_LOADERS: Partial<Record<UiLang, () => Promise<{ default: Dict }>>> = {
+    en: () => import('@/shared/i18n/dict/en'),
+    ru: () => import('@/shared/i18n/dict/ru'),
+    new: () => import('@/shared/i18n/dict/uz'),
+    cyrl: () => import('@/shared/i18n/dict/oz'),
+}
+
 async function loadDict(lang: UiLang): Promise<Dict | null> {
-    if (lang !== 'en' && lang !== 'ru') return null
+    const loader = DICT_LOADERS[lang]
+    if (!loader) return null
     if (dictCache[lang]) return dictCache[lang]!
     try {
-        const mod = lang === 'en' ? await import('@/shared/i18n/dict/en') : await import('@/shared/i18n/dict/ru')
+        const mod = await loader()
         dictCache[lang] = mod.default
         return mod.default
     } catch {
@@ -107,7 +116,7 @@ export function AlphabetProvider({ children }: { children: ReactNode }) {
     const [lang, setLangState] = useState<UiLang>(DEFAULT_ALPHABET)
     // Lug‘at yuklangach ham, til almashganda ham eskisi o‘rnida turadi (miltillash bo‘lmasin)
     const [dicts, setDicts] = useState<Partial<Record<UiLang, Dict>>>({ ...dictCache })
-    const dict = lang === 'en' || lang === 'ru' ? (dicts[lang] ?? null) : null
+    const dict = dicts[lang] ?? null
 
     // Brauzerda saqlangan tanlov
     useEffect(() => {
@@ -117,7 +126,7 @@ export function AlphabetProvider({ children }: { children: ReactNode }) {
 
     // en/ru lug‘atini yuklash
     useEffect(() => {
-        if ((lang !== 'en' && lang !== 'ru') || dicts[lang]) return
+        if (!DICT_LOADERS[lang] || dicts[lang]) return
         let alive = true
         loadDict(lang).then((d) => {
             if (alive && d) setDicts((prev) => ({ ...prev, [lang]: d }))

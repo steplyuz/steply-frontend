@@ -65,7 +65,7 @@ export function SpeakingLockedTest({ testId }: { testId?: string | null }) {
             Obunani ko‘rish
           </Link>
         </div>
-        <Link href="/dashboard/speaking" className="mt-4 inline-block text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground">
+        <Link href="/dashboard/cefr?skill=speaking" className="mt-4 inline-block text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground">
           Speaking testlariga qaytish
         </Link>
       </div>

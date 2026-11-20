@@ -18,3 +18,8 @@ export const isSubscriptionRequiredError = (e: unknown) => {
   const status = (e as { status?: number } | null)?.status
   return status === 403
 }
+
+// [id] marshrutiga tushib qolishi mumkin bo'lgan so'zlar (masalan /dashboard/speaking/ai).
+// Bunday URL test sahifasiga emas, tegishli bo'limga yo'naltiriladi.
+export const RESERVED_TEST_SLUGS = ['ai', 'start', 'results', 'me', 'new'] as const
+export const isReservedTestSlug = (id: string) => (RESERVED_TEST_SLUGS as readonly string[]).includes(id.toLowerCase())
