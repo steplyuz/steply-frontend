@@ -133,7 +133,7 @@ export function PracticeHub() {
         })}
       </div>
 
-      {active === 'speaking' && (
+      {active === 'speaking' && !catalog.loading && cards.length > 0 && (
         <div className="space-y-3">
           <SpeakingGradingNotice />
           <Link href="/dashboard/cefr?skill=speaking" className={btn.outline}>

@@ -16,19 +16,8 @@ export function SpeakingGradingNotice({ className = '' }: { className?: string }
   const aiQuota = useAiQuota()
   if (loading) return null
 
-  if (!canGrade) {
-    return (
-      <div className={`flex flex-col gap-3 rounded-2xl border border-border bg-secondary p-4 text-sm sm:flex-row sm:items-center sm:justify-between ${className}`}>
-        <div className="flex items-start gap-3">
-          <Lock className="mt-0.5 size-5 shrink-0 text-foreground" />
-          <p className="text-foreground/80">
-            <span className="font-bold text-foreground">Baholash faqat obunada.</span> Javoblaringiz to‘liq yozib olinadi va saqlanadi, savollar bilan birga yuklab olishingiz mumkin — lekin obunasiz baholanmaydi.
-          </p>
-        </div>
-        <Link href="/dashboard/billing" className={`${btn.primary} shrink-0`}>Obunani ko‘rish</Link>
-      </div>
-    )
-  }
+  // Obunasiz: baholash bloki umuman ko'rsatilmaydi ("Baholash faqat obunada" olib tashlangan).
+  if (!canGrade) return null
 
   const remaining = aiQuota.quota?.remaining ?? 0
   if (!aiQuota.loading && remaining > 0) {
