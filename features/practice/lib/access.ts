@@ -13,6 +13,16 @@ export const isPremiumTest = (t: Pick<PracticeCatalogItem, 'access' | 'is_free'>
 /** Katalog elementi joriy foydalanuvchi uchun qulflanganmi (eski javoblarda `is_locked` bo'lmasa — ochiq deb olinadi). */
 export const isLockedTest = (t: Partial<Pick<PracticeCatalogItem, 'is_locked'>>) => t.is_locked === true
 
+/**
+ * Foydalanuvchi bu testni ocha oladimi (UI qoidasi, yagona manba).
+ * - backend is_locked=true bo'lsa — bloklanadi;
+ * - premium test va faol obuna yo'q (yoki hali aniqlanmagan, paid=null) — bloklanadi.
+ */
+export const isBlockedForUser = (
+  t: Partial<Pick<PracticeCatalogItem, 'is_locked' | 'access' | 'is_free'>>,
+  paid: boolean | null,
+) => isLockedTest(t) || (isPremiumTest(t as Pick<PracticeCatalogItem, 'access' | 'is_free'>) && paid !== true)
+
 /** 403 "obuna kerak" xatosini aniqlaydi (test boshlash / kontent olishda). */
 export const isSubscriptionRequiredError = (e: unknown) => {
   const status = (e as { status?: number } | null)?.status

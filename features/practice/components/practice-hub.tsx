@@ -8,7 +8,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowUpRight, ChevronLeft, ChevronRight, Clock3, Crown, Sparkles } from 'lucide-react'
 import { useApi } from '@/shared/api/use-api'
 import type { PracticeCatalog, PracticeSkill } from '@/shared/api/types'
-import { isLockedTest, isPremiumTest } from '@/features/practice/lib/access'
+import { isBlockedForUser, isPremiumTest } from '@/features/practice/lib/access'
+import { usePaidAccess } from '@/features/practice/lib/use-paid-access'
 import { useSpeakingGrading } from '@/features/speaking/lib/access'
 import { FOCUS } from '@/shared/lib/brand'
 import { Uz, useAlphabet } from '@/shared/providers/alphabet-provider'
@@ -42,6 +43,7 @@ export function PracticeHub() {
   const catalog = useApi<PracticeCatalog>('/practice/tests')
   const results = useApi<any[]>(cfg.resultsPath)
   const speaking = useSpeakingGrading()
+  const paid = usePaidAccess()
   const [page, setPage] = useState(1)
 
   useEffect(() => setPage(1), [active])
@@ -58,10 +60,10 @@ export function PracticeHub() {
         raw,
         part: raw.practice_part_number ? `Part ${raw.practice_part_number}` : null,
         premium: isPremiumTest(raw),
-        locked: isLockedTest(raw),
+        locked: isBlockedForUser(raw, paid),
       }))
       .sort((a, b) => collator.compare(b.title, a.title))
-  }, [catalog.data, active])
+  }, [catalog.data, active, paid])
 
   const pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE))
   const safePage = Math.min(page, pages)

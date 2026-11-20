@@ -20,7 +20,8 @@ import {
 } from 'lucide-react'
 import { useApi } from '@/shared/api/use-api'
 import type { PracticeCatalog, PracticeSkill } from '@/shared/api/types'
-import { PREMIUM_UPGRADE_HREF, isLockedTest, isPremiumTest } from '@/features/practice/lib/access'
+import { PREMIUM_UPGRADE_HREF, isBlockedForUser, isPremiumTest } from '@/features/practice/lib/access'
+import { usePaidAccess } from '@/features/practice/lib/use-paid-access'
 import { FOCUS, LIME } from '@/shared/lib/brand'
 import { Badge, ErrorBox, Loading, btn } from '@/shared/ui/dashboard-kit'
 import { Circle } from '@/shared/ui/circle'
@@ -236,6 +237,7 @@ export function SkillPractice(props: {
   lockedAction?: (t: TestCard) => ReactNode
 }) {
   const { title, desc, skill, listPath, resultsPath, testBaseHref, toTest, notice, footer, accessState = 'open', lockedAction } = props
+  const paid = usePaidAccess()
 
   const catalog = useApi<PracticeCatalog>(skill ? `/practice/tests?skill=${skill}` : null)
   const legacyList = useApi<any[]>(skill ? null : (listPath ?? null))
@@ -255,7 +257,7 @@ export function SkillPractice(props: {
     return {
       ...t,
       premium: isPremiumTest(raw),
-      locked: isLockedTest(raw),
+      locked: isBlockedForUser(raw, paid),
       part: detectPart(t),
     }
   })
