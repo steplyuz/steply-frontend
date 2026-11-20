@@ -4,10 +4,23 @@
 import { useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpenText, CheckCircle2, Clock3, Crown, Headphones, Lock, Mic, Pencil, Play } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  BookOpenText,
+  CheckCircle2,
+  Clock3,
+  Crown,
+  Headphones,
+  Lock,
+  Mic,
+  Pencil,
+  Play,
+} from 'lucide-react'
 import { useApi } from '@/shared/api/use-api'
 import type { PracticeCatalog, PracticeSkill } from '@/shared/api/types'
-import { PREMIUM_UPGRADE_HREF, isLockedTest } from '@/features/practice/lib/access'
+import { PREMIUM_UPGRADE_HREF, isLockedTest, isPremiumTest } from '@/features/practice/lib/access'
 import { FOCUS, LIME } from '@/shared/lib/brand'
 import { Badge, ErrorBox, Loading, btn } from '@/shared/ui/dashboard-kit'
 import { Circle } from '@/shared/ui/circle'
@@ -17,18 +30,23 @@ export type TestCard = {
   title: string
   meta: (string | null | undefined)[]
   free?: boolean
-  /** Pullik (premium) test. Ro'yxatda "Premium" belgisi bilan ko'rinadi. */
+  /** Pullik test. Ro'yxatda "Premium" belgisi bilan ko'rinadi. */
   premium?: boolean
-  /** Joriy foydalanuvchi uchun qulflangan: "Boshlash" o'rniga obuna tugmasi ko'rsatiladi. */
+  /** Backend hisobi: joriy foydalanuvchi uchun qulflangan. */
   locked?: boolean
-  /** Test qaysi qismga tegishli (masalan, 'Part 1'). Berilsa, katalog qismlar bo'yicha guruhlanadi. */
+  /** Test qismi (masalan, 'Part 1'). Berilsa, katalog qismlar bo'yicha guruhlanadi. */
   part?: string | null
-  /** Qism ko'rsatmasi (parts[0].description). Tanlangan qism sarlavhasi ostida ko'rinadi. */
+  /** Qism ko'rsatmasi. Tanlangan qism sarlavhasi ostida ko'rinadi. */
   description?: string | null
 }
-export type ResultRow = { id: number; date: string; score: string; level?: string | null; note?: string | null }
 
-type BillingLimits = { tier: string }
+export type ResultRow = {
+  id: number
+  date: string
+  score: string
+  level?: string | null
+  note?: string | null
+}
 
 export const SKILLS = {
   reading: { tint: '#E4F1E9', accent: '#1F7A4D', icon: BookOpenText },
@@ -36,6 +54,7 @@ export const SKILLS = {
   writing: { tint: '#E1F2E8', accent: '#278556', icon: Pencil },
   speaking: { tint: '#E9F5EE', accent: '#145232', icon: Mic },
 } as const
+
 export type SkillKind = keyof typeof SKILLS
 
 function detectSkill(title: string): SkillKind {
@@ -43,15 +62,29 @@ function detectSkill(title: string): SkillKind {
   return (Object.keys(SKILLS) as SkillKind[]).find((k) => t.includes(k)) ?? 'reading'
 }
 
-/**
- * Practice katalogida faqat is_practice=true va faol testlar ko'rsatiladi.
- * Maydon javobda umuman bo'lmasa (undefined), test yashirilmaydi: faqat aniq `false` yashiriladi.
- */
+/** Practice katalogida faqat is_practice=false va is_active=false testlar yashiriladi. */
 export function isPracticeVisible(raw: any): boolean {
   if (!raw || typeof raw !== 'object') return true
   if (raw.is_practice === false) return false
   if (raw.is_active === false) return false
   return true
+}
+
+/**
+ * Karta sarlavhasi. "Writing Practice — Test 18" -> "Test 18".
+ * Test raqami bo'lmasa, ko'nikma nomi olib tashlanadi.
+ */
+export function cleanTitle(title: string, label: string) {
+  const num = title.match(/Test\s*#?\s*(\d+)/i)
+  if (num) return `Test ${num[1]}`
+  const segs = title.split(/\s[—–]\s/).map((s) => s.trim())
+  const base = segs.length > 2 ? segs[1] : segs[0]
+  return base.replace(new RegExp(`^${label}\\s*[-—:]?\\s*`, 'i'), '').trim() || base
+}
+
+export const baseTitle = (title: string) => {
+  const segs = title.split(/\s[—–]\s/).map((s) => s.trim())
+  return segs.length > 2 ? segs[1] : segs[0]
 }
 
 export function LockedBadge() {
@@ -63,7 +96,7 @@ export function LockedBadge() {
   )
 }
 
-/** Qulflangan premium test: boshlash o'rniga obuna sahifasiga olib boradi. */
+/** Qulflangan test: "Boshlash" o'rniga obuna sahifasiga olib boradi. */
 export function PremiumLockButton({ cls = 'w-full', onDark = false }: { cls?: string; onDark?: boolean }) {
   return (
     <Link
@@ -82,7 +115,6 @@ export function PremiumLockButton({ cls = 'w-full', onDark = false }: { cls?: st
 
 const PART_RE = /\bpart\s*(\d+)/i
 
-/** Qismni aniqlash: avval `part` maydoni, so'ng sarlavha yoki meta ichidagi "Part N" */
 function detectPart(t: TestCard): string | null {
   if (t.part) return t.part
   const m = t.title.match(PART_RE) ?? t.meta.map((x) => x?.match(PART_RE)).find(Boolean)
@@ -90,11 +122,6 @@ function detectPart(t: TestCard): string | null {
 }
 
 const partNum = (p: string) => parseInt(p.replace(/\D/g, ''), 10) || 0
-
-export const baseTitle = (title: string) => {
-  const segs = title.split(/\s[—–]\s/).map((s) => s.trim())
-  return segs.length > 2 ? segs[1] : segs[0]
-}
 
 const WAVE = [30, 55, 40, 78, 50, 92, 60, 35, 72, 45, 85, 42, 26, 58]
 
@@ -201,18 +228,14 @@ export function SkillPractice(props: {
   testBaseHref?: string
   toTest: (raw: any) => TestCard
   toResult: (raw: any) => ResultRow
-  /** Natijalar endi umumiy sahifada ko'rsatiladi; prop saqlanadi, lekin bu yerda ishlatilmaydi. */
+  /** Natijalar umumiy sahifada ko'rsatiladi. Prop uyumlilik uchun saqlangan. */
   resultAction?: (id: number, reload: () => void) => ReactNode
   notice?: ReactNode
   footer?: ReactNode
   accessState?: 'loading' | 'open' | 'locked'
   lockedAction?: (t: TestCard) => ReactNode
 }) {
-  const {
-    title, desc, skill, listPath, resultsPath, testBaseHref,
-    toTest, notice, footer,
-    accessState = 'open', lockedAction,
-  } = props
+  const { title, desc, skill, listPath, resultsPath, testBaseHref, toTest, notice, footer, accessState = 'open', lockedAction } = props
 
   const catalog = useApi<PracticeCatalog>(skill ? `/practice/tests?skill=${skill}` : null)
   const legacyList = useApi<any[]>(skill ? null : (listPath ?? null))
@@ -220,7 +243,6 @@ export function SkillPractice(props: {
     ? { ...catalog, data: catalog.data ? (catalog.data.items[skill] ?? []) : null }
     : legacyList
   const results = useApi<any[]>(resultsPath)
-  const limits = useApi<BillingLimits>('/billing/me/limits')
 
   const [activePart, setActivePart] = useState<string | null>(null)
 
@@ -228,18 +250,12 @@ export function SkillPractice(props: {
   const { tint, accent, icon: SkillIcon } = SKILLS[kind]
   const accentVar = { '--accent': accent } as CSSProperties
 
-  // Tier aniqlanguncha premium testlarni lock qilib turmaymiz.
-  // FREE tier: backend katalogdan premium testlarni filtrlaydi,
-  // lekin obuna yangi tugagan holatlar uchun frontend ham himoya qiladi.
-  const hasPremium = limits.data != null && limits.data.tier !== 'FREE'
-
-  const cards = (tests.data ?? []).filter(isPracticeVisible).map((raw) => {
+  const cards: TestCard[] = (tests.data ?? []).filter(isPracticeVisible).map((raw: any) => {
     const t = toTest(raw)
-    const isPremium = t.premium ?? (raw?.is_practice === true && raw?.is_free === false)
     return {
       ...t,
-      premium: isPremium,
-      locked: (t.locked ?? isLockedTest(raw ?? {})) || (isPremium && !hasPremium),
+      premium: isPremiumTest(raw),
+      locked: isLockedTest(raw),
       part: detectPart(t),
     }
   })
@@ -255,11 +271,7 @@ export function SkillPractice(props: {
       map.set(c.part!, list)
       return map
     }, new Map<string, TestCard[]>()),
-  ).map(([part, items]) => ({
-    part,
-    items,
-    description: items[0]?.description ?? null,
-  }))
+  ).map(([part, items]) => ({ part, items, description: items[0]?.description ?? null }))
 
   const current = partGroups.find((g) => g.part === activePart) ?? partGroups[0]
 
@@ -307,15 +319,26 @@ export function SkillPractice(props: {
   const cardBase =
     'group relative flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-[#0F3D26]/[0.07] transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 hover:ring-[var(--accent)] motion-reduce:transition-none motion-reduce:hover:translate-y-0'
 
+  const renderBadges = (t: TestCard) => (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {t.free && <Badge tone="green">Bepul</Badge>}
+      {t.locked ? (
+        <LockedBadge />
+      ) : t.premium ? (
+        <Badge tone="amber">
+          <Crown aria-hidden="true" className="mr-1 size-3" />
+          Premium
+        </Badge>
+      ) : null}
+    </div>
+  )
+
   const renderHead = (t: TestCard, badge: string | null, mark: ReactNode) => (
     <div className="relative isolate flex min-h-32 flex-col justify-between overflow-hidden p-5 sm:min-h-36 sm:p-6" style={{ background: tint }}>
       <Circle color={`${accent}14`} width={16} className="-left-10 -top-14 size-36" />
       {mark}
       <div className="relative z-10 flex items-start justify-between gap-3">
-        <span
-          className="flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-[#0F3D26]/[0.07]"
-          style={{ color: accent }}
-        >
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-[#0F3D26]/[0.07]" style={{ color: accent }}>
           <SkillIcon aria-hidden="true" className="size-6" strokeWidth={1.9} />
         </span>
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -324,13 +347,7 @@ export function SkillPractice(props: {
               {badge}
             </span>
           )}
-          {t.free && <Badge tone="green">Bepul</Badge>}
-          {t.locked
-            ? <LockedBadge />
-            : t.premium
-              ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge>
-              : null
-          }
+          {renderBadges(t)}
         </div>
       </div>
     </div>
@@ -396,13 +413,7 @@ export function SkillPractice(props: {
           <span className="rounded-full px-3 py-1 text-xs font-bold text-foreground" style={{ background: LIME }}>
             To'liq test
           </span>
-          {t.free && <Badge tone="green">Bepul</Badge>}
-          {t.locked
-            ? <LockedBadge />
-            : t.premium
-              ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge>
-              : null
-          }
+          {renderBadges(t)}
         </div>
         <h3 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">{t.title}</h3>
         {renderMetas(t, true)}
@@ -423,7 +434,6 @@ export function SkillPractice(props: {
         <ArrowLeft className="size-4" aria-hidden="true" /> Kabinetga qaytish
       </Link>
 
-      {/* Hero + statistika */}
       <section className="grid gap-3 sm:gap-4 lg:grid-cols-5">
         <div
           className="relative isolate flex flex-col justify-between gap-8 overflow-hidden rounded-3xl p-5 ring-1 ring-[#0F3D26]/[0.07] sm:p-8 lg:col-span-3 lg:min-h-80 lg:p-10"
@@ -490,16 +500,13 @@ export function SkillPractice(props: {
 
       {notice}
 
-      {/* Testlar */}
       <section aria-labelledby="available-tests-heading" className="space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between gap-3">
           <h2 id="available-tests-heading" className="scroll-mt-6 text-xl font-semibold tracking-tight text-foreground sm:scroll-mt-20 sm:text-3xl">
             Testlar katalogi
           </h2>
           {!tests.loading && !tests.error && (
-            <span className="rounded-full bg-brand-texture px-3 py-1.5 text-xs font-bold tabular-nums text-white">
-              {cards.length} ta
-            </span>
+            <span className="rounded-full bg-brand-texture px-3 py-1.5 text-xs font-bold tabular-nums text-white">{cards.length} ta</span>
           )}
         </div>
 
@@ -525,7 +532,7 @@ export function SkillPractice(props: {
                   <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-xl">To'liq test</h3>
                   <p className="mt-0.5 text-sm text-foreground/60">Barcha qismlar bitta imtihonda — haqiqiy imtihon sharoitida.</p>
                 </div>
-                <div className="space-y-3 sm:space-y-4">{fullCards.map(renderFullCard)}</div>
+                <div className="space-y-3 sm:space-y-4">{fullCards.map((t) => renderFullCard(t))}</div>
               </div>
             )}
 
@@ -561,9 +568,7 @@ export function SkillPractice(props: {
                 <div role="tabpanel" className="space-y-4">
                   <div>
                     <h4 className="text-2xl font-semibold tracking-tighter text-foreground">{current.part}</h4>
-                    {current.description && (
-                      <p className="mt-1 max-w-3xl text-sm leading-6 text-foreground/60">{current.description}</p>
-                    )}
+                    {current.description && <p className="mt-1 max-w-3xl text-sm leading-6 text-foreground/60">{current.description}</p>}
                   </div>
                   <div className={gridCls}>{current.items.map(renderPartCard)}</div>
                 </div>
@@ -573,13 +578,10 @@ export function SkillPractice(props: {
         )}
       </section>
 
-      {/* Natijalar: umumiy sahifaga havola */}
       <section aria-label="Natijalar" className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl">Mening natijalarim</h2>
-          <p className="mt-1 text-sm text-foreground/60">
-            {results.loading ? '—' : `${results.data?.length ?? 0} ta natija`}
-          </p>
+          <p className="mt-1 text-sm text-foreground/60">{results.loading ? '—' : `${results.data?.length ?? 0} ta natija`}</p>
         </div>
         <Link href={resultsHref} className={btn.outline}>
           Barcha natijalar

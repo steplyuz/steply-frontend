@@ -18,7 +18,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
   {
     title: 'Mashqlar',
     items: [
-      { href: '/dashboard/cefr', label: 'CEFR', icon: BookOpen, tone: 'blue', also: ['/dashboard/reading', '/dashboard/listening', '/dashboard/writing', '/dashboard/speaking'] },
+      { href: '/dashboard/cefr', label: 'CEFR', icon: BookOpen, tone: 'blue', also: ['/dashboard/cefr?skill=reading', '/dashboard/cefr?skill=listening', '/dashboard/cefr?skill=writing', '/dashboard/cefr?skill=speaking'] },
       { href: '/dashboard/analysis', label: 'Analysis', icon: ChartNoAxesCombined, tone: 'blue' },
       { href: '/dashboard/mock-exams', label: 'Mock Exam', icon: GraduationCap, tone: 'purple' },
     ],

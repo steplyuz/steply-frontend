@@ -8,26 +8,24 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowUpRight, ChevronLeft, ChevronRight, Clock3, Crown, Sparkles } from 'lucide-react'
 import { useApi } from '@/shared/api/use-api'
 import type { PracticeCatalog, PracticeSkill } from '@/shared/api/types'
-import { isLockedTest } from '@/features/practice/lib/access'
+import { isLockedTest, isPremiumTest } from '@/features/practice/lib/access'
 import { useSpeakingGrading } from '@/features/speaking/lib/access'
 import { FOCUS } from '@/shared/lib/brand'
 import { Uz, useAlphabet } from '@/shared/providers/alphabet-provider'
 import { SpeakingGradingNotice } from '@/features/speaking/components/speaking-grading-notice'
 import { SpeakingHistory } from '@/features/speaking/components/speaking-history'
 import { SpeakingLockedActions } from '@/features/speaking/components/speaking-locked'
-import { SKILLS, LockedBadge, PremiumLockButton, baseTitle, isPracticeVisible } from './skill-practice'
+import { SKILLS, LockedBadge, PremiumLockButton, cleanTitle, isPracticeVisible } from './skill-practice'
 import { PRACTICE_CONFIG, SKILL_ORDER, type HubTest } from './practice-config'
 import { Badge, ErrorBox, Loading, PageHeader, btn } from '@/shared/ui/dashboard-kit'
 
 const PAGE_SIZE = 12
 
-type BillingLimits = { tier: string }
-
-type Card = HubTest & { raw: any; part: string | null; locked: boolean; premium: boolean }
-
-/** Katta raqam ko'rinadigan sarlavha: ko'nikma nomini olib tashlaydi */
-function cleanTitle(title: string, label: string) {
-  return baseTitle(title).replace(new RegExp(`^${label}\\s*[-—:]?\\s*`, 'i'), '').trim() || baseTitle(title)
+type Card = HubTest & {
+  raw: any
+  part: string | null
+  premium: boolean
+  locked: boolean
 }
 
 export function PracticeHub() {
@@ -35,6 +33,7 @@ export function PracticeHub() {
   const pathname = usePathname()
   const params = useSearchParams()
   const { t: tr } = useAlphabet()
+
   const requested = params.get('skill') as PracticeSkill | null
   const active: PracticeSkill = requested && SKILL_ORDER.includes(requested) ? requested : 'reading'
   const cfg = PRACTICE_CONFIG[active]
@@ -42,44 +41,37 @@ export function PracticeHub() {
 
   const catalog = useApi<PracticeCatalog>('/practice/tests')
   const results = useApi<any[]>(cfg.resultsPath)
-  const limits = useApi<BillingLimits>('/billing/me/limits')
   const speaking = useSpeakingGrading()
   const [page, setPage] = useState(1)
 
   useEffect(() => setPage(1), [active])
-
-  // Tier aniqlanguncha (loading) premium testlarni lock qilib turmaymiz —
-  // agar tier FREE bo'lsa backend allaqachon ularni filtrlagan bo'ladi.
-  // Tier ma'lum bo'lgach, FREE bo'lsa premium testlar locked ko'rsatiladi.
-  const hasPremium = limits.data != null && limits.data.tier !== 'FREE'
 
   const select = (s: PracticeSkill) => router.replace(`${pathname}?skill=${s}`, { scroll: false })
 
   const cards: Card[] = useMemo(() => {
     const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
 
-    const list = (catalog.data?.items?.[active] ?? []).filter(isPracticeVisible).map((raw: any) => {
-      const t = cfg.toTest(raw)
-      const isPremium = t.isPremium ?? (raw?.is_practice === true && raw?.is_free === false)
-      return {
-        ...t,
+    return (catalog.data?.items?.[active] ?? [])
+      .filter(isPracticeVisible)
+      .map((raw: any) => ({
+        ...PRACTICE_CONFIG[active].toTest(raw),
         raw,
         part: raw.practice_part_number ? `Part ${raw.practice_part_number}` : null,
-        locked: isLockedTest(raw ?? {}) || (isPremium && !hasPremium),
-        premium: isPremium,
-      }
-    })
-
-    return [...list].sort((a, b) => collator.compare(b.title, a.title))
-  }, [catalog.data, active, cfg, hasPremium])
+        premium: isPremiumTest(raw),
+        locked: isLockedTest(raw),
+      }))
+      .sort((a, b) => collator.compare(b.title, a.title))
+  }, [catalog.data, active])
 
   const pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE))
   const safePage = Math.min(page, pages)
   const offset = (safePage - 1) * PAGE_SIZE
   const visible = cards.slice(offset, offset + PAGE_SIZE)
+
   const counts = (s: PracticeSkill) => (catalog.data?.items?.[s] ?? []).filter(isPracticeVisible).length
 
-  const speakingState = active === 'speaking' ? (speaking.loading ? 'loading' : speaking.canGrade ? 'open' : 'locked') : 'open'
+  const speakingState =
+    active === 'speaking' ? (speaking.loading ? 'loading' : speaking.canGrade ? 'open' : 'locked') : 'open'
 
   const renderAction = (t: Card) => {
     if (t.locked) return <PremiumLockButton cls="w-full" />
@@ -102,10 +94,9 @@ export function PracticeHub() {
 
   return (
     <div className="space-y-6 pb-6 sm:space-y-8">
-      {/* Sarlavha + umumiy ko'rsatkichlar */}
       <PageHeader
         title="Practice"
-        desc={tr('Ko\'nikmani tanlang, testni boshlang va natijangizni kuzating.')}
+        desc={tr("Ko'nikmani tanlang, testni boshlang va natijangizni kuzating.")}
         eyebrow="Mashq"
         action={
           <>
@@ -119,8 +110,7 @@ export function PracticeHub() {
         }
       />
 
-      {/* Ko'nikma tablari */}
-      <div role="tablist" aria-label={tr('Ko\'nikmalar')} className="flex gap-2 overflow-x-auto rounded-full bg-white p-1.5 ring-1 ring-[#0F3D26]/[0.06]">
+      <div role="tablist" aria-label={tr("Ko'nikmalar")} className="flex gap-2 overflow-x-auto rounded-full bg-white p-1.5 ring-1 ring-[#0F3D26]/[0.06]">
         {SKILL_ORDER.map((s) => {
           const on = s === active
           const { icon: Icon } = SKILLS[s]
@@ -131,7 +121,9 @@ export function PracticeHub() {
               role="tab"
               aria-selected={on}
               onClick={() => select(s)}
-              className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-bold transition active:scale-95 motion-reduce:transition-none ${on ? 'bg-primary-strong text-white' : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10'} ${FOCUS}`}
+              className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-bold transition active:scale-95 motion-reduce:transition-none ${
+                on ? 'bg-primary-strong text-white' : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10'
+              } ${FOCUS}`}
             >
               <span
                 className={`flex size-6 items-center justify-center rounded-full ${on ? 'bg-brand-glow text-primary-strong' : ''}`}
@@ -140,7 +132,9 @@ export function PracticeHub() {
                 <Icon aria-hidden="true" className="size-3.5" strokeWidth={2.25} />
               </span>
               {PRACTICE_CONFIG[s].label}
-              <span className={`text-xs tabular-nums ${on ? 'text-white/60' : 'text-foreground/40'}`}>{catalog.loading ? '' : counts(s)}</span>
+              <span className={`text-xs tabular-nums ${on ? 'text-white/60' : 'text-foreground/40'}`}>
+                {catalog.loading ? '' : counts(s)}
+              </span>
             </button>
           )
         })}
@@ -155,13 +149,14 @@ export function PracticeHub() {
         </div>
       )}
 
-      {/* Testlar */}
       <section aria-label="Mavjud testlar" className="space-y-4">
         <div className="flex items-center gap-3">
           <h2 id="available-tests-heading" className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             <Uz>Mavjud testlar</Uz>
           </h2>
-          <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: tint, color: accent }}>{cfg.desc}</span>
+          <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: tint, color: accent }}>
+            {cfg.desc}
+          </span>
         </div>
 
         {catalog.loading ? (
@@ -173,8 +168,12 @@ export function PracticeHub() {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl" style={{ background: tint, color: accent }}>
               <SkillIcon aria-hidden="true" className="size-5" />
             </span>
-            <p className="mt-4 text-sm font-bold text-foreground"><Uz>Hozircha testlar yo'q.</Uz></p>
-            <p className="mt-1 text-sm text-muted-foreground"><Uz>Yangi testlar qo'shilganda shu yerda ko'rinadi.</Uz></p>
+            <p className="mt-4 text-sm font-bold text-foreground">
+              <Uz>Hozircha testlar yo'q.</Uz>
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              <Uz>Yangi testlar qo'shilganda shu yerda ko'rinadi.</Uz>
+            </p>
           </div>
         ) : (
           <>
@@ -203,21 +202,32 @@ export function PracticeHub() {
                             {t.part}
                           </span>
                         )}
-                        {t.free && <Badge tone="green"><Uz>Bepul</Uz></Badge>}
-                        {t.locked
-                          ? <LockedBadge />
-                          : t.premium
-                            ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge>
-                            : null
-                        }
+                        {t.free && (
+                          <Badge tone="green">
+                            <Uz>Bepul</Uz>
+                          </Badge>
+                        )}
+                        {t.locked ? (
+                          <LockedBadge />
+                        ) : t.premium ? (
+                          <Badge tone="amber">
+                            <Crown aria-hidden="true" className="mr-1 size-3" />
+                            Premium
+                          </Badge>
+                        ) : null}
                       </div>
+
                       <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-foreground">
                         {cleanTitle(t.title, cfg.label)}
                       </h3>
+
                       {metas.length > 0 && (
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
                           {metas.map((m, k) => (
-                            <span key={`${m}-${k}`} className="inline-flex items-center gap-1 rounded-full bg-foreground/5 px-2.5 py-1 text-xs font-semibold text-foreground/70">
+                            <span
+                              key={`${m}-${k}`}
+                              className="inline-flex items-center gap-1 rounded-full bg-foreground/5 px-2.5 py-1 text-xs font-semibold text-foreground/70"
+                            >
                               {/daqiqa|min/i.test(m) ? <Clock3 aria-hidden="true" className="size-3" /> : null}
                               {m}
                             </span>
@@ -259,7 +269,6 @@ export function PracticeHub() {
         )}
       </section>
 
-      {/* Natijalar: umumiy sahifaga havola */}
       <section aria-label="Natijalar" className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">

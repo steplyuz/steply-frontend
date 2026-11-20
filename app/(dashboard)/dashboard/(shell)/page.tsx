@@ -34,10 +34,10 @@ const PRACTICE_SKILLS: {
   description: string
   Icon: (p: IconProps) => ReactElement
 }[] = [
-    { href: '/dashboard/reading', label: 'Reading', description: 'Matn o‘qing, savollarga javob bering', Icon: ReadingIcon },
-    { href: '/dashboard/listening', label: 'Listening', description: 'Audio tinglang, tushunishingizni sinang', Icon: ListeningIcon },
-    { href: '/dashboard/writing', label: 'Writing', description: 'Yozma topshiriqlarni bajaring', Icon: WritingIcon },
-    { href: '/dashboard/speaking', label: 'Speaking', description: 'Gapiring, talaffuzingizni yaxshilang', Icon: SpeakingIcon },
+    { href: '/dashboard/cefr?skill=reading', label: 'Reading', description: 'Matn o‘qing, savollarga javob bering', Icon: ReadingIcon },
+    { href: '/dashboard/cefr?skill=listening', label: 'Listening', description: 'Audio tinglang, tushunishingizni sinang', Icon: ListeningIcon },
+    { href: '/dashboard/cefr?skill=writing', label: 'Writing', description: 'Yozma topshiriqlarni bajaring', Icon: WritingIcon },
+    { href: '/dashboard/cefr?skill=speaking', label: 'Speaking', description: 'Gapiring, talaffuzingizni yaxshilang', Icon: SpeakingIcon },
   ]
 
 /* Reklama bo‘lmaganda hero'ning o‘ng yarmida turadigan pill ustunlar.
@@ -205,7 +205,7 @@ export default function DashboardPage() {
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Link
-                href="/dashboard/reading"
+                href="/dashboard/cefr?skill=reading"
                 className={`inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-full px-6 text-[15px] font-semibold text-white transition hover:brightness-110 active:scale-[0.98] motion-reduce:transition-none sm:flex-none ${focusRing}`}
                 style={{ background: `linear-gradient(135deg, ${G_MID}, ${G_DARK})` }}
               >
@@ -473,7 +473,7 @@ export default function DashboardPage() {
             </h2>
             <p className="max-w-lg text-xl font-medium leading-snug tracking-tight sm:text-2xl">{TIPS[tipIndex]}</p>
             <Link
-              href="/dashboard/reading"
+              href="/dashboard/cefr"
               className="group inline-flex min-h-11 w-fit items-center gap-3 rounded-full bg-white py-1.5 pl-4 pr-1.5 text-sm font-semibold text-[#0F3D26] transition active:scale-[0.98] motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Mashq qilish
