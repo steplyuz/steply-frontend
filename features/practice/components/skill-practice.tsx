@@ -9,7 +9,7 @@ import { useApi } from '@/shared/api/use-api'
 import type { PracticeCatalog, PracticeSkill } from '@/shared/api/types'
 import { PREMIUM_UPGRADE_HREF, isLockedTest } from '@/features/practice/lib/access'
 import { FOCUS, LIME } from '@/shared/lib/brand'
-import { Badge, Empty, ErrorBox, Loading, fmtDate } from '@/shared/ui/dashboard-kit'
+import { Badge, ErrorBox, Loading, btn } from '@/shared/ui/dashboard-kit'
 import { Circle } from '@/shared/ui/circle'
 
 export type TestCard = {
@@ -201,6 +201,7 @@ export function SkillPractice(props: {
   testBaseHref?: string
   toTest: (raw: any) => TestCard
   toResult: (raw: any) => ResultRow
+  /** Natijalar endi umumiy sahifada ko'rsatiladi; prop saqlanadi, lekin bu yerda ishlatilmaydi. */
   resultAction?: (id: number, reload: () => void) => ReactNode
   notice?: ReactNode
   footer?: ReactNode
@@ -209,7 +210,7 @@ export function SkillPractice(props: {
 }) {
   const {
     title, desc, skill, listPath, resultsPath, testBaseHref,
-    toTest, toResult, resultAction, notice, footer,
+    toTest, notice, footer,
     accessState = 'open', lockedAction,
   } = props
 
@@ -238,7 +239,7 @@ export function SkillPractice(props: {
     return {
       ...t,
       premium: isPremium,
-      locked: t.locked ?? isLockedTest(raw ?? {}) || (isPremium && !hasPremium),
+      locked: (t.locked ?? isLockedTest(raw ?? {})) || (isPremium && !hasPremium),
       part: detectPart(t),
     }
   })
@@ -411,6 +412,7 @@ export function SkillPractice(props: {
   )
 
   const gridCls = 'grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3'
+  const resultsHref = `/dashboard/practice/results?skill=${skill ?? kind}`
 
   return (
     <div className="space-y-5 pb-6 sm:space-y-8">
@@ -571,55 +573,17 @@ export function SkillPractice(props: {
         )}
       </section>
 
-      {/* Natijalar */}
-      <section aria-labelledby="practice-results-heading" className="space-y-3 sm:space-y-4">
-        <h2 id="practice-results-heading" className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          Mening natijalarim
-        </h2>
-
-        {results.loading ? (
-          <Loading rows={2} />
-        ) : results.error ? (
-          <ErrorBox message={results.error.message} onRetry={results.reload} />
-        ) : !results.data?.length ? (
-          <div className="rounded-3xl border border-dashed border-foreground/20 bg-white p-8 text-center">
-            <Empty text="Hali natija yo'q." />
-            <p className="mt-1 text-sm text-foreground/60">Birinchi testni yakunlaganingizdan so'ng natijangiz shu yerda chiqadi.</p>
-          </div>
-        ) : (
-          <ul className="space-y-2 sm:space-y-3">
-            {results.data.map((raw) => {
-              const r = toResult(raw)
-              return (
-                <li
-                  key={r.id}
-                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-3xl bg-white p-4 ring-1 ring-[#0F3D26]/[0.07] sm:px-6 sm:py-5"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-                    <span
-                      className="flex size-11 shrink-0 items-center justify-center rounded-xl"
-                      style={{ background: tint, color: accent }}
-                    >
-                      <CheckCircle2 aria-hidden="true" className="size-5" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate font-bold text-foreground">{fmtDate(r.date)}</p>
-                      <p className="mt-0.5 truncate text-xs text-foreground/60">{r.note || 'Test yakunlandi'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    {r.level && <Badge tone="primary">{r.level}</Badge>}
-                    <div className="min-w-14 rounded-2xl px-3 py-1.5 text-center" style={{ background: tint }}>
-                      <p className="text-xl font-semibold leading-tight tabular-nums text-foreground">{r.score}</p>
-                      <p className="text-[11px] font-medium text-foreground/60">ball</p>
-                    </div>
-                    {resultAction?.(r.id, results.reload)}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
+      {/* Natijalar: umumiy sahifaga havola */}
+      <section aria-label="Natijalar" className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-3xl">Mening natijalarim</h2>
+          <p className="mt-1 text-sm text-foreground/60">
+            {results.loading ? '—' : `${results.data?.length ?? 0} ta natija`}
+          </p>
+        </div>
+        <Link href={resultsHref} className={btn.outline}>
+          Barcha natijalar
+        </Link>
       </section>
 
       {footer}
