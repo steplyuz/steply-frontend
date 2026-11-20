@@ -2,11 +2,11 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Download, Loader2, Lock } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import { toast } from 'sonner'
 import { speakingApi } from '@/shared/api'
 import { authenticatedDownload } from '@/shared/api/download'
-import { btn } from '@/shared/ui/dashboard-kit'
+import { PracticeActionButton, PracticeActionLink } from '@/shared/ui/action-button'
 
 function safeName(input: string): string {
   return input.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'speaking'
@@ -29,20 +29,23 @@ export function SpeakingPdfButton({ testId, title, className = '' }: { testId: s
   }
 
   return (
-    <button type="button" onClick={() => void download()} disabled={busy} className={`${btn.outline} !min-h-10 gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60 ${className}`}>
-      {busy ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />} PDF yuklab olish
-    </button>
+    <PracticeActionButton
+      variant="download"
+      label="PDF yuklab olish"
+      busy={busy}
+      disabled={busy}
+      onClick={() => void download()}
+      className={className}
+    />
   )
 }
 
-/** Obunasiz foydalanuvchi uchun test kartochkasidagi o'rnini bosuvchi amallar. */
+/** Obunasiz foydalanuvchi uchun test kartochkasidagi amallar (kartochka tugmalari bilan bir xil ko'rinishda). */
 export function SpeakingLockedActions({ testId, title }: { testId: string; title: string }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex w-full flex-col gap-2">
       <SpeakingPdfButton testId={testId} title={title} />
-      <Link href="/dashboard/billing" className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground">
-        Obuna kerak
-      </Link>
+      <PracticeActionLink href="/dashboard/billing" variant="locked" label="Obunani ochish" />
     </div>
   )
 }
@@ -50,8 +53,8 @@ export function SpeakingLockedActions({ testId, title }: { testId: string; title
 /** Obunasiz foydalanuvchi test sahifasiga kirganda: imtihon bloklanadi, PDF ochiq qoladi. */
 export function SpeakingLockedTest({ testId }: { testId?: string | null }) {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md rounded-3xl bg-white p-6 text-center shadow-[0_8px_28px_rgba(15,61,38,0.035)] sm:p-8 ring-1 ring-[#0F3D26]/[0.06]">
+    <div className="flex min-h-[60vh] items-center justify-center bg-background p-6">
+      <div className="w-full max-w-md rounded-3xl bg-white p-6 text-center shadow-[0_8px_28px_rgba(15,61,38,0.035)] ring-1 ring-[#0F3D26]/[0.06] sm:p-8">
         <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-2xl bg-secondary">
           <Lock className="size-5 text-foreground" />
         </div>
@@ -59,13 +62,14 @@ export function SpeakingLockedTest({ testId }: { testId?: string | null }) {
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Imtihonni topshirish va baholash faqat faol obunada mavjud. Savollarni PDF formatida yuklab olishingiz mumkin.
         </p>
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
+        <div className="mt-6 flex flex-col gap-2">
           {testId && <SpeakingPdfButton testId={testId} title={`speaking-${testId}`} />}
-          <Link href="/dashboard/billing" className={`${btn.primary} !min-h-10 rounded-full px-4 text-sm font-semibold inline-flex items-center justify-center`}>
-            Obunani ko‘rish
-          </Link>
+          <PracticeActionLink href="/dashboard/billing" variant="start" label="Obunani ko‘rish" />
         </div>
-        <Link href="/dashboard/cefr?skill=speaking" className="mt-4 inline-block text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground">
+        <Link
+          href="/dashboard/cefr?skill=speaking"
+          className="mt-4 inline-block text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
           Speaking testlariga qaytish
         </Link>
       </div>

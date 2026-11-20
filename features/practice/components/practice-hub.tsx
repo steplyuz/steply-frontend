@@ -16,9 +16,10 @@ import { Uz, useAlphabet } from '@/shared/providers/alphabet-provider'
 import { SpeakingGradingNotice } from '@/features/speaking/components/speaking-grading-notice'
 import { SpeakingHistory } from '@/features/speaking/components/speaking-history'
 import { SpeakingLockedActions } from '@/features/speaking/components/speaking-locked'
-import { SKILLS, LockedBadge, PremiumLockButton, cleanTitle, isPracticeVisible } from './skill-practice'
+import { SKILLS, LockedBadge, PremiumLockButton, isPracticeVisible } from './skill-practice'
 import { PRACTICE_CONFIG, SKILL_ORDER, type HubTest } from './practice-config'
 import { Badge, ErrorBox, Loading, PageHeader, btn } from '@/shared/ui/dashboard-kit'
+import { PracticeActionLink } from '@/shared/ui/action-button'
 
 const PAGE_SIZE = 12
 
@@ -79,17 +80,7 @@ export function PracticeHub() {
     if (t.locked) return <PremiumLockButton cls="w-full" />
     if (speakingState === 'locked') return <SpeakingLockedActions testId={t.id} title={t.title} />
     if (speakingState === 'loading') return null
-    return (
-      <Link
-        href={`${cfg.testBaseHref}/${t.id}`}
-        className={`group/btn inline-flex min-h-12 w-full items-center justify-between gap-3 rounded-full bg-gradient-to-br from-primary to-primary-strong py-2 pl-6 pr-2 text-sm font-bold text-primary-foreground shadow-[0_12px_30px_-14px_rgba(31,122,77,0.75)] transition hover:-translate-y-0.5 active:scale-[0.98] motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${FOCUS}`}
-      >
-        <Uz>Boshlash</Uz>
-        <span className="flex size-9 items-center justify-center rounded-full bg-white text-primary-strong transition-transform group-hover/btn:rotate-45 motion-reduce:transition-none">
-          <ArrowUpRight aria-hidden="true" className="size-4" />
-        </span>
-      </Link>
-    )
+    return <PracticeActionLink href={`${cfg.testBaseHref}/${t.id}`} variant="start" label="Boshlash" className="w-full" />
   }
 
   const accentVar = { '--skill-accent': accent } as CSSProperties
@@ -220,7 +211,7 @@ export function PracticeHub() {
                       </div>
 
                       <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-foreground">
-                        {cleanTitle(t.title, cfg.label)}
+                        {t.title}
                       </h3>
 
                       {metas.length > 0 && (

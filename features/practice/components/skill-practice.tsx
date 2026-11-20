@@ -25,6 +25,7 @@ import { usePaidAccess } from '@/features/practice/lib/use-paid-access'
 import { FOCUS, LIME } from '@/shared/lib/brand'
 import { Badge, ErrorBox, Loading, btn } from '@/shared/ui/dashboard-kit'
 import { Circle } from '@/shared/ui/circle'
+import { PracticeActionLink } from '@/shared/ui/action-button'
 
 export type TestCard = {
   id: string
@@ -99,19 +100,7 @@ export function LockedBadge() {
 
 /** Qulflangan test: "Boshlash" o'rniga obuna sahifasiga olib boradi. */
 export function PremiumLockButton({ cls = 'w-full', onDark = false }: { cls?: string; onDark?: boolean }) {
-  return (
-    <Link
-      href={PREMIUM_UPGRADE_HREF}
-      style={onDark ? { background: LIME } : undefined}
-      className={`group/btn inline-flex min-h-12 items-center justify-between gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-bold transition active:scale-[0.98] motion-reduce:transition-none ${onDark ? 'text-foreground hover:brightness-95' : 'bg-foreground/[0.07] text-foreground hover:bg-[#0F3D26]/[0.07]'
-        } ${FOCUS} ${cls}`}
-    >
-      Obunani ochish
-      <span className={`flex size-9 items-center justify-center rounded-full ${onDark ? 'bg-foreground text-white' : 'bg-white text-foreground'}`}>
-        <Lock aria-hidden="true" className="size-4" />
-      </span>
-    </Link>
-  )
+  return <PracticeActionLink href={PREMIUM_UPGRADE_HREF} variant="locked" label="Obunani ochish" onDark={onDark} className={cls} />
 }
 
 const PART_RE = /\bpart\s*(\d+)/i
@@ -301,20 +290,7 @@ export function SkillPractice(props: {
     if (accessState === 'locked') return lockedAction ? lockedAction(t) : <PremiumLockButton cls={cls} onDark={onDark} />
     if (accessState === 'loading') return null
     return testBaseHref ? (
-      <Link
-        href={`${testBaseHref}/${t.id}`}
-        style={onDark ? { background: LIME } : undefined}
-        className={`group/btn inline-flex min-h-12 items-center justify-between gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-bold transition active:scale-[0.98] motion-reduce:transition-none ${onDark ? 'text-foreground hover:brightness-95' : 'bg-foreground text-white hover:bg-foreground/90'
-          } ${FOCUS} ${cls}`}
-      >
-        Boshlash
-        <span
-          className={`flex size-9 items-center justify-center rounded-full transition-transform group-hover/btn:rotate-45 motion-reduce:transition-none ${onDark ? 'bg-foreground text-white' : 'bg-white text-foreground'
-            }`}
-        >
-          <ArrowUpRight aria-hidden="true" className="size-4" />
-        </span>
-      </Link>
+      <PracticeActionLink href={`${testBaseHref}/${t.id}`} variant="start" label="Boshlash" onDark={onDark} className={cls} />
     ) : null
   }
 

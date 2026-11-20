@@ -269,7 +269,7 @@ function WritingExamComponent() {
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 {test.cefr_level || "CEFR"} · Yozish bo&apos;limi
                             </span>
-                            <h1 className="truncate text-xl font-semibold text-foreground sm:text-2xl" title={test.title}>
+                            <h1 className="break-words text-xl font-semibold text-foreground sm:text-2xl" title={test.title}>
                                 {test.title}
                             </h1>
                         </div>
