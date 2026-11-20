@@ -28,7 +28,8 @@ export type TestCard = {
 }
 export type ResultRow = { id: number; date: string; score: string; level?: string | null; note?: string | null }
 
-// Dashboard'dagi ko'nikma ranglari va ikonkalari bilan bir xil (writing — #EA580C, kontrast uchun)
+type BillingLimits = { tier: string }
+
 export const SKILLS = {
   reading: { tint: '#E4F1E9', accent: '#1F7A4D', icon: BookOpenText },
   listening: { tint: '#D9E7DE', accent: '#0F3D26', icon: Headphones },
@@ -44,7 +45,6 @@ function detectSkill(title: string): SkillKind {
 
 /**
  * Practice katalogida faqat is_practice=true va faol testlar ko'rsatiladi.
- * Backend (submit/attempts) shu shartni talab qiladi: aks holda talaba testni ochib, keyin 404 oladi.
  * Maydon javobda umuman bo'lmasa (undefined), test yashirilmaydi: faqat aniq `false` yashiriladi.
  */
 export function isPracticeVisible(raw: any): boolean {
@@ -69,9 +69,8 @@ export function PremiumLockButton({ cls = 'w-full', onDark = false }: { cls?: st
     <Link
       href={PREMIUM_UPGRADE_HREF}
       style={onDark ? { background: LIME } : undefined}
-      className={`group/btn inline-flex min-h-12 items-center justify-between gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-bold transition active:scale-[0.98] motion-reduce:transition-none ${
-        onDark ? 'text-foreground hover:brightness-95' : 'bg-foreground/[0.07] text-foreground hover:bg-[#0F3D26]/[0.07]'
-      } ${FOCUS} ${cls}`}
+      className={`group/btn inline-flex min-h-12 items-center justify-between gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-bold transition active:scale-[0.98] motion-reduce:transition-none ${onDark ? 'text-foreground hover:brightness-95' : 'bg-foreground/[0.07] text-foreground hover:bg-[#0F3D26]/[0.07]'
+        } ${FOCUS} ${cls}`}
     >
       Obunani ochish
       <span className={`flex size-9 items-center justify-center rounded-full ${onDark ? 'bg-foreground text-white' : 'bg-white text-foreground'}`}>
@@ -92,11 +91,6 @@ function detectPart(t: TestCard): string | null {
 
 const partNum = (p: string) => parseInt(p.replace(/\D/g, ''), 10) || 0
 
-/**
- * Mini-test sarlavhasi: "Reading — Paper 2 (National Assessment) — Part 1: Part 1"
- * → "Paper 2 (National Assessment)". Uchta segment bo'lsa o'rtadagisi olinadi,
- * aks holda birinchi segment.
- */
 export const baseTitle = (title: string) => {
   const segs = title.split(/\s[—–]\s/).map((s) => s.trim())
   return segs.length > 2 ? segs[1] : segs[0]
@@ -104,7 +98,6 @@ export const baseTitle = (title: string) => {
 
 const WAVE = [30, 55, 40, 78, 50, 92, 60, 35, 72, 45, 85, 42, 26, 58]
 
-/** Hero o'ng tomonidagi bezak — har bir ko'nikma uchun o'zining ko'rinishi */
 function HeroPreview({ kind, accent }: { kind: SkillKind; accent: string }) {
   const bar = 'rounded-full bg-foreground/12'
   return (
@@ -130,7 +123,6 @@ function HeroPreview({ kind, accent }: { kind: SkillKind; accent: string }) {
           </div>
         </>
       )}
-
       {kind === 'reading' && (
         <>
           <div className="h-3 w-2/5 rounded-full" style={{ background: accent }} />
@@ -154,7 +146,6 @@ function HeroPreview({ kind, accent }: { kind: SkillKind; accent: string }) {
           </div>
         </>
       )}
-
       {kind === 'writing' && (
         <>
           <div className="flex items-center gap-3">
@@ -177,7 +168,6 @@ function HeroPreview({ kind, accent }: { kind: SkillKind; accent: string }) {
           </div>
         </>
       )}
-
       {kind === 'speaking' && (
         <>
           <div className="flex items-center gap-2">
@@ -205,51 +195,58 @@ function HeroPreview({ kind, accent }: { kind: SkillKind; accent: string }) {
 export function SkillPractice(props: {
   title: string
   desc: string
-  /**
-   * Practice katalogi (GET /practice/tests?skill=...). Premium testlar qulflangan holda ko'rinadi.
-   * Berilsa `listPath` ishlatilmaydi.
-   */
   skill?: PracticeSkill
-  /** Eski rejim: ko'nikmaning o'z ro'yxat endpointi (qulf ma'lumoti yo'q). */
   listPath?: string
   resultsPath: string
   testBaseHref?: string
   toTest: (raw: any) => TestCard
   toResult: (raw: any) => ResultRow
   resultAction?: (id: number, reload: () => void) => ReactNode
-  /** Hero'dan keyin ko'rsatiladigan ixtiyoriy blok (masalan, obuna ogohlantirishi). */
   notice?: ReactNode
-  /** Natijalardan keyin ko'rsatiladigan ixtiyoriy blok. */
   footer?: ReactNode
-  /** Start huquqi: 'loading' — hali aniqlanmagan, 'locked' — lockedAction ko'rsatiladi. Default 'open'. */
   accessState?: 'loading' | 'open' | 'locked'
-  /** accessState 'locked' bo'lganda "Boshlash" o'rniga ko'rsatiladigan amallar. */
   lockedAction?: (t: TestCard) => ReactNode
 }) {
-  const { title, desc, skill, listPath, resultsPath, testBaseHref, toTest, toResult, resultAction, notice, footer, accessState = 'open', lockedAction } = props
+  const {
+    title, desc, skill, listPath, resultsPath, testBaseHref,
+    toTest, toResult, resultAction, notice, footer,
+    accessState = 'open', lockedAction,
+  } = props
+
   const catalog = useApi<PracticeCatalog>(skill ? `/practice/tests?skill=${skill}` : null)
   const legacyList = useApi<any[]>(skill ? null : (listPath ?? null))
   const tests = skill
     ? { ...catalog, data: catalog.data ? (catalog.data.items[skill] ?? []) : null }
     : legacyList
   const results = useApi<any[]>(resultsPath)
-  // Tanlangan qism (tab). Hech qachon tanlanmagan bo'lsa, birinchi qism ochiladi.
+  const limits = useApi<BillingLimits>('/billing/me/limits')
+
   const [activePart, setActivePart] = useState<string | null>(null)
 
   const kind = detectSkill(title)
   const { tint, accent, icon: SkillIcon } = SKILLS[kind]
   const accentVar = { '--accent': accent } as CSSProperties
 
-  // is_practice=false (yoki nofaol) testlar katalogda ko'rsatilmaydi
+  // Tier aniqlanguncha premium testlarni lock qilib turmaymiz.
+  // FREE tier: backend katalogdan premium testlarni filtrlaydi,
+  // lekin obuna yangi tugagan holatlar uchun frontend ham himoya qiladi.
+  const hasPremium = !limits.loading && limits.data != null && limits.data.tier !== 'FREE'
+
   const cards = (tests.data ?? []).filter(isPracticeVisible).map((raw) => {
     const t = toTest(raw)
-    return { ...t, premium: t.premium ?? (raw?.access === 'premium'), locked: t.locked ?? isLockedTest(raw ?? {}), part: detectPart(t) }
+    const isPremium = t.premium ?? (raw?.is_practice === true && raw?.is_free === false)
+    return {
+      ...t,
+      premium: isPremium,
+      locked: t.locked ?? isLockedTest(raw ?? {}) || (isPremium && !hasPremium),
+      part: detectPart(t),
+    }
   })
+
   const partCards = cards.filter((c) => c.part).sort((x, y) => partNum(x.part!) - partNum(y.part!))
   const fullCards = cards.filter((c) => !c.part)
   const hasParts = partCards.length > 0
 
-  // Har bir qism uchun alohida guruh (partCards allaqachon raqam bo'yicha tartiblangan)
   const partGroups = Array.from(
     partCards.reduce((map, c) => {
       const list = map.get(c.part!) ?? []
@@ -273,9 +270,8 @@ export function SkillPractice(props: {
         {metas.map((meta, i) => (
           <span
             key={`${meta}-${i}`}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
-              dark ? 'bg-white/10 text-white/80' : 'bg-[#0F3D26]/[0.07] text-foreground/70'
-            }`}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${dark ? 'bg-white/10 text-white/80' : 'bg-[#0F3D26]/[0.07] text-foreground/70'
+              }`}
           >
             {/daqiqa|min/i.test(meta) ? <Clock3 aria-hidden="true" className="size-3.5" /> : null}
             {meta}
@@ -285,37 +281,31 @@ export function SkillPractice(props: {
     )
   }
 
-  // "Boshlash" — dashboarddagi CTA kabi: to'q pill + oq dumaloq strelka (to'q kartada: lime pill)
-  const renderAction = (t: TestCard, cls = 'w-full', onDark = false) =>
-    t.locked ? (
-      <PremiumLockButton cls={cls} onDark={onDark} />
-    ) : accessState === 'locked' ? (
-      lockedAction ? lockedAction(t) : <PremiumLockButton cls={cls} onDark={onDark} />
-    ) : accessState === 'loading' ? null : (
-      testBaseHref && (
-        <Link
-          href={`${testBaseHref}/${t.id}`}
-          style={onDark ? { background: LIME } : undefined}
-          className={`group/btn inline-flex min-h-12 items-center justify-between gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-bold transition active:scale-[0.98] motion-reduce:transition-none ${
-            onDark ? 'text-foreground hover:brightness-95' : 'bg-foreground text-white hover:bg-foreground/90'
+  const renderAction = (t: TestCard, cls = 'w-full', onDark = false) => {
+    if (t.locked) return <PremiumLockButton cls={cls} onDark={onDark} />
+    if (accessState === 'locked') return lockedAction ? lockedAction(t) : <PremiumLockButton cls={cls} onDark={onDark} />
+    if (accessState === 'loading') return null
+    return testBaseHref ? (
+      <Link
+        href={`${testBaseHref}/${t.id}`}
+        style={onDark ? { background: LIME } : undefined}
+        className={`group/btn inline-flex min-h-12 items-center justify-between gap-3 rounded-full py-2 pl-6 pr-2 text-sm font-bold transition active:scale-[0.98] motion-reduce:transition-none ${onDark ? 'text-foreground hover:brightness-95' : 'bg-foreground text-white hover:bg-foreground/90'
           } ${FOCUS} ${cls}`}
-        >
-          Boshlash
-          <span
-            className={`flex size-9 items-center justify-center rounded-full transition-transform group-hover/btn:rotate-45 motion-reduce:transition-none ${
-              onDark ? 'bg-foreground text-white' : 'bg-white text-foreground'
+      >
+        Boshlash
+        <span
+          className={`flex size-9 items-center justify-center rounded-full transition-transform group-hover/btn:rotate-45 motion-reduce:transition-none ${onDark ? 'bg-foreground text-white' : 'bg-white text-foreground'
             }`}
-          >
-            <ArrowUpRight aria-hidden="true" className="size-4" />
-          </span>
-        </Link>
-      )
-    )
+        >
+          <ArrowUpRight aria-hidden="true" className="size-4" />
+        </span>
+      </Link>
+    ) : null
+  }
 
   const cardBase =
     'group relative flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-[#0F3D26]/[0.07] transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/10 hover:ring-[var(--accent)] motion-reduce:transition-none motion-reduce:hover:translate-y-0'
 
-  // Karta tepasi: ko'nikma rangidagi blok, oq ikonka chipi, yorliqlar va suv belgisi
   const renderHead = (t: TestCard, badge: string | null, mark: ReactNode) => (
     <div className="relative isolate flex min-h-32 flex-col justify-between overflow-hidden p-5 sm:min-h-36 sm:p-6" style={{ background: tint }}>
       <Circle color={`${accent}14`} width={16} className="-left-10 -top-14 size-36" />
@@ -334,13 +324,17 @@ export function SkillPractice(props: {
             </span>
           )}
           {t.free && <Badge tone="green">Bepul</Badge>}
-          {t.locked ? <LockedBadge /> : t.premium ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge> : null}
+          {t.locked
+            ? <LockedBadge />
+            : t.premium
+              ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge>
+              : null
+          }
         </div>
       </div>
     </div>
   )
 
-  // Qismlari yo'q oddiy test kartasi
   const renderCard = (t: TestCard) => (
     <article key={t.id} style={accentVar} className={cardBase}>
       {renderHead(
@@ -363,7 +357,6 @@ export function SkillPractice(props: {
     </article>
   )
 
-  // Bitta qism (Part N) uchun mini-test kartasi: tepasida katta raqam
   const renderPartCard = (t: TestCard) => {
     const n = partNum(t.part!)
     return (
@@ -391,7 +384,6 @@ export function SkillPractice(props: {
     )
   }
 
-  // To'liq test: keng, to'q kartochka
   const renderFullCard = (t: TestCard) => (
     <article
       key={t.id}
@@ -401,10 +393,15 @@ export function SkillPractice(props: {
       <div className="relative z-10 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full px-3 py-1 text-xs font-bold text-foreground" style={{ background: LIME }}>
-            To‘liq test
+            To'liq test
           </span>
           {t.free && <Badge tone="green">Bepul</Badge>}
-          {t.locked ? <LockedBadge /> : t.premium ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge> : null}
+          {t.locked
+            ? <LockedBadge />
+            : t.premium
+              ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge>
+              : null
+          }
         </div>
         <h3 className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">{t.title}</h3>
         {renderMetas(t, true)}
@@ -451,7 +448,7 @@ export function SkillPractice(props: {
             href="#available-tests-heading"
             className={`group relative z-10 inline-flex min-h-12 w-full items-center justify-between gap-3 rounded-full bg-foreground py-2 pl-6 pr-2 text-[15px] font-bold text-white shadow-lg shadow-black/15 transition hover:bg-foreground/90 active:scale-[0.98] motion-reduce:transition-none min-[420px]:w-fit min-[420px]:justify-start ${FOCUS}`}
           >
-            Testlarni ko‘rish
+            Testlarni ko'rish
             <span className="flex size-9 items-center justify-center rounded-full bg-white text-foreground">
               <ArrowRight aria-hidden="true" className="size-4 rotate-90 transition-transform group-hover:translate-y-0.5 motion-reduce:transition-none" />
             </span>
@@ -463,7 +460,7 @@ export function SkillPractice(props: {
           <div className="relative z-10 flex h-full flex-col gap-5">
             <div>
               <h2 className="text-base font-bold sm:text-lg">Sizning mashqlaringiz</h2>
-              <p className="mt-0.5 text-xs text-white/55">{title} bo‘yicha umumiy ko‘rsatkich</p>
+              <p className="mt-0.5 text-xs text-white/55">{title} bo'yicha umumiy ko'rsatkich</p>
             </div>
             <dl className="grid flex-1 gap-3 sm:grid-rows-2">
               <div className="flex items-center gap-4 rounded-2xl bg-white/10 p-4 sm:p-5">
@@ -513,8 +510,8 @@ export function SkillPractice(props: {
             <span className="mx-auto flex size-12 items-center justify-center rounded-2xl" style={{ background: tint, color: accent }}>
               <SkillIcon aria-hidden="true" className="size-5" />
             </span>
-            <p className="mt-4 text-sm font-bold text-foreground">Hozircha testlar yo‘q.</p>
-            <p className="mt-1 text-sm text-foreground/60">Yangi testlar qo‘shilganda shu yerda ko‘rinadi.</p>
+            <p className="mt-4 text-sm font-bold text-foreground">Hozircha testlar yo'q.</p>
+            <p className="mt-1 text-sm text-foreground/60">Yangi testlar qo'shilganda shu yerda ko'rinadi.</p>
           </div>
         ) : !hasParts ? (
           <div className={gridCls}>{cards.map(renderCard)}</div>
@@ -523,7 +520,7 @@ export function SkillPractice(props: {
             {fullCards.length > 0 && (
               <div className="space-y-3">
                 <div>
-                  <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-xl">To‘liq test</h3>
+                  <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-xl">To'liq test</h3>
                   <p className="mt-0.5 text-sm text-foreground/60">Barcha qismlar bitta imtihonda — haqiqiy imtihon sharoitida.</p>
                 </div>
                 <div className="space-y-3 sm:space-y-4">{fullCards.map(renderFullCard)}</div>
@@ -532,7 +529,7 @@ export function SkillPractice(props: {
 
             <div className="space-y-5">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-xl">Qismlar bo‘yicha mashq</h3>
+                <h3 className="text-base font-semibold tracking-tight text-foreground sm:text-xl">Qismlar bo'yicha mashq</h3>
                 <span className="rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums" style={{ background: tint, color: accent }}>
                   {partGroups.length} ta qism
                 </span>
@@ -540,18 +537,17 @@ export function SkillPractice(props: {
 
               <div role="tablist" aria-label="Qismlar" className="flex gap-2 overflow-x-auto pb-1">
                 {partGroups.map((g) => {
-                  const active = current?.part === g.part
+                  const isActive = current?.part === g.part
                   return (
                     <button
                       key={g.part}
                       type="button"
                       role="tab"
-                      aria-selected={active}
+                      aria-selected={isActive}
                       onClick={() => setActivePart(g.part)}
-                      className={`min-h-11 shrink-0 rounded-full px-5 text-sm font-bold transition motion-reduce:transition-none ${
-                        active ? 'text-white' : 'bg-[#0F3D26]/[0.07] text-foreground/70 hover:bg-[#0F3D26]/[0.07]'
-                      } ${FOCUS}`}
-                      style={active ? { background: accent } : undefined}
+                      className={`min-h-11 shrink-0 rounded-full px-5 text-sm font-bold transition motion-reduce:transition-none ${isActive ? 'text-white' : 'bg-[#0F3D26]/[0.07] text-foreground/70 hover:bg-[#0F3D26]/[0.07]'
+                        } ${FOCUS}`}
+                      style={isActive ? { background: accent } : undefined}
                     >
                       {g.part}
                     </button>
@@ -587,8 +583,8 @@ export function SkillPractice(props: {
           <ErrorBox message={results.error.message} onRetry={results.reload} />
         ) : !results.data?.length ? (
           <div className="rounded-3xl border border-dashed border-foreground/20 bg-white p-8 text-center">
-            <Empty text="Hali natija yo‘q." />
-            <p className="mt-1 text-sm text-foreground/60">Birinchi testni yakunlaganingizdan so‘ng natijangiz shu yerda chiqadi.</p>
+            <Empty text="Hali natija yo'q." />
+            <p className="mt-1 text-sm text-foreground/60">Birinchi testni yakunlaganingizdan so'ng natijangiz shu yerda chiqadi.</p>
           </div>
         ) : (
           <ul className="space-y-2 sm:space-y-3">
@@ -611,7 +607,6 @@ export function SkillPractice(props: {
                       <p className="mt-0.5 truncate text-xs text-foreground/60">{r.note || 'Test yakunlandi'}</p>
                     </div>
                   </div>
-
                   <div className="flex items-center gap-3 sm:gap-4">
                     {r.level && <Badge tone="primary">{r.level}</Badge>}
                     <div className="min-w-14 rounded-2xl px-3 py-1.5 text-center" style={{ background: tint }}>

@@ -11,7 +11,7 @@ import type { PracticeSkill } from '@/shared/api/types'
 import { Uz } from '@/shared/providers/alphabet-provider'
 import { btn } from '@/shared/ui/dashboard-kit'
 
-export type HubTest = { id: string; title: string; free?: boolean; meta: (string | null | undefined)[] }
+export type HubTest = { id: string; title: string; free?: boolean; isPremium?: boolean; meta: (string | null | undefined)[] }
 export type HubResult = { id: number; date: string; score: string; level?: string | null; note?: string | null }
 
 export function AiCheck({ id, reload }: { id: number; reload: () => void }) {
@@ -33,7 +33,7 @@ export function AiCheck({ id, reload }: { id: number; reload: () => void }) {
         {busy ? <Uz>Tekshirilmoqda…</Uz> : <Uz>AI tekshiruv</Uz>}
       </button>
       <Link href={`/dashboard/writing/results/${id}`} className="text-xs font-semibold text-muted-foreground underline underline-offset-4 hover:text-foreground">
-        <Uz>Natijani ko‘rish</Uz>
+        <Uz>Natijani ko'rish</Uz>
       </Link>
       {err && <span className="max-w-48 text-right text-xs text-red-600 dark:text-red-400">{err}</span>}
     </div>
@@ -58,25 +58,31 @@ type Cfg = {
 export const PRACTICE_CONFIG: Record<PracticeSkill, Cfg> = {
   reading: {
     label: 'Reading',
-    desc: 'Matnlar va savollar bo‘yicha mashq',
+    desc: 'Matnlar va savollar bo\'yicha mashq',
     resultsPath: '/reading-tests/me/results',
     testBaseHref: '/dashboard/reading',
     toTest: (t) => ({
-      id: t.id, title: t.title, free: t.is_free,
+      id: t.id,
+      title: t.title,
+      free: t.is_free,
+      isPremium: t.is_practice === true && t.is_free === false,
       meta: [t.practice_part_number ? `Part ${t.practice_part_number}` : null, t.cefr_level, `${readingPracticeMinutes(t)} daqiqa`, `${t.total_questions} savol`],
     }),
     toResult: (r) => ({
       id: r.id, date: r.created_at, score: String(r.standard_score ?? '—'), level: r.cefr_level,
-      note: `${r.correct_answers}/${r.total_questions} to‘g‘ri · ${Math.round(r.percentage ?? 0)}%`,
+      note: `${r.correct_answers}/${r.total_questions} to'g'ri · ${Math.round(r.percentage ?? 0)}%`,
     }),
   },
   listening: {
     label: 'Listening',
-    desc: 'Audio testlar bo‘yicha mashq',
+    desc: 'Audio testlar bo\'yicha mashq',
     resultsPath: '/listening-tests/me/results',
     testBaseHref: '/dashboard/listening',
     toTest: (t) => ({
-      id: t.id, title: t.title, free: t.is_free,
+      id: t.id,
+      title: t.title,
+      free: t.is_free,
+      isPremium: t.is_practice === true && t.is_free === false,
       meta: [t.cefr_level, t.duration_minutes ? `${t.duration_minutes} daqiqa` : null, t.total_questions ? `${t.total_questions} savol` : null],
     }),
     toResult: (r) => ({
@@ -90,7 +96,10 @@ export const PRACTICE_CONFIG: Record<PracticeSkill, Cfg> = {
     resultsPath: '/writing-tests/me/results',
     testBaseHref: '/dashboard/writing',
     toTest: (t) => ({
-      id: t.id, title: t.title, free: t.is_free,
+      id: t.id,
+      title: t.title,
+      free: t.is_free,
+      isPremium: t.is_practice === true && t.is_free === false,
       meta: [t.cefr_level, t.duration_minutes ? `${t.duration_minutes} daqiqa` : null, `${t.total_questions ?? 0} topshiriq`],
     }),
     toResult: (r) => ({
@@ -104,7 +113,13 @@ export const PRACTICE_CONFIG: Record<PracticeSkill, Cfg> = {
     desc: 'Ovoz yozish va baholovchi natijalari',
     resultsPath: '/speaking-tests/me/results',
     testBaseHref: '/dashboard/speaking',
-    toTest: (t) => ({ id: t.id, title: t.title, free: t.is_free, meta: [] }),
+    toTest: (t) => ({
+      id: t.id,
+      title: t.title,
+      free: t.is_free,
+      isPremium: t.is_practice === true && t.is_free === false,
+      meta: [],
+    }),
     toResult: (r) => ({
       id: r.id, date: r.created_at, score: String(r.overall_band ?? '—'), level: r.cefr_level, note: r.comment,
     }),

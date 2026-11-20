@@ -21,6 +21,8 @@ import { Badge, Empty, ErrorBox, Loading, PageHeader, btn, fmtDate } from '@/sha
 
 const PAGE_SIZE = 12
 
+type BillingLimits = { tier: string }
+
 type Card = HubTest & { raw: any; part: string | null; locked: boolean; premium: boolean }
 
 /** Katta raqam ko'rinadigan sarlavha: ko'nikma nomini olib tashlaydi */
@@ -40,31 +42,36 @@ export function PracticeHub() {
 
   const catalog = useApi<PracticeCatalog>('/practice/tests')
   const results = useApi<any[]>(cfg.resultsPath)
+  const limits = useApi<BillingLimits>('/billing/me/limits')
   const speaking = useSpeakingGrading()
   const [page, setPage] = useState(1)
 
   useEffect(() => setPage(1), [active])
 
+  // Tier aniqlanguncha (loading) premium testlarni lock qilib turmaymiz —
+  // agar tier FREE bo'lsa backend allaqachon ularni filtrlagan bo'ladi.
+  // Tier ma'lum bo'lgach, FREE bo'lsa premium testlar locked ko'rsatiladi.
+  const hasPremium = !limits.loading && limits.data != null && limits.data.tier !== 'FREE'
+
   const select = (s: PracticeSkill) => router.replace(`${pathname}?skill=${s}`, { scroll: false })
 
-  // Kartalar nom bo'yicha teskari tartibda chiqadi (raqamlar sonli taqqoslanadi):
-  // Test #6 … Test #1, keyin Record Mock - Test 3 … Test 1
   const cards: Card[] = useMemo(() => {
     const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
 
     const list = (catalog.data?.items?.[active] ?? []).filter(isPracticeVisible).map((raw: any) => {
       const t = cfg.toTest(raw)
+      const isPremium = t.isPremium ?? (raw?.is_practice === true && raw?.is_free === false)
       return {
         ...t,
         raw,
         part: raw.practice_part_number ? `Part ${raw.practice_part_number}` : null,
-        locked: isLockedTest(raw ?? {}),
-        premium: raw?.access === 'premium',
+        locked: isLockedTest(raw ?? {}) || (isPremium && !hasPremium),
+        premium: isPremium,
       }
     })
 
     return [...list].sort((a, b) => collator.compare(b.title, a.title))
-  }, [catalog.data, active, cfg])
+  }, [catalog.data, active, cfg, hasPremium])
 
   const pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE))
   const safePage = Math.min(page, pages)
@@ -91,7 +98,6 @@ export function PracticeHub() {
     )
   }
 
-  // Lokal o'zgaruvchi: global --accent tokenini buzmaslik uchun alohida nom
   const accentVar = { '--skill-accent': accent } as CSSProperties
 
   return (
@@ -99,7 +105,7 @@ export function PracticeHub() {
       {/* Sarlavha + umumiy ko'rsatkichlar */}
       <PageHeader
         title="Practice"
-        desc={tr('Ko‘nikmani tanlang, testni boshlang va natijangizni kuzating.')}
+        desc={tr('Ko\'nikmani tanlang, testni boshlang va natijangizni kuzating.')}
         eyebrow="Mashq"
         action={
           <>
@@ -114,32 +120,33 @@ export function PracticeHub() {
       />
 
       {/* Ko'nikma tablari */}
-      <div role="tablist" aria-label={tr('Ko‘nikmalar')} className="flex gap-2 overflow-x-auto rounded-full bg-white p-1.5 ring-1 ring-[#0F3D26]/[0.06]">
-        {SKILL_ORDER.map((s) => {
-          const on = s === active
-          const { icon: Icon } = SKILLS[s]
-          return (
-            <button
-              key={s}
-              type="button"
-              role="tab"
-              aria-selected={on}
-              onClick={() => select(s)}
-              className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-bold transition active:scale-95 motion-reduce:transition-none ${on ? 'bg-primary-strong text-white' : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10'
-                } ${FOCUS}`}
-            >
-              <span
-                className={`flex size-6 items-center justify-center rounded-full ${on ? 'bg-brand-glow text-primary-strong' : ''}`}
-                style={on ? undefined : { color: SKILLS[s].accent }}
+      <div role="tablist" aria-label={tr('Ko\'nikmalar')} className="flex gap-2 overflow-x-auto rounded-full bg-white p-1.5 ring-1 ring-[#0F3D26]/[0.06]">
+        {
+          SKILL_ORDER.map((s) => {
+            const on = s === active
+            const { icon: Icon } = SKILLS[s]
+            return (
+              <button
+                key={s}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => select(s)}
+                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-bold transition active:scale-95 motion-reduce:transition-none ${on ? 'bg-primary-strong text-white' : 'bg-foreground/5 text-foreground/70 hover:bg-foreground/10'} ${FOCUS}`}
               >
-                <Icon aria-hidden="true" className="size-3.5" strokeWidth={2.25} />
-              </span>
-              {PRACTICE_CONFIG[s].label}
-              <span className={`text-xs tabular-nums ${on ? 'text-white/60' : 'text-foreground/40'}`}>{catalog.loading ? '' : counts(s)}</span>
-            </button>
-          )
-        })}
-      </div>
+                <span
+                  className={`flex size-6 items-center justify-center rounded-full ${on ? 'bg-brand-glow text-primary-strong' : ''}`}
+                  style={on ? undefined : { color: SKILLS[s].accent }}
+                >
+                  <Icon aria-hidden="true" className="size-3.5" strokeWidth={2.25} />
+                </span>
+                {PRACTICE_CONFIG[s].label}
+                <span className={`text-xs tabular-nums ${on ? 'text-white/60' : 'text-foreground/40'}`}>{catalog.loading ? '' : counts(s)}</span>
+              </button>
+            )
+          })
+        }
+      </div >
 
       {active === 'speaking' && (
         <div className="space-y-3">
@@ -151,7 +158,7 @@ export function PracticeHub() {
       )}
 
       {/* Testlar */}
-      <section aria-labelledby="available-tests-heading" className="space-y-4">
+      < section aria-label="Mavjud testlar" className="space-y-4" >
         <div className="flex items-center gap-3">
           <h2 id="available-tests-heading" className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             <Uz>Mavjud testlar</Uz>
@@ -159,142 +166,150 @@ export function PracticeHub() {
           <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: tint, color: accent }}>{cfg.desc}</span>
         </div>
 
-        {catalog.loading ? (
-          <Loading rows={3} />
-        ) : catalog.error ? (
-          <ErrorBox message={catalog.error.message} onRetry={catalog.reload} />
-        ) : !cards.length ? (
-          <div className="rounded-3xl border border-dashed border-primary-strong/20 bg-white px-5 py-12 text-center">
-            <span className="mx-auto flex size-12 items-center justify-center rounded-2xl" style={{ background: tint, color: accent }}>
-              <SkillIcon aria-hidden="true" className="size-5" />
-            </span>
-            <p className="mt-4 text-sm font-bold text-foreground"><Uz>Hozircha testlar yo‘q.</Uz></p>
-            <p className="mt-1 text-sm text-muted-foreground"><Uz>Yangi testlar qo‘shilganda shu yerda ko‘rinadi.</Uz></p>
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
-              {visible.map((t, i) => {
-                const metas = t.meta.filter((m): m is string => !!m && !/mini-?test/i.test(m))
-                // Ro'yxatdagi o'rin bo'yicha raqam: birinchi karta eng katta raqamni oladi
-                const num = cards.length - (offset + i)
-                return (
-                  <article
-                    key={t.id}
-                    style={accentVar}
-                    className="group relative flex min-h-48 flex-col justify-between gap-5 overflow-hidden rounded-3xl bg-white p-5 ring-1 ring-[#0F3D26]/[0.06] transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-strong/10 hover:ring-[var(--skill-accent)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="pointer-events-none absolute -right-1 -top-3 z-0 select-none font-display text-[6.5rem] font-semibold leading-none tracking-tighter transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
-                      style={{ color: `${accent}24` }}
-                    >
-                      {num}
-                    </span>
-
-                    <div className="relative z-10 min-w-0 pr-16">
-                      <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                        {t.part && (
-                          <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: tint, color: accent }}>
-                            {t.part}
-                          </span>
-                        )}
-                        {t.free && <Badge tone="green"><Uz>Bepul</Uz></Badge>}
-                        {t.locked ? <LockedBadge /> : t.premium ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge> : null}
-                      </div>
-                      <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-foreground">
-                        {cleanTitle(t.title, cfg.label)}
-                      </h3>
-                      {metas.length > 0 && (
-                        <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          {metas.map((m, k) => (
-                            <span key={`${m}-${k}`} className="inline-flex items-center gap-1 rounded-full bg-foreground/5 px-2.5 py-1 text-xs font-semibold text-foreground/70">
-                              {/daqiqa|min/i.test(m) ? <Clock3 aria-hidden="true" className="size-3" /> : null}
-                              {m}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="relative z-10">{renderAction(t)}</div>
-                  </article>
-                )
-              })}
+        {
+          catalog.loading ? (
+            <Loading rows={3} />
+          ) : catalog.error ? (
+            <ErrorBox message={catalog.error.message} onRetry={catalog.reload} />
+          ) : !cards.length ? (
+            <div className="rounded-3xl border border-dashed border-primary-strong/20 bg-white px-5 py-12 text-center">
+              <span className="mx-auto flex size-12 items-center justify-center rounded-2xl" style={{ background: tint, color: accent }}>
+                <SkillIcon aria-hidden="true" className="size-5" />
+              </span>
+              <p className="mt-4 text-sm font-bold text-foreground"><Uz>Hozircha testlar yo'q.</Uz></p>
+              <p className="mt-1 text-sm text-muted-foreground"><Uz>Yangi testlar qo'shilganda shu yerda ko'rinadi.</Uz></p>
             </div>
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
+                {visible.map((t, i) => {
+                  const metas = t.meta.filter((m): m is string => !!m && !/mini-?test/i.test(m))
+                  const num = cards.length - (offset + i)
+                  return (
+                    <article
+                      key={t.id}
+                      style={accentVar}
+                      className="group relative flex min-h-48 flex-col justify-between gap-5 overflow-hidden rounded-3xl bg-white p-5 ring-1 ring-[#0F3D26]/[0.06] transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-strong/10 hover:ring-[var(--skill-accent)] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute -right-1 -top-3 z-0 select-none font-display text-[6.5rem] font-semibold leading-none tracking-tighter transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
+                        style={{ color: `${accent}24` }}
+                      >
+                        {num}
+                      </span>
 
-            {pages > 1 && (
-              <nav aria-label={tr('Sahifalar')} className="flex items-center justify-center gap-2 pt-2">
-                <button
-                  type="button"
-                  disabled={safePage === 1}
-                  onClick={() => setPage(safePage - 1)}
-                  className={`inline-flex min-h-11 items-center gap-1 rounded-full border border-primary-strong/70 bg-transparent px-4 text-sm font-bold text-primary-strong transition-colors hover:bg-card disabled:opacity-40 ${FOCUS}`}
-                >
-                  <ChevronLeft className="size-4" aria-hidden="true" /> <Uz>Oldingi</Uz>
-                </button>
-                <span className="px-2 text-sm font-semibold tabular-nums text-muted-foreground">
-                  {safePage} / {pages}
-                </span>
-                <button
-                  type="button"
-                  disabled={safePage === pages}
-                  onClick={() => setPage(safePage + 1)}
-                  className={`inline-flex min-h-11 items-center gap-1 rounded-full bg-gradient-to-br from-primary to-primary-strong px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-40 ${FOCUS}`}
-                >
-                  <Uz>Keyingi</Uz> <ChevronRight className="size-4" aria-hidden="true" />
-                </button>
-              </nav>
-            )}
-          </>
-        )}
-      </section>
+                      <div className="relative z-10 min-w-0 pr-16">
+                        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                          {t.part && (
+                            <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: tint, color: accent }}>
+                              {t.part}
+                            </span>
+                          )}
+                          {t.free && <Badge tone="green"><Uz>Bepul</Uz></Badge>}
+                          {t.locked
+                            ? <LockedBadge />
+                            : t.premium
+                              ? <Badge tone="amber"><Crown aria-hidden="true" className="mr-1 size-3" />Premium</Badge>
+                              : null
+                          }
+                        </div>
+                        <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight text-foreground">
+                          {cleanTitle(t.title, cfg.label)}
+                        </h3>
+                        {metas.length > 0 && (
+                          <div className="mt-2.5 flex flex-wrap gap-1.5">
+                            {metas.map((m, k) => (
+                              <span key={`${m}-${k}`} className="inline-flex items-center gap-1 rounded-full bg-foreground/5 px-2.5 py-1 text-xs font-semibold text-foreground/70">
+                                {/daqiqa|min/i.test(m) ? <Clock3 aria-hidden="true" className="size-3" /> : null}
+                                {m}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="relative z-10">{renderAction(t)}</div>
+                    </article>
+                  )
+                })}
+              </div>
+
+              {pages > 1 && (
+                <nav aria-label={tr('Sahifalar')} className="flex items-center justify-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    disabled={safePage === 1}
+                    onClick={() => setPage(safePage - 1)}
+                    className={`inline-flex min-h-11 items-center gap-1 rounded-full border border-primary-strong/70 bg-transparent px-4 text-sm font-bold text-primary-strong transition-colors hover:bg-card disabled:opacity-40 ${FOCUS}`}
+                  >
+                    <ChevronLeft className="size-4" aria-hidden="true" /> <Uz>Oldingi</Uz>
+                  </button>
+                  <span className="px-2 text-sm font-semibold tabular-nums text-muted-foreground">
+                    {safePage} / {pages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={safePage === pages}
+                    onClick={() => setPage(safePage + 1)}
+                    className={`inline-flex min-h-11 items-center gap-1 rounded-full bg-gradient-to-br from-primary to-primary-strong px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-40 ${FOCUS}`}
+                  >
+                    <Uz>Keyingi</Uz> <ChevronRight className="size-4" aria-hidden="true" />
+                  </button>
+                </nav>
+              )}
+            </>
+          )
+        }
+      </section >
 
       {/* Natijalar */}
-      <section aria-labelledby="practice-results-heading" className="space-y-3 sm:space-y-4">
+      < section aria-label="Natijalar" className="space-y-3 sm:space-y-4" >
         <h2 id="practice-results-heading" className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
           {cfg.label} <Uz>natijalarim</Uz>
         </h2>
-        {results.loading ? (
-          <Loading rows={2} />
-        ) : results.error ? (
-          <ErrorBox message={results.error.message} onRetry={results.reload} />
-        ) : !results.data?.length ? (
-          <Empty text={`${tr('Hali natija yo‘q.')} ${tr('Birinchi testni yakunlaganingizdan so‘ng natijangiz shu yerda chiqadi.')}`} />
-        ) : (
-          <ul className="space-y-2 sm:space-y-3">
-            {results.data.map((raw) => {
-              const r = cfg.toResult(raw)
-              return (
-                <li
-                  key={r.id}
-                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-3xl bg-white p-4 ring-1 ring-[#0F3D26]/[0.06] sm:px-6 sm:py-5"
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl" style={{ background: tint, color: accent }}>
-                      <CheckCircle2 aria-hidden="true" className="size-5" />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate font-bold text-foreground">{fmtDate(r.date)}</p>
-                      <p className="mt-0.5 truncate text-xs text-muted-foreground">{r.note || tr('Test yakunlandi')}</p>
+        {
+          results.loading ? (
+            <Loading rows={2} />
+          ) : results.error ? (
+            <ErrorBox message={results.error.message} onRetry={results.reload} />
+          ) : !results.data?.length ? (
+            <Empty text={`${tr('Hali natija yo\'q.')} ${tr('Birinchi testni yakunlaganingizdan so\'ng natijangiz shu yerda chiqadi.')}`} />
+          ) : (
+            <ul className="space-y-2 sm:space-y-3">
+              {results.data.map((raw) => {
+                const r = cfg.toResult(raw)
+                return (
+                  <li
+                    key={r.id}
+                    className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 rounded-3xl bg-white p-4 ring-1 ring-[#0F3D26]/[0.06] sm:px-6 sm:py-5"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl" style={{ background: tint, color: accent }}>
+                        <CheckCircle2 aria-hidden="true" className="size-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-foreground">{fmtDate(r.date)}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{r.note || tr('Test yakunlandi')}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    {r.level && <Badge tone="primary">{r.level}</Badge>}
-                    <div className="min-w-14 rounded-2xl px-3 py-1.5 text-center" style={{ background: tint }}>
-                      <p className="font-display text-xl font-semibold leading-tight tabular-nums text-foreground">{r.score}</p>
-                      <p className="text-[11px] font-medium text-muted-foreground"><Uz>ball</Uz></p>
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      {r.level && <Badge tone="primary">{r.level}</Badge>}
+                      <div className="min-w-14 rounded-2xl px-3 py-1.5 text-center" style={{ background: tint }}>
+                        <p className="font-display text-xl font-semibold leading-tight tabular-nums text-foreground">{r.score}</p>
+                        <p className="text-[11px] font-medium text-muted-foreground"><Uz>ball</Uz></p>
+                      </div>
+                      {cfg.resultAction?.(r.id, results.reload)}
                     </div>
-                    {cfg.resultAction?.(r.id, results.reload)}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </section>
+                  </li>
+                )
+              })}
+            </ul>
+          )
+        }
+      </section >
 
       {active === 'speaking' && <SpeakingHistory />}
-    </div>
+    </div >
   )
 }
