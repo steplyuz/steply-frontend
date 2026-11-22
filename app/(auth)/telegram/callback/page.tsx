@@ -1,60 +1,67 @@
-"use client"
+"use client";
 
-import { Suspense, useEffect, useState } from "react"
-import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AlertCircle, Loader2 } from "lucide-react";
 
-import { authApi } from "@/shared/api"
-import { homeUrlForRole } from "@/shared/providers/auth-context"
-import { Uz, useAlphabet } from "@/shared/providers/alphabet-provider"
-import { safeNextPath } from "@/features/auth/components/auth-shared"
+import { authApi } from "@/shared/api";
+import { homeUrlForRole } from "@/shared/providers/auth-context";
+import { Uz, useAlphabet } from "@/shared/providers/alphabet-provider";
+import { safeNextPath } from "@/features/auth/components/auth-shared";
+import { LanguageSwitcher } from "@/shared/components/language-switcher";
 
-/* Xato matnlari kalit sifatida saqlanadi — ekranda t() orqali tanlangan alifboda chiqadi */
+/* Xato matnlari kalit sifatida saqlanadi. Ekranda t() orqali tanlangan alifboda chiqadi.
+   DIQQAT: apostroflar lug'atdagi bilan bir xil bo'lishi kerak, ya'ni oddiy ' (U+0027) */
 const ERRORS = {
   failed: "Telegram orqali kirish amalga oshmadi.",
-  noSession: "Sessiya yaratilmadi. Iltimos, qaytadan urinib ko‘ring.",
-} as const
-type ErrorKey = keyof typeof ERRORS
+  noSession: "Sessiya yaratilmadi. Iltimos, qaytadan urinib ko'ring.",
+} as const;
+type ErrorKey = keyof typeof ERRORS;
 
-const BRAND_GRADIENT = "linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%)"
+const BRAND_GRADIENT =
+  "linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%)";
 
 function TelegramCallbackContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { t } = useAlphabet()
-  const [error, setError] = useState<ErrorKey | null>(null)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { t } = useAlphabet();
+  const [error, setError] = useState<ErrorKey | null>(null);
 
   useEffect(() => {
-    let active = true
+    let active = true;
 
     async function finish() {
       if (searchParams.get("status") !== "success") {
-        if (active) setError("failed")
-        return
+        if (active) setError("failed");
+        return;
       }
 
-      const me = await authApi.me().catch(() => null)
-      if (!active) return
+      const me = await authApi.me().catch(() => null);
+      if (!active) return;
 
       if (!me) {
-        setError("noSession")
-        return
+        setError("noSession");
+        return;
       }
 
-      // Open-redirect himoyasi: faqat sayt ichidagi yo‘llarga ruxsat
-      const next = safeNextPath(searchParams.get("next"))
-      router.replace(next || homeUrlForRole(me.global_role))
+      // Open-redirect himoyasi: faqat sayt ichidagi yo'llarga ruxsat
+      const next = safeNextPath(searchParams.get("next"));
+      router.replace(next || homeUrlForRole(me.global_role));
     }
 
-    void finish()
+    void finish();
     return () => {
-      active = false
-    }
-  }, [router, searchParams])
+      active = false;
+    };
+  }, [router, searchParams]);
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-background px-5">
+    <main className="relative flex min-h-dvh items-center justify-center bg-background px-5">
+      <div className="fixed right-4 top-4 z-20 sm:right-8 sm:top-6">
+        <LanguageSwitcher />
+      </div>
+
       <div
         className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-[0_24px_64px_rgba(15,61,38,0.10)] ring-1 ring-[#0F3D26]/[0.06]"
         role="status"
@@ -62,13 +69,15 @@ function TelegramCallbackContent() {
       >
         {error ? (
           <>
-            <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-[#DC2626]">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-error">
               <AlertCircle className="size-6" aria-hidden="true" />
             </span>
             <h1 className="mt-5 text-xl font-bold text-foreground">
               <Uz>Telegram bilan kirish amalga oshmadi</Uz>
             </h1>
-            <p className="mt-3 text-sm text-muted-foreground">{t(ERRORS[error])}</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {t(ERRORS[error])}
+            </p>
             <Link
               href="/login"
               style={{ backgroundImage: BRAND_GRADIENT }}
@@ -80,7 +89,10 @@ function TelegramCallbackContent() {
         ) : (
           <>
             <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-[#E4F1E9]">
-              <Loader2 className="size-6 animate-spin text-primary motion-reduce:animate-none" aria-hidden="true" />
+              <Loader2
+                className="size-6 animate-spin text-primary motion-reduce:animate-none"
+                aria-hidden="true"
+              />
             </span>
             <h1 className="mt-5 text-xl font-bold text-foreground">
               <Uz>Telegram tasdiqlanmoqda</Uz>
@@ -92,7 +104,7 @@ function TelegramCallbackContent() {
         )}
       </div>
     </main>
-  )
+  );
 }
 
 // useSearchParams() Next.js'da Suspense chegarasini talab qiladi (build'da prerender xatosini oldini oladi).
@@ -101,5 +113,5 @@ export default function TelegramCallbackPage() {
     <Suspense fallback={null}>
       <TelegramCallbackContent />
     </Suspense>
-  )
+  );
 }

@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import Link from "next/link"
-import { ArrowLeft, ArrowRight, Check, KeyRound, Loader2, Lock } from "lucide-react"
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  KeyRound,
+  Loader2,
+  Lock,
+} from "lucide-react";
 
-import { Uz, useAlphabet } from "@/shared/providers/alphabet-provider"
+import { Uz, useAlphabet } from "@/shared/providers/alphabet-provider";
 import {
   AuthError,
-  AuthShell,
   PHONE_DIGITS,
   PHONE_PREFIX,
   PhoneField,
@@ -15,9 +21,10 @@ import {
   formatLocal,
   primaryButtonClass,
   shake,
-} from "@/features/auth/components/auth-shared"
-import { authApi } from "@/shared/api"
-import { ApiRequestError } from "@/shared/api/client"
+} from "@/features/auth/components/auth-shared";
+import { AuthShell } from "@/features/auth/components/auth-shell";
+import { authApi } from "@/shared/api";
+import { ApiRequestError } from "@/shared/api/client";
 
 /* Parolni tiklash: login/register bilan bir xil qobiq (AuthShell), +998 o‘zgarmas telefon maydoni,
    barcha matnlar t()/<Uz> orqali tanlangan til va alifboga o‘tadi. Lime ranglar va eski logo olib tashlangan. */
@@ -37,7 +44,7 @@ function StepDots({ current }: { current: 1 | 2 }) {
         />
       ))}
     </div>
-  )
+  );
 }
 
 // ─── Success banner ───────────────────────────────────────────────────────────
@@ -51,77 +58,86 @@ function SuccessBanner({ message }: { message: string }) {
       <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
       {message}
     </div>
-  )
+  );
 }
 
 // ─── Form ────────────────────────────────────────────────────────────────────
 
 function ForgotForm() {
-  const { t } = useAlphabet()
-  const [step, setStep] = useState<1 | 2>(1)
+  const { t } = useAlphabet();
+  const [step, setStep] = useState<1 | 2>(1);
   // Faqat 9 ta mahalliy raqam saqlanadi; "+998" o‘zgarmas prefiks
-  const [phoneDigits, setPhoneDigits] = useState("")
-  const [code, setCode] = useState("")
-  const [password, setPassword] = useState("")
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [error, setError] = useState("")
-  const [done, setDone] = useState(false)
-  const [busy, setBusy] = useState(false)
+  const [phoneDigits, setPhoneDigits] = useState("");
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const shakeRef = useRef<HTMLDivElement>(null)
-  const phoneRef = useRef<HTMLInputElement>(null)
-  const codeRef = useRef<HTMLInputElement>(null)
+  const shakeRef = useRef<HTMLDivElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const codeRef = useRef<HTMLInputElement>(null);
 
-  const phone = `${PHONE_PREFIX}${phoneDigits}`
-  const phoneDisplay = `${PHONE_PREFIX} ${formatLocal(phoneDigits)}`
-
-  useEffect(() => {
-    if (window.matchMedia("(min-width: 1024px)").matches) phoneRef.current?.focus()
-  }, [])
+  const phone = `${PHONE_PREFIX}${phoneDigits}`;
+  const phoneDisplay = `${PHONE_PREFIX} ${formatLocal(phoneDigits)}`;
 
   useEffect(() => {
-    if (step === 2) codeRef.current?.focus()
-  }, [step])
+    if (window.matchMedia("(min-width: 1024px)").matches)
+      phoneRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (step === 2) codeRef.current?.focus();
+  }, [step]);
 
   /* Server va o‘zimizning xabarlar ham tanlangan til/alifboga o‘tadi */
   function fail(msg: string) {
-    setError(t(msg))
-    setBusy(false)
-    shake(shakeRef.current)
+    setError(t(msg));
+    setBusy(false);
+    shake(shakeRef.current);
   }
 
   async function onSend(e: React.FormEvent) {
-    e.preventDefault()
-    setError("")
-    setShowSuccess(false)
+    e.preventDefault();
+    setError("");
+    setShowSuccess(false);
 
     if (phoneDigits.length !== PHONE_DIGITS) {
-      fail("Telefon raqam to'liq kiritilmagan")
-      return
+      fail("Telefon raqam to'liq kiritilmagan");
+      return;
     }
 
-    setBusy(true)
+    setBusy(true);
     try {
-      await authApi.forgotPassword(phone)
-      setStep(2)
-      setShowSuccess(true)
-      setBusy(false)
+      await authApi.forgotPassword(phone);
+      setStep(2);
+      setShowSuccess(true);
+      setBusy(false);
     } catch (err) {
-      fail(err instanceof ApiRequestError ? err.message : "Xatolik yuz berdi")
+      fail(err instanceof ApiRequestError ? err.message : "Xatolik yuz berdi");
     }
   }
 
   async function onReset(e: React.FormEvent) {
-    e.preventDefault()
-    setError("")
-    setShowSuccess(false)
-    setBusy(true)
+    e.preventDefault();
+    setError("");
+    setShowSuccess(false);
+    setBusy(true);
     try {
-      await authApi.resetPassword({ phone, code: code.trim(), new_password: password })
-      setDone(true)
-      setBusy(false)
+      await authApi.resetPassword({
+        phone,
+        code: code.trim(),
+        new_password: password,
+      });
+      setDone(true);
+      setBusy(false);
     } catch (err) {
-      fail(err instanceof ApiRequestError ? err.message : "Kod noto'g'ri yoki muddati o'tgan")
+      fail(
+        err instanceof ApiRequestError
+          ? err.message
+          : "Kod noto'g'ri yoki muddati o'tgan",
+      );
     }
   }
 
@@ -140,10 +156,13 @@ function ForgotForm() {
         </p>
         <Link href="/login" className={`${primaryButtonClass} no-underline`}>
           <Uz>Tizimga kirish</Uz>
-          <ArrowRight className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden />
+          <ArrowRight
+            className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+            aria-hidden
+          />
         </Link>
       </div>
-    )
+    );
   }
 
   // ── Step 1: phone ──
@@ -152,7 +171,10 @@ function ForgotForm() {
       <form onSubmit={onSend} noValidate className="w-full">
         <StepDots current={1} />
         <p className="mb-5 text-sm text-muted-foreground">
-          <Uz>Telefon raqamingizni kiriting — tasdiqlash kodini SMS orqali yuboramiz.</Uz>
+          <Uz>
+            Telefon raqamingizni kiriting — tasdiqlash kodini SMS orqali
+            yuboramiz.
+          </Uz>
         </p>
 
         <div ref={shakeRef}>
@@ -160,8 +182,8 @@ function ForgotForm() {
             id="fp-phone"
             value={phoneDigits}
             onChange={(d) => {
-              setPhoneDigits(d)
-              if (error) setError("")
+              setPhoneDigits(d);
+              if (error) setError("");
             }}
             disabled={busy}
             inputRef={phoneRef}
@@ -170,28 +192,42 @@ function ForgotForm() {
 
         <AuthError id="fp-error" message={error} />
 
-        <button type="submit" disabled={busy} aria-busy={busy} className={primaryButtonClass}>
+        <button
+          type="submit"
+          disabled={busy}
+          aria-busy={busy}
+          className={primaryButtonClass}
+        >
           {busy ? (
             <>
-              <Loader2 className="size-5 animate-spin motion-reduce:animate-none" aria-hidden />
+              <Loader2
+                className="size-5 animate-spin motion-reduce:animate-none"
+                aria-hidden
+              />
               {t("Yuborilmoqda…")}
             </>
           ) : (
             <>
               <span>{t("Kod yuborish")}</span>
-              <ArrowRight className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden />
+              <ArrowRight
+                className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+                aria-hidden
+              />
             </>
           )}
         </button>
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
           {t("Esladingizmi?")}{" "}
-          <Link href="/login" className="font-semibold text-primary-strong hover:underline">
+          <Link
+            href="/login"
+            className="font-semibold text-primary-strong hover:underline"
+          >
             {t("Kirish")}
           </Link>
         </p>
       </form>
-    )
+    );
   }
 
   // ── Step 2: code + new password ──
@@ -199,10 +235,14 @@ function ForgotForm() {
     <form onSubmit={onReset} noValidate className="w-full">
       <StepDots current={2} />
 
-      {showSuccess && <SuccessBanner message={t("Tasdiqlash kodi yuborildi.")} />}
+      {showSuccess && (
+        <SuccessBanner message={t("Tasdiqlash kodi yuborildi.")} />
+      )}
 
       <p className="mb-5 mt-4 text-sm text-muted-foreground">
-        <span className="font-semibold tabular-nums text-foreground">{phoneDisplay}</span>{" "}
+        <span className="font-semibold tabular-nums text-foreground">
+          {phoneDisplay}
+        </span>{" "}
         {t("raqamiga yuborilgan kodni va yangi parolni kiriting.")}
       </p>
 
@@ -213,14 +253,17 @@ function ForgotForm() {
             {t("Tasdiqlash kodi")}
           </label>
           <div className="relative">
-            <KeyRound className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <KeyRound
+              className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
             <input
               ref={codeRef}
               id="fp-code"
               value={code}
               onChange={(e) => {
-                setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                if (error) setError("")
+                setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                if (error) setError("");
               }}
               required
               maxLength={6}
@@ -241,15 +284,18 @@ function ForgotForm() {
             {t("Yangi parol")}
           </label>
           <div className="relative">
-            <Lock className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Lock
+              className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
             <input
               id="fp-password"
               type="password"
               autoComplete="new-password"
               value={password}
               onChange={(e) => {
-                setPassword(e.target.value)
-                if (error) setError("")
+                setPassword(e.target.value);
+                if (error) setError("");
               }}
               required
               minLength={6}
@@ -263,16 +309,27 @@ function ForgotForm() {
 
       <AuthError id="fp-error" message={error} />
 
-      <button type="submit" disabled={busy || code.length < 6 || password.length < 6} aria-busy={busy} className={primaryButtonClass}>
+      <button
+        type="submit"
+        disabled={busy || code.length < 6 || password.length < 6}
+        aria-busy={busy}
+        className={primaryButtonClass}
+      >
         {busy ? (
           <>
-            <Loader2 className="size-5 animate-spin motion-reduce:animate-none" aria-hidden />
+            <Loader2
+              className="size-5 animate-spin motion-reduce:animate-none"
+              aria-hidden
+            />
             {t("Saqlanmoqda…")}
           </>
         ) : (
           <>
             <span>{t("Parolni yangilash")}</span>
-            <ArrowRight className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden />
+            <ArrowRight
+              className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+              aria-hidden
+            />
           </>
         )}
       </button>
@@ -280,9 +337,9 @@ function ForgotForm() {
       <button
         type="button"
         onClick={() => {
-          setError("")
-          setShowSuccess(false)
-          setStep(1)
+          setError("");
+          setShowSuccess(false);
+          setStep(1);
         }}
         disabled={busy}
         className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-60"
@@ -291,15 +348,19 @@ function ForgotForm() {
         {t("Raqamni o'zgartirish")}
       </button>
     </form>
-  )
+  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ForgotPasswordPage() {
   return (
-    <AuthShell headlineTop="Parolni unutdingizmi?" headlineAccent="Xavotir olmang!" title="Parolni tiklash">
+    <AuthShell
+      headlineTop="Parolni unutdingizmi?"
+      headlineAccent="Xavotir olmang!"
+      title="Parolni tiklash"
+    >
       <ForgotForm />
     </AuthShell>
-  )
+  );
 }

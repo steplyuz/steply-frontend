@@ -1,206 +1,94 @@
-"use client"
+"use client";
 
-import { Suspense, useEffect, useRef, useState } from "react"
-import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowRight, Eye, EyeOff, Loader2, Lock } from "lucide-react"
+import { useEffect, useRef, useState } from "react";
+import { Check, ChevronDown } from "lucide-react";
+import { useAlphabet } from "@/shared/providers/alphabet-provider";
 
-import { toBackendLang, useAlphabet } from "@/shared/providers/alphabet-provider"
-import {
-  AuthDivider,
-  AuthError,
-  AuthShell,
-  PHONE_DIGITS,
-  PHONE_PREFIX,
-  PhoneField,
-  SocialAuth,
-  fieldClass,
-  primaryButtonClass,
-  safeNextPath,
-  shake,
-} from "@/features/auth/components/auth-shared"
-import { authApi } from "@/shared/api"
-import { ApiRequestError } from "@/shared/api/client"
-import { homeUrlForRole } from "@/shared/providers/auth-context"
-import { useTelegramLogin } from "@/features/auth/lib/telegram-login"
-import { useGoogleLogin } from "@/features/auth/lib/google-login"
+// DIQQAT: "code" qiymatlari alphabet-provider dagi lang qiymatlariga mos bo'lishi kerak
+const LANGUAGES = [
+  { code: "uz-latn", label: "O'zbekcha (lotin)", short: "o'z" },
+  { code: "uz-cyrl", label: "Ўзбекча (кирилл)", short: "ўз" },
+  { code: "ru", label: "Русский", short: "ru" },
+  { code: "en", label: "English", short: "en" },
+] as const;
 
-function LoginForm() {
-  const { t, lang } = useAlphabet()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const phoneRef = useRef<HTMLInputElement>(null)
-  const fieldRef = useRef<HTMLDivElement>(null)
+export function LanguageSwitcher() {
+  // DIQQAT: setLang nomi boshqacha bo'lsa, shu yerda o'zgartiring
+  const { lang, setLang } = useAlphabet();
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Faqat 9 ta mahalliy raqam saqlanadi; "+998" o'zgarmas prefiks
-  const [phoneDigits, setPhoneDigits] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const current = LANGUAGES.find((l) => l.code === lang) ?? LANGUAGES[0];
 
-  const next = safeNextPath(searchParams.get("next"))
-
+  // Tashqariga bosilganda yoki Escape bosilganda menyuni yopish
   useEffect(() => {
-    if (window.matchMedia("(min-width: 1024px)").matches) phoneRef.current?.focus()
-  }, [])
+    if (!open) return;
 
-  /* Server va hooklardan kelgan xabarlar ham tanlangan til/alifboga o‘tadi (t() lug‘atda topilmasa, matn o‘zgarmaydi) */
-  function fail(message: string) {
-    setError(t(message))
-    setLoading(false)
-    shake(fieldRef.current)
-  }
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError("")
-
-    if (phoneDigits.length !== PHONE_DIGITS) {
-      fail("Telefon raqam to'liq kiritilmagan")
-      return
+    function handlePointerDown(e: MouseEvent | TouchEvent) {
+      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
     }
 
-    const phone = `${PHONE_PREFIX}${phoneDigits}`
-    setLoading(true)
-    try {
-      const res = await authApi.phoneLogin(phone, password)
-      if (res.status === "need_registration") {
-        router.push(`/register?phone=${encodeURIComponent(phone)}`)
-        return
-      }
-      if (res.status !== "success") {
-        fail(res.message || "Kirishda xatolik yuz berdi")
-        return
-      }
-      if (next) {
-        router.push(next)
-        return
-      }
-      const me = await authApi.me().catch(() => null)
-      router.push(homeUrlForRole(me?.global_role))
-    } catch (err) {
-      fail(err instanceof ApiRequestError ? err.message : "Kirishda xatolik yuz berdi")
-    }
-  }
-
-  const telegram = useTelegramLogin({
-    onSuccess: (me) => router.push(next || homeUrlForRole(me.global_role)),
-    onError: fail,
-  })
-
-  const google = useGoogleLogin({
-    // Google tugmasi tili tanlangan tilga ergashadi: uz | en | ru
-    locale: toBackendLang(lang),
-    onSuccess: (me) => router.push(next || homeUrlForRole(me.global_role)),
-    onError: fail,
-  })
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="w-full">
-      <div ref={fieldRef} className="space-y-3.5">
-        <PhoneField
-          value={phoneDigits}
-          onChange={(d) => {
-            setPhoneDigits(d)
-            if (error) setError("")
-          }}
-          disabled={loading}
-          inputRef={phoneRef}
+    <div ref={wrapperRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="flex h-10 items-center gap-2 rounded-full bg-white/90 px-4 text-sm font-semibold text-foreground shadow-sm ring-1 ring-black/5 backdrop-blur transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+      >
+        <span>{current.short}</span>
+        <ChevronDown
+          className={`size-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
         />
-
-        <div>
-          <label htmlFor="password" className="sr-only">
-            {t("Parol")}
-          </label>
-          <div className="relative">
-            <Lock
-              className="pointer-events-none absolute left-5 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value)
-                if (error) setError("")
-              }}
-              placeholder={t("Parol")}
-              required
-              minLength={6}
-              disabled={loading}
-              aria-invalid={!!error}
-              aria-describedby={error ? "login-error" : undefined}
-              className={`${fieldClass} pr-12`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? t("Parolni yashirish") : t("Parolni ko'rsatish")}
-              className="absolute right-3 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {showPassword ? <EyeOff className="size-[18px]" aria-hidden /> : <Eye className="size-[18px]" aria-hidden />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex justify-end">
-        <Link
-          href="/forgot-password"
-          className="rounded-md text-xs font-semibold text-muted-foreground transition-colors hover:text-primary-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-        >
-          {t("Parolni unutdingizmi?")}
-        </Link>
-      </div>
-
-      <AuthError id="login-error" message={error} />
-
-      <button type="submit" disabled={loading} aria-busy={loading} className={primaryButtonClass}>
-        {loading ? (
-          <>
-            <Loader2 className="size-5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-            {t("Tekshirilmoqda…")}
-          </>
-        ) : (
-          <>
-            {t("Kirish")}
-            <ArrowRight
-              className="size-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
-              aria-hidden="true"
-            />
-          </>
-        )}
       </button>
 
-      <AuthDivider label="yoki davom eting" />
-
-      <SocialAuth
-        google={google}
-        telegram={telegram}
-        googleLabel="Google orqali kirish"
-        telegramLabel="Telegram orqali kirish"
-        disabled={loading}
-      />
-
-      <p className="mt-5 text-center text-sm text-muted-foreground">
-        {t("Hisobingiz yo'qmi?")}{" "}
-        <Link href="/register" className="font-semibold text-primary-strong hover:underline">
-          {t("Ro'yxatdan o'ting")}
-        </Link>
-      </p>
-    </form>
-  )
-}
-
-export default function LoginPage() {
-  return (
-    <AuthShell headlineTop="O‘qishingizni" headlineAccent="bir joydan boshqaring" title="Kirish">
-      <Suspense fallback={<div className="h-[220px]" aria-hidden="true" />}>
-        <LoginForm />
-      </Suspense>
-    </AuthShell>
-  )
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute right-0 top-full z-30 mt-2 w-56 overflow-hidden rounded-2xl bg-white py-1.5 shadow-xl ring-1 ring-black/5"
+        >
+          {LANGUAGES.map((item) => {
+            const selected = item.code === current.code;
+            return (
+              <li key={item.code} role="option" aria-selected={selected}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLang(item.code);
+                    setOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-muted"
+                >
+                  <span className={selected ? "font-semibold" : ""}>
+                    {item.label}
+                  </span>
+                  {selected && (
+                    <Check
+                      className="size-4 text-primary-strong"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
 }
