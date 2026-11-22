@@ -8,6 +8,8 @@ import type {
   NotificationRuleInput, NotificationSendInput, NotificationSendResult, NotificationStats, NotificationTemplate,
   NotificationTemplateInput, NotificationTemplatePatch, TestEmailInput, TestEmailResult, NotificationChannel,
   NotificationBroadcastInput, NotificationBroadcastResult,
+  NotificationSeedResult, NotificationTemplateDeleteParams, SmsDispatchReportParams, SmsProviderPayload,
+  SubscriptionScanResult,
 } from '../types'
 
 const INBOX = ROUTES.notificationsInbox
@@ -31,6 +33,13 @@ export const adminNotificationsApi = {
     apiPatch<NotificationTemplate>(`${ADMIN}/templates/${enc(code)}`, input),
   previewTemplate: (code: string, variables: Record<string, string>) =>
     apiPost<NotificationPreview>(`${ADMIN}/templates/${enc(code)}/preview`, { variables }),
+  /** Shablonni to'liq o'chiradi. 409 bo'lsa (qoidalarda ishlatilmoqda) force=true bilan qayta urining. */
+  deleteTemplate: (code: string, params?: NotificationTemplateDeleteParams) =>
+    apiDelete<void>(`${ADMIN}/templates/${enc(code)}`, { query: params }),
+  /** Standart shablon va qoidalarni qo'shadi. Mavjudlari o'zgarmaydi. */
+  seedDefaults: () => apiPost<NotificationSeedResult>(`${ADMIN}/seed-defaults`),
+  /** Obuna muddati hodisalarini darhol tekshiradi (worker kutmasdan). */
+  scanSubscriptions: () => apiPost<SubscriptionScanResult>(`${ADMIN}/scan-subscriptions`),
 
   // Hodisalar va qoidalar
   events: () => apiGet<NotificationEvent[]>(`${ADMIN}/events`),
@@ -58,6 +67,13 @@ export const adminNotificationsApi = {
   stats: () => apiGet<NotificationStats>(`${ADMIN}/stats`),
   /** Barcha faol foydalanuvchilarga bir vaqtda (in_app va/yoki email va boshqalar). */
   broadcast: (input: NotificationBroadcastInput) => apiPost<NotificationBroadcastResult>(`${ADMIN}/broadcast`, input),
+  /** Eskiz SMS: narxlar. */
+  smsPrices: () => apiGet<SmsProviderPayload>(`${ADMIN}/sms/prices`),
+  /** Eskiz SMS: bitta xabar holati (INT id yoki 30 kun ichidagi request_id). */
+  smsStatus: (smsId: string | number) => apiGet<SmsProviderPayload>(`${ADMIN}/sms/status/${enc(smsId)}`),
+  /** Eskiz SMS: rassylka bo'yicha xarajat hisoboti. */
+  smsDispatchReport: (dispatchId: string | number, params?: SmsDispatchReportParams) =>
+    apiGet<SmsProviderPayload>(`${ADMIN}/sms/dispatch/${enc(dispatchId)}/report`, { query: params }),
   /** Navbatdagi xabarlarni darhol yuboradi (worker kutmasdan). */
   process: (batch = 50) => apiPost<NotificationProcessResult>(`${ADMIN}/process`, undefined, { query: { batch } }),
 }

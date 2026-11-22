@@ -18,7 +18,8 @@ export interface NotificationTemplate {
 }
 
 export interface NotificationTemplateInput {
-  code: string
+  /** Bo'sh qoldirilsa backend avtomatik kod beradi: tpl_<id>. Berilsa: kichik lotin, raqam, _ (3–64). */
+  code?: string
   channel: NotificationChannel
   title: string
   subject?: string | null
@@ -205,4 +206,29 @@ export interface NotificationBroadcastResult {
   skipped_opted_out: number
   skipped_no_address: number
   per_channel: Partial<Record<NotificationChannel, number>>
+}
+
+/** DELETE /admin/notifications/templates/{code}?force=... — force=true bo'lsa qoidalar ham o'chadi. */
+export type NotificationTemplateDeleteParams = {
+  force?: boolean
+}
+
+/** POST /admin/notifications/seed-defaults — qo'shilgan yozuvlar soni (mavjudlari o'zgarmaydi). */
+export interface NotificationSeedResult {
+  templates_created: number
+  rules_created: number
+}
+
+/** POST /admin/notifications/scan-subscriptions — obuna hodisalari tekshiruvi natijasi. */
+export interface SubscriptionScanResult {
+  expiring_checked: number
+  expired_checked: number
+}
+
+/** Eskiz javobi o'zgarmagan holda uzatiladi (provayder formati). */
+export type SmsProviderPayload = Record<string, unknown>
+
+export type SmsDispatchReportParams = {
+  status?: 'delivered' | 'rejected'
+  is_ad?: boolean
 }

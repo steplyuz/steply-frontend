@@ -1,11 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Eye, Plus, Save } from 'lucide-react'
+import { Eye, Plus, Save, Sparkles, Trash2 } from 'lucide-react'
 import { AdminPageShell } from '@/features/admin/layout/admin-page-shell'
 import { AdminAlert, AdminBadge, AdminSection } from '@/features/admin/components/ui'
 import { adminButtonPrimary, adminButtonSecondary, adminInput } from '@/features/admin/components/ui/styles'
-import { adminNotificationsApi, getErrorMessage } from '@/shared/api'
+import { ApiRequestError, adminNotificationsApi, getErrorMessage } from '@/shared/api'
 import type {
   NotificationChannel, NotificationPreview, NotificationTemplate, NotificationTemplateInput,
 } from '@/shared/api/types'
@@ -71,6 +71,53 @@ export default function NotificationTemplatesPage() {
     setNotice(null)
   }
 
+  /** Standart shablon va qoidalarni qo'shadi (mavjudlari o'zgarmaydi). */
+  const seed = async () => {
+    setError(null)
+    setNotice(null)
+    try {
+      const r = await adminNotificationsApi.seedDefaults()
+      setNotice(`Standart shablonlar: ${r.templates_created} ta shablon, ${r.rules_created} ta qoida qo‘shildi`)
+      await load()
+    } catch (e) {
+      setError(getErrorMessage(e))
+    }
+  }
+
+  /** O'chirish. Shablon qoidada ishlatilsa (409), foydalanuvchi tasdiqlasa qoidalar bilan birga o'chiriladi. */
+  const remove = async () => {
+    if (!editing) return
+    if (!window.confirm(`“${editing}” shablonini o‘chirasizmi? Bu amalni qaytarib bo‘lmaydi.`)) return
+    setSaving(true)
+    setError(null)
+    setNotice(null)
+    try {
+      await adminNotificationsApi.deleteTemplate(editing)
+      startNew()
+      setNotice('Shablon o‘chirildi')
+      await load()
+    } catch (e) {
+      if (e instanceof ApiRequestError && e.status === 409) {
+        if (window.confirm(`${e.message}\n\nShablon va unga bog‘liq qoidalar birga o‘chirilsinmi?`)) {
+          try {
+            await adminNotificationsApi.deleteTemplate(editing, { force: true })
+            startNew()
+            setNotice('Shablon va bog‘liq qoidalar o‘chirildi')
+            await load()
+          } catch (err) {
+            setError(getErrorMessage(err))
+          }
+        } else {
+          setError(e.message)
+        }
+      } else {
+        setError(getErrorMessage(e))
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const startNew = () => {
     setEditing(null)
     setDraft(BLANK)
@@ -84,8 +131,8 @@ export default function NotificationTemplatesPage() {
     e.preventDefault()
     setError(null)
     setNotice(null)
-    if (!editing && !CODE_RE.test(draft.code)) {
-      setError('Kod: kichik lotin harf, raqam va _ (3–64 belgi), harf bilan boshlanishi kerak')
+    if (!editing && draft.code && !CODE_RE.test(draft.code)) {
+      setError('Kod: kichik lotin harf, raqam va _ (3–64 belgi), harf bilan boshlanishi kerak. Bo‘sh qoldirsangiz avtomatik beriladi')
       return
     }
     if (!draft.title.trim()) return setError('Sarlavha kiriting')
@@ -104,12 +151,12 @@ export default function NotificationTemplatesPage() {
         setNotice('Shablon saqlandi')
       } else {
         const input: NotificationTemplateInput = {
-          code: draft.code, channel: draft.channel, title: draft.title.trim(), subject, body: draft.body,
+          code: draft.code.trim() || undefined, channel: draft.channel, title: draft.title.trim(), subject, body: draft.body,
           html_body, is_active: draft.is_active,
         }
         const created = await adminNotificationsApi.createTemplate(input)
         pick(created)
-        setNotice('Shablon yaratildi')
+        setNotice(`Shablon yaratildi: ${created.code}`)
       }
       await load()
     } catch (err) {
@@ -141,9 +188,14 @@ export default function NotificationTemplatesPage() {
       title="Shablonlar"
       description="Xabar matnlari. {{nom}} ko‘rinishidagi o‘zgaruvchilar yuborishda qiymat bilan almashtiriladi."
       actions={
-        <button type="button" onClick={startNew} className={adminButtonSecondary}>
-          <Plus className="size-3.5" aria-hidden="true" /> Yangi shablon
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={seed} className={adminButtonSecondary}>
+            <Sparkles className="size-3.5" aria-hidden="true" /> Standart shablonlar
+          </button>
+          <button type="button" onClick={startNew} className={adminButtonSecondary}>
+            <Plus className="size-3.5" aria-hidden="true" /> Yangi shablon
+          </button>
+        </div>
       }
     >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
@@ -177,10 +229,10 @@ export default function NotificationTemplatesPage() {
                 <span className={labelCls}>Kod</span>
                 <input
                   className={adminInput}
-                  value={draft.code}
+                  value={isEditing ? editing ?? '' : draft.code}
                   disabled={isEditing}
                   onChange={(e) => setDraft((d) => ({ ...d, code: e.target.value.trim() }))}
-                  placeholder="promo_offer"
+                  placeholder="Bo‘sh = avtomatik (tpl_N)"
                 />
               </div>
               <div>
@@ -247,6 +299,11 @@ export default function NotificationTemplatesPage() {
               <button type="submit" disabled={saving} className={adminButtonPrimary}>
                 <Save className="size-4" aria-hidden="true" /> {saving ? 'Saqlanmoqda…' : 'Saqlash'}
               </button>
+              {isEditing && (
+                <button type="button" disabled={saving} onClick={remove} className={adminButtonSecondary}>
+                  <Trash2 className="size-3.5" aria-hidden="true" /> O‘chirish
+                </button>
+              )}
             </div>
           </form>
 
