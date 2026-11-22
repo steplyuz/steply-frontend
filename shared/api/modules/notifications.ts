@@ -7,6 +7,7 @@ import type {
   NotificationMessageFilters, NotificationMessagePage, NotificationPreview, NotificationProcessResult, NotificationRule,
   NotificationRuleInput, NotificationSendInput, NotificationSendResult, NotificationStats, NotificationTemplate,
   NotificationTemplateInput, NotificationTemplatePatch, TestEmailInput, TestEmailResult, NotificationChannel,
+  NotificationBroadcastInput, NotificationBroadcastResult,
 } from '../types'
 
 const INBOX = ROUTES.notificationsInbox
@@ -55,6 +56,8 @@ export const adminNotificationsApi = {
   retryMessage: (id: number) => apiPost<NotificationMessage>(`${ADMIN}/messages/${enc(id)}/retry`),
   cancelMessage: (id: number) => apiPost<NotificationMessage>(`${ADMIN}/messages/${enc(id)}/cancel`),
   stats: () => apiGet<NotificationStats>(`${ADMIN}/stats`),
+  /** Barcha faol foydalanuvchilarga bir vaqtda (in_app va/yoki email va boshqalar). */
+  broadcast: (input: NotificationBroadcastInput) => apiPost<NotificationBroadcastResult>(`${ADMIN}/broadcast`, input),
   /** Navbatdagi xabarlarni darhol yuboradi (worker kutmasdan). */
   process: (batch = 50) => apiPost<NotificationProcessResult>(`${ADMIN}/process`, undefined, { query: { batch } }),
 }

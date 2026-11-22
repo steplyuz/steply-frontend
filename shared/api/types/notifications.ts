@@ -11,6 +11,8 @@ export interface NotificationTemplate {
   title: string
   subject: string | null
   body: string
+  /** Email uchun HTML (ixtiyoriy) */
+  html_body: string | null
   is_active: boolean
   placeholders: string[]
 }
@@ -21,6 +23,7 @@ export interface NotificationTemplateInput {
   title: string
   subject?: string | null
   body: string
+  html_body?: string | null
   is_active?: boolean
 }
 
@@ -29,12 +32,15 @@ export interface NotificationTemplatePatch {
   title?: string
   subject?: string | null
   body?: string
+  html_body?: string | null
   is_active?: boolean
 }
 
 export interface NotificationPreview {
   subject: string | null
   body: string
+  /** To'liq email HTML (Steply dizayni bilan), iframe'da ko'rsatiladi */
+  html: string
 }
 
 export interface NotificationEvent {
@@ -178,4 +184,25 @@ export interface InboxPage {
   total: number
   unread: number
   items: InboxItem[]
+}
+
+/** POST /admin/notifications/broadcast: barcha faol foydalanuvchilarga */
+export interface NotificationBroadcastInput {
+  channels: NotificationChannel[]
+  template_code?: string | null
+  subject?: string | null
+  body?: string | null
+  html_body?: string | null
+  link?: string | null
+  variables?: Record<string, string>
+  category?: NotificationCategory
+  email_account_id?: number | null
+  idempotency_key?: string | null
+}
+
+export interface NotificationBroadcastResult {
+  queued: number
+  skipped_opted_out: number
+  skipped_no_address: number
+  per_channel: Partial<Record<NotificationChannel, number>>
 }

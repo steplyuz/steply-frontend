@@ -20,12 +20,13 @@ interface Draft {
   title: string
   subject: string
   body: string
+  html_body: string
   is_active: boolean
 }
 
-const BLANK: Draft = { code: '', channel: 'in_app', title: '', subject: '', body: '', is_active: true }
+const BLANK: Draft = { code: '', channel: 'in_app', title: '', subject: '', body: '', html_body: '', is_active: true }
 
-/** Xabar shablonlari: ro'yxat, yaratish, tahrirlash va ko'rib chiqish (preview). */
+/** Xabar shablonlari: ro'yxat, yaratish, tahrirlash, email HTML va ko'rib chiqish. */
 export default function NotificationTemplatesPage() {
   const [items, setItems] = useState<NotificationTemplate[]>([])
   const [editing, setEditing] = useState<string | null>(null)
@@ -49,13 +50,21 @@ export default function NotificationTemplatesPage() {
   }, [load])
 
   const placeholders = useMemo(
-    () => extractPlaceholders(`${draft.subject}\n${draft.body}`).filter((n) => n !== 'name'),
-    [draft.subject, draft.body],
+    () => extractPlaceholders(`${draft.subject}\n${draft.body}\n${draft.html_body}`).filter((n) => n !== 'name'),
+    [draft.subject, draft.body, draft.html_body],
   )
 
   const pick = (t: NotificationTemplate) => {
     setEditing(t.code)
-    setDraft({ code: t.code, channel: t.channel, title: t.title, subject: t.subject ?? '', body: t.body, is_active: t.is_active })
+    setDraft({
+      code: t.code,
+      channel: t.channel,
+      title: t.title,
+      subject: t.subject ?? '',
+      body: t.body,
+      html_body: t.html_body ?? '',
+      is_active: t.is_active,
+    })
     setVars({})
     setPreview(null)
     setError(null)
@@ -80,21 +89,23 @@ export default function NotificationTemplatesPage() {
       return
     }
     if (!draft.title.trim()) return setError('Sarlavha kiriting')
-    if (!draft.body.trim()) return setError('Matn kiriting')
+    if (!draft.body.trim()) return setError('Matn kiriting (ilova ichida va email’ning oddiy matni uchun)')
     if (draft.channel === 'email' && !draft.subject.trim()) return setError('Email shablon uchun mavzu (subject) kerak')
 
     setSaving(true)
     const subject = draft.channel === 'email' ? draft.subject.trim() : null
+    const html_body = draft.channel === 'email' ? draft.html_body.trim() || null : null
     try {
       if (editing) {
         const updated = await adminNotificationsApi.updateTemplate(editing, {
-          title: draft.title.trim(), subject, body: draft.body, is_active: draft.is_active,
+          title: draft.title.trim(), subject, body: draft.body, html_body, is_active: draft.is_active,
         })
         pick(updated)
         setNotice('Shablon saqlandi')
       } else {
         const input: NotificationTemplateInput = {
-          code: draft.code, channel: draft.channel, title: draft.title.trim(), subject, body: draft.body, is_active: draft.is_active,
+          code: draft.code, channel: draft.channel, title: draft.title.trim(), subject, body: draft.body,
+          html_body, is_active: draft.is_active,
         }
         const created = await adminNotificationsApi.createTemplate(input)
         pick(created)
@@ -129,7 +140,11 @@ export default function NotificationTemplatesPage() {
       eyebrow="Xabarnomalar"
       title="Shablonlar"
       description="Xabar matnlari. {{nom}} ko‘rinishidagi o‘zgaruvchilar yuborishda qiymat bilan almashtiriladi."
-      actions={<button type="button" onClick={startNew} className={adminButtonSecondary}><Plus className="size-3.5" aria-hidden="true" /> Yangi shablon</button>}
+      actions={
+        <button type="button" onClick={startNew} className={adminButtonSecondary}>
+          <Plus className="size-3.5" aria-hidden="true" /> Yangi shablon
+        </button>
+      }
     >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
         <AdminSection title="Ro‘yxat">
@@ -145,6 +160,7 @@ export default function NotificationTemplatesPage() {
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-semibold text-foreground">{t.title}</span>
                     <AdminBadge tone="info">{CHANNEL_LABEL[t.channel]}</AdminBadge>
+                    {t.html_body && <AdminBadge tone="success">HTML</AdminBadge>}
                     {!t.is_active && <AdminBadge tone="warning">O‘chirilgan</AdminBadge>}
                   </span>
                   <span className="font-mono text-xs text-muted-foreground">{t.code}</span>
@@ -164,7 +180,7 @@ export default function NotificationTemplatesPage() {
                   value={draft.code}
                   disabled={isEditing}
                   onChange={(e) => setDraft((d) => ({ ...d, code: e.target.value.trim() }))}
-                  placeholder="order_receipt"
+                  placeholder="promo_offer"
                 />
               </div>
               <div>
@@ -193,18 +209,34 @@ export default function NotificationTemplatesPage() {
             )}
 
             <div>
-              <span className={labelCls}>Matn</span>
+              <span className={labelCls}>Matn (oddiy)</span>
               <textarea
-                className={`${adminInput} min-h-40`}
+                className={`${adminInput} min-h-28`}
                 value={draft.body}
                 onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
                 maxLength={10000}
               />
               <p className="mt-1 text-[11px] text-muted-foreground">
-                Ishlatilgan o‘zgaruvchilar: {placeholders.length ? placeholders.map((p) => `{{${p}}}`).join(', ') : 'yo‘q'}.
-                {' '}<span className="font-mono">{'{{name}}'}</span> foydalanuvchi ismi bilan avtomatik almashtiriladi.
+                Ilova ichida va HTML bo‘lmagan emaillar uchun. Ishlatilgan o‘zgaruvchilar:{' '}
+                {placeholders.length ? placeholders.map((p) => `{{${p}}}`).join(', ') : 'yo‘q'}.
               </p>
             </div>
+
+            {draft.channel === 'email' && (
+              <div>
+                <span className={labelCls}>HTML (ixtiyoriy)</span>
+                <textarea
+                  className={`${adminInput} min-h-48 font-mono text-xs`}
+                  value={draft.html_body}
+                  onChange={(e) => setDraft((d) => ({ ...d, html_body: e.target.value }))}
+                  maxLength={50000}
+                  placeholder={'<p>Salom, {{name}}!</p>\n<p><a href="https://steply.uz" style="background:#0F3D26;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;">Boshlash</a></p>'}
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Faqat ichki qism. Sarlavha va footer Steply dizaynida avtomatik qo‘shiladi. HTML bo‘sh bo‘lsa, matndan avtomatik yasaladi.
+                </p>
+              </div>
+            )}
 
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={draft.is_active} onChange={(e) => setDraft((d) => ({ ...d, is_active: e.target.checked }))} className="size-4" />
@@ -235,9 +267,18 @@ export default function NotificationTemplatesPage() {
                 <Eye className="size-3.5" aria-hidden="true" /> Ko‘rish
               </button>
               {preview && (
-                <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-4">
-                  {preview.subject && <p className="text-sm font-semibold text-foreground">{preview.subject}</p>}
-                  <pre className="whitespace-pre-wrap break-words font-sans text-sm text-foreground">{preview.body}</pre>
+                <div className="space-y-3">
+                  {preview.subject && <p className="text-sm font-semibold text-foreground">Mavzu: {preview.subject}</p>}
+                  {draft.channel === 'email' ? (
+                    <iframe
+                      title="Email ko‘rinishi"
+                      sandbox=""
+                      srcDoc={preview.html}
+                      className="h-[520px] w-full rounded-lg border border-border bg-white"
+                    />
+                  ) : (
+                    <pre className="whitespace-pre-wrap break-words rounded-lg border border-border bg-muted/40 p-4 font-sans text-sm text-foreground">{preview.body}</pre>
+                  )}
                 </div>
               )}
             </div>

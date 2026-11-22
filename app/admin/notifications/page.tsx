@@ -7,6 +7,7 @@ import { AdminPageShell } from '@/features/admin/layout/admin-page-shell'
 import { AdminAlert, AdminSection, AdminStatCard } from '@/features/admin/components/ui'
 import { adminButtonSecondary } from '@/features/admin/components/ui/styles'
 import { SendForm } from '@/features/admin/components/notifications/send-form'
+import { BroadcastForm } from '@/features/admin/components/notifications/broadcast-form'
 import { adminNotificationsApi, getErrorMessage } from '@/shared/api'
 import type { NotificationMessageStatus, NotificationProcessResult, NotificationStats } from '@/shared/api/types'
 import { CHANNEL_LABEL, CHANNEL_ORDER } from '@/shared/lib/notification-labels'
@@ -103,6 +104,8 @@ export default function AdminNotificationsPage() {
         </AdminSection>
 
         <SendForm onSent={load} />
+
+        <BroadcastForm onSent={load} />
       </div>
     </AdminPageShell>
   )
