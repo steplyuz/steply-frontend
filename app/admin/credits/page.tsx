@@ -206,6 +206,66 @@ function UserSection() {
   )
 }
 
+/** Obunasi yo'q (FREE) foydalanuvchilar uchun oylik AI kredit limiti. */
+function FreeSection() {
+  const [value, setValue] = useState('')
+  const [current, setCurrent] = useState<number | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  useEffect(() => {
+    adminCreditsApi.freeLimit()
+      .then((r) => { setCurrent(r.monthly_limit); setValue(String(r.monthly_limit)) })
+      .catch((e) => setError(getErrorMessage(e)))
+  }, [])
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setNotice(null)
+    const n = Number(value)
+    if (!Number.isInteger(n) || n < 0) return setError('0 yoki undan katta butun son kiriting')
+    setBusy(true)
+    try {
+      const r = await adminCreditsApi.setFreeLimit(n)
+      setCurrent(r.monthly_limit)
+      setNotice(`Saqlandi: obunasiz foydalanuvchilar uchun oyiga ${r.monthly_limit} AI kredit`)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <AdminSection
+      title="Free (obunasiz) foydalanuvchilar"
+      description="Obunasi yo‘q foydalanuvchilar har oy shu miqdorda AI kredit oladi (Writing va Speaking). 0 bo‘lsa AI yo‘q. Obunachilarda tarif limiti ishlaydi."
+    >
+      <form onSubmit={save} className="flex flex-wrap items-end gap-3">
+        <div>
+          <span className={labelCls}>Oylik AI kredit</span>
+          <input
+            className={`${adminInput} w-40`}
+            type="number"
+            min={0}
+            step={1}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+        </div>
+        <button type="submit" disabled={busy} className={adminButtonPrimary}>
+          {busy && <Loader2 className="size-4 animate-spin" aria-hidden="true" />} Saqlash
+        </button>
+        {current !== null && <p className="text-xs text-muted-foreground">Hozirgi qiymat: {current}</p>}
+      </form>
+      {error && <AdminAlert className="mt-4">{error}</AdminAlert>}
+      {notice && <AdminAlert tone="success" className="mt-4">{notice}</AdminAlert>}
+    </AdminSection>
+  )
+}
+
 export default function AdminCreditsPage() {
   return (
     <AdminPageShell
@@ -217,6 +277,8 @@ export default function AdminCreditsPage() {
         <PlanSection />
         <UserSection />
       </div>
+
+      <FreeSection />
     </AdminPageShell>
   )
 }
