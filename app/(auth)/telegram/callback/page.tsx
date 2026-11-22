@@ -9,7 +9,7 @@ import { authApi } from "@/shared/api";
 import { homeUrlForRole } from "@/shared/providers/auth-context";
 import { Uz, useAlphabet } from "@/shared/providers/alphabet-provider";
 import { safeNextPath } from "@/features/auth/components/auth-shared";
-import { LanguageSwitcher } from "@/shared/components/language-switcher";
+import { LanguageSwitch } from "@/shared/ui/language-switch";
 
 /* Xato matnlari kalit sifatida saqlanadi. Ekranda t() orqali tanlangan alifboda chiqadi.
    DIQQAT: apostroflar lug'atdagi bilan bir xil bo'lishi kerak, ya'ni oddiy ' (U+0027) */
@@ -58,9 +58,7 @@ function TelegramCallbackContent() {
 
   return (
     <main className="relative flex min-h-dvh items-center justify-center bg-background px-5">
-      <div className="fixed right-4 top-4 z-20 sm:right-8 sm:top-6">
-        <LanguageSwitcher />
-      </div>
+      <LanguageSwitch className="absolute right-4 top-4 z-20 flex sm:right-8 sm:top-6" />
 
       <div
         className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-[0_24px_64px_rgba(15,61,38,0.10)] ring-1 ring-[#0F3D26]/[0.06]"

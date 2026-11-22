@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState, type ReactNode } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { getErrorMessage, practiceApi } from '@/shared/api'
@@ -9,6 +10,7 @@ import { isBlockedForUser } from '@/features/practice/lib/access'
 import { usePaidAccess } from '@/features/practice/lib/use-paid-access'
 import { PremiumGate } from '@/features/practice/components/premium-gate'
 import { ErrorBox } from '@/shared/ui/dashboard-kit'
+import { FOCUS } from '@/shared/lib/brand'
 
 type Props = {
   skill: PracticeSkill
@@ -18,12 +20,19 @@ type Props = {
 
 type CatalogState =
   | { status: 'loading' }
-  | { status: 'ready'; item: PracticeCatalogItem | null }
+  | { status: 'ready'; item: PracticeCatalogItem | null; hasTests: boolean }
   | { status: 'error'; message: string }
+
+// Faqat ko'rinadigan (is_practice / is_active) testlar hisobga olinadi
+const isVisibleItem = (i: object) => {
+  const r = i as { is_practice?: boolean; is_active?: boolean }
+  return r.is_practice !== false && r.is_active !== false
+}
 
 /*
  * Premium practice testni obunasi yo'q foydalanuvchidan yashiradi.
  * Qoida: isBlockedForUser (access.ts) — backend is_locked yoki premium + faol obuna yo'q.
+ * Ko'nikmada ko'rinadigan testlar bo'lmasa, test sahifasi ochilmaydi.
  * Server baribir 403 qaytaradi; bu komponent UI himoyasi.
  * Mock imtihon (?mode=mock) bu tekshiruvdan o'tkazilmaydi.
  * Katalog yoki obuna holati yuklanmasa, test ochilmaydi (qayta urinish tugmasi bor).
@@ -41,9 +50,9 @@ function PremiumTestGuardInner({ skill, testId, children }: Props) {
       .testsBySkill(skill)
       .then((items) => {
         if (!alive) return
-        // Katalogda topilmagan test — server tekshiruviga qoldiriladi
         const item = items.find((i) => String(i.id) === String(testId)) ?? null
-        setCatalog({ status: 'ready', item })
+        const hasTests = items.some(isVisibleItem)
+        setCatalog({ status: 'ready', item, hasTests })
       })
       .catch((e) => {
         if (alive) setCatalog({ status: 'error', message: getErrorMessage(e, 'Test holatini tekshirib bo‘lmadi') })
@@ -74,6 +83,22 @@ function PremiumTestGuardInner({ skill, testId, children }: Props) {
       <div className="flex min-h-[50vh] items-center justify-center">
         <Loader2 aria-hidden="true" className="size-6 animate-spin text-muted-foreground" />
         <span className="sr-only">Yuklanmoqda…</span>
+      </div>
+    )
+  }
+
+  // Ko'nikmada testlar yo'q: kirish yopiq, mashq sahifasiga qaytariladi
+  if (!catalog.hasTests) {
+    return (
+      <div className="mx-auto my-10 max-w-md space-y-5 rounded-3xl bg-white p-8 text-center ring-1 ring-[#0F3D26]/[0.07]">
+        <h2 className="text-xl font-semibold text-foreground">Bu ko'nikma bo'yicha testlar yo'q</h2>
+        <p className="text-sm text-foreground/60">Hozircha bu bo'limda test mavjud emas.</p>
+        <Link
+          href="/dashboard/practice"
+          className={`inline-flex min-h-12 items-center justify-center rounded-full bg-foreground px-6 text-sm font-bold text-white ${FOCUS}`}
+        >
+          Mashq sahifasiga qaytish
+        </Link>
       </div>
     )
   }
