@@ -14,6 +14,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 
 import { authApi } from "@/shared/api"
 import type { Me } from "@/shared/api/types"
+import { clearStoredReferralCode, getStoredReferralCode } from "@/shared/lib/referral"
 import { loadScriptOnce, type LoginCallbacks } from "@/features/auth/lib/script-loader"
 
 // BotFather'dagi "Login Widget" bo'limi bergan embed kodidagi skript manzili bilan solishtiring.
@@ -84,7 +85,8 @@ export function useTelegramLogin({ onSuccess, onError }: Options) {
         }
         setBusy(true)
         try {
-          await authApi.telegramVerify(result.id_token)
+          await authApi.telegramVerify(result.id_token, getStoredReferralCode())
+          clearStoredReferralCode()
           const me = await authApi.me()
           callbacks.current.onSuccess(me)
         } catch {

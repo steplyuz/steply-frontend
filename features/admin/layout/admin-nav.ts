@@ -1,7 +1,10 @@
 import type { ElementType } from 'react'
 import {
   Activity,
+  Bell,
+  Coins,
   Gift,
+  Inbox,
   Layers,
   BookOpen,
   CalendarDays,
@@ -11,8 +14,11 @@ import {
   GraduationCap,
   Headphones,
   LayoutDashboard,
+  Mail,
   Mic2,
   PenLine,
+  Receipt,
+  Send,
   Users,
 } from 'lucide-react'
 
@@ -72,8 +78,21 @@ const ADMIN_NAV: NavSection[] = [
     ],
   },
   {
+    title: 'Xabarnomalar',
+    items: [
+      { href: '/admin/notifications', label: 'Yuborish', icon: Send },
+      { href: '/admin/notifications/templates', label: 'Shablonlar', icon: Mail },
+      { href: '/admin/notifications/rules', label: 'Hodisalar va email', icon: Bell },
+      { href: '/admin/notifications/messages', label: 'Xabarlar navbati', icon: Inbox },
+    ],
+  },
+  {
     title: 'Moliya',
-    items: [{ href: '/admin/billing', label: "Obunalar va to'lovlar", icon: CreditCard }],
+    items: [
+      { href: '/admin/billing', label: "Obunalar va to'lovlar", icon: CreditCard },
+      { href: '/admin/credits', label: 'AI kreditlar', icon: Coins },
+      { href: '/admin/subscriptions', label: 'Obuna boshqaruvi', icon: Receipt },
+    ],
   },
 ]
 

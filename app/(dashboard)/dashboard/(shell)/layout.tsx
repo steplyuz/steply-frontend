@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { DashboardSidebar } from '@/features/dashboard/layout/dashboard-sidebar'
 import { DashboardTopbar } from '@/features/dashboard/layout/dashboard-topbar'
 import { DashboardBottomNav } from '@/features/dashboard/layout/dashboard-bottom-nav'
+import { NotificationBell } from '@/features/notifications/components/notification-bell'
 import { useAuth } from '@/shared/providers/auth-context'
 import { onboardingApi } from '@/shared/api'
 import { useActivityHeartbeat } from '@/shared/hooks/use-activity-heartbeat'
@@ -153,6 +154,10 @@ export default function DashboardCabinetLayout({ children }: { children: React.R
             {children}
           </div>
         </main>
+      </div>
+      {/* Mobil: qo'ng'iroqcha yuqori o'ng burchakda (desktopda topbar ichida) */}
+      <div className="fixed right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-30 lg:hidden">
+        <NotificationBell />
       </div>
       <DashboardBottomNav onMenuClick={openMenu} />
     </div>

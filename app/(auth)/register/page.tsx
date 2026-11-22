@@ -28,6 +28,7 @@ import { authApi } from "@/shared/api"
 import { ApiRequestError } from "@/shared/api/client"
 import { homeUrlForRole } from "@/shared/providers/auth-context"
 import { useTelegramLogin } from "@/features/auth/lib/telegram-login"
+import { clearStoredReferralCode, getStoredReferralCode } from "@/shared/lib/referral"
 import { useGoogleLogin } from "@/features/auth/lib/google-login"
 
 type Step = "form" | "verify"
@@ -356,6 +357,14 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
   const [gender, setGender] = useState<Gender>("male")
   // Referal kod: ?ref=KOD havoladan keladi yoki user o'zi kiritadi
   const [referralCode, setReferralCode] = useState(() => (searchParams.get("ref") || "").trim().toUpperCase())
+  // ?ref= bo'lmasa, avval saqlangan kodni olamiz (SSR farqi bo'lmasligi uchun useEffect'da)
+  useEffect(() => {
+    if (!referralCode) {
+      const stored = getStoredReferralCode()
+      if (stored) setReferralCode(stored)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [code, setCode] = useState("")
   const [botLink, setBotLink] = useState("")
   const [expiresIn, setExpiresIn] = useState(0)
@@ -435,6 +444,7 @@ function RegisterForm({ step, setStep }: { step: Step; setStep: (s: Step) => voi
     setLoading(true)
     try {
       await authApi.registerVerify({ phone, code: code.trim(), referral_code: referralCode.trim() || undefined })
+      clearStoredReferralCode()
       if (next) {
         router.push(next)
         return

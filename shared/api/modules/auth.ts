@@ -39,8 +39,12 @@ export const authApi = {
   telegramNonce: () => sharedNonce('telegram'),
 
   /** Telegram popup login, 2-qadam: id_token ni backend tekshiradi va cookie sessiya ochadi. */
-  telegramVerify: async (idToken: string) => {
-    const res = await apiPost<StatusMessage>(`${BASE}/telegram/verify`, { id_token: idToken }, { anonymous: true })
+  telegramVerify: async (idToken: string, referralCode?: string | null) => {
+    const res = await apiPost<StatusMessage>(
+      `${BASE}/telegram/verify`,
+      { id_token: idToken, referral_code: referralCode || undefined },
+      { anonymous: true },
+    )
     notifyAuthChanged()
     return res
   },
@@ -49,8 +53,12 @@ export const authApi = {
   googleNonce: () => sharedNonce('google'),
 
   /** Google GIS login, 2-qadam: id_token ni backend tekshiradi va cookie sessiya ochadi. */
-  googleVerify: async (idToken: string) => {
-    const res = await apiPost<StatusMessage>(`${BASE}/google/verify`, { id_token: idToken }, { anonymous: true })
+  googleVerify: async (idToken: string, referralCode?: string | null) => {
+    const res = await apiPost<StatusMessage>(
+      `${BASE}/google/verify`,
+      { id_token: idToken, referral_code: referralCode || undefined },
+      { anonymous: true },
+    )
     notifyAuthChanged()
     return res
   },

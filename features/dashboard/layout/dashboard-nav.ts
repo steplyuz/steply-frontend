@@ -1,5 +1,5 @@
 import {
-  BookOpen, CreditCard, GraduationCap, Gift, Headphones, LayoutDashboard, Mic, Pencil, Settings, UserRound, ChartNoAxesCombined,
+  Bell, BookOpen, CreditCard, GraduationCap, Gift, Headphones, LayoutDashboard, Mic, Pencil, Settings, UserRound, ChartNoAxesCombined,
 } from 'lucide-react'
 import type { Tone } from '@/shared/lib/brand'
 
@@ -28,6 +28,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
     items: [
       { href: '/dashboard/billing', label: 'Tarif va to‘lovlar', icon: CreditCard },
       { href: '/dashboard/referral', label: 'Do‘stlarni taklif qil', icon: Gift },
+      { href: '/dashboard/notifications', label: 'Bildirishnomalar', icon: Bell },
       { href: '/dashboard/settings', label: 'Sozlamalar', icon: Settings },
     ],
   },
@@ -45,6 +46,7 @@ const PAGE_DESC: Record<string, string> = {
   '/dashboard/billing': 'Obuna, buyurtmalar va to‘lovlar',
   '/dashboard/settings': 'Hisob sozlamalari',
   '/dashboard/referral': 'Referal kod va do‘st taklif qilish mukofotlari',
+  '/dashboard/notifications': 'Buyurtma, mukofot va yangiliklar haqidagi xabarlar',
   '/dashboard/profile': 'Shaxsiy ma’lumotlar, avatar va kontaktlar',
 }
 

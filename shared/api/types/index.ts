@@ -15,6 +15,9 @@ export * from './analysis'
 export * from './onboarding'
 export * from './admin'
 export * from './referral'
+export * from './notifications'
+export * from './credits'
+export * from './subscriptions'
 
 // practice
 export * from './practice/reading'

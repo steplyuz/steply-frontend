@@ -22,7 +22,7 @@ export interface ReferralSettings {
   max_rewards_per_user: number | null
 }
 
-export type ReferralStatus = 'pending' | 'qualified' | 'capped'
+export type ReferralStatus = 'pending' | 'qualified' | 'capped' | 'voided'
 
 /** GET /admin/referral/stats */
 export interface ReferralStats {
@@ -58,4 +58,52 @@ export interface AdminTestAccessRule {
   skill: AdminSkillKey
   test_id: string
   tier: AdminTierKey
+}
+
+/** Admin: bitta referal qatori (taklif qiluvchi/taklif qilingan id bilan) */
+export interface AdminReferralRow {
+  id: number
+  referrer_id: string
+  referred_id: string
+  status: ReferralStatus
+  created_at: string
+  qualified_at: string | null
+}
+
+/** Admin: referal kredit yozuvi (referal bilan bog'liq yoki admin qo'lda bergan) */
+export interface ReferralCreditRow {
+  id: number
+  amount_total: number
+  amount_remaining: number
+  expires_at: string | null
+  referral_id: number | null
+  reason: string | null
+  created_at: string
+}
+
+/** GET /admin/referral/users/{user_id} */
+export interface AdminReferralUserDetail {
+  user_id: string
+  summary: ReferralMe
+  referred_by: AdminReferralRow | null
+  referrals: AdminReferralRow[]
+  credits: ReferralCreditRow[]
+}
+
+/** POST /admin/referral/users/{user_id}/credits */
+export interface ReferralCreditAdjustInput {
+  delta: number
+  note: string
+}
+
+export interface ReferralCreditAdjustResult {
+  user_id: string
+  delta: number
+  summary: ReferralMe
+}
+
+/** POST /admin/referral/users/{user_id}/reset-code */
+export interface ReferralResetCodeResult {
+  user_id: string
+  code: string
 }

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { ChevronDown, Loader2, LogOut, User } from 'lucide-react'
 import { useAuth } from '@/shared/providers/auth-context'
 import { LanguageSwitch } from '@/shared/ui/language-switch'
+import { NotificationBell } from '@/features/notifications/components/notification-bell'
 import { CefrBadge, UserAvatar } from './user-badges'
 import { PROFILE_ITEM, pageMeta } from './dashboard-nav'
 
@@ -77,6 +78,8 @@ export function DashboardTopbar({ title, description }: Props) {
         <h1 className="truncate text-lg font-semibold leading-tight tracking-tight text-[#0F2A1C]">{title}</h1>
         {description && <p className="hidden truncate text-xs text-[#0F2A1C]/55 sm:block">{description}</p>}
       </div>
+
+      <NotificationBell />
 
       <LanguageSwitch className="hidden xl:flex" />
 

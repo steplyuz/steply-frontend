@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { RefreshCw, Save } from 'lucide-react'
 import { adminReferralApi, billingApi } from '@/shared/api'
+import { ReferralUserPanel } from '@/features/admin/components/referral-user-panel'
 import type { AdminReferralList, BillingPlan, ReferralSettings, ReferralStats, ReferralStatus } from '@/shared/api/types'
 
 export const dynamic = 'force-dynamic'
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic'
 const PAGE = 50
 const card = 'rounded-2xl border border-border bg-card p-5 shadow-xs'
 const field = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground/40'
-const STATUS_LABEL: Record<ReferralStatus, string> = { pending: 'Kutilmoqda', qualified: 'Mukofot berilgan', capped: 'Limitga yetgan' }
+const STATUS_LABEL: Record<ReferralStatus, string> = { pending: 'Kutilmoqda', qualified: 'Mukofot berilgan', capped: 'Limitga yetgan', voided: 'Bekor qilingan' }
 
 type Form = {
   enabled: boolean
@@ -77,6 +78,19 @@ export default function AdminReferralPage() {
 
   useEffect(() => { loadSummary() }, [loadSummary])
   useEffect(() => { loadList() }, [loadList])
+
+  const voidItem = async (id: number) => {
+    const reason = window.prompt('Bekor qilish sababi (kamida 3 belgi):')
+    if (!reason || reason.trim().length < 3) return
+    try {
+      await adminReferralApi.voidReferral(id, reason.trim())
+      flash('ok', 'Referal bekor qilindi')
+      loadList()
+      loadSummary()
+    } catch (e) {
+      flash('err', errText(e))
+    }
+  }
 
   const save = async () => {
     if (!form) return
@@ -188,10 +202,13 @@ export default function AdminReferralPage() {
         ))}
       </div>
 
+      {/* Foydalanuvchi bo'yicha: kod, kreditlar, kodni yangilash */}
+      <ReferralUserPanel />
+
       {/* Ro'yxat */}
       <section className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          {(['', 'pending', 'qualified', 'capped'] as const).map((s) => (
+          {(['', 'pending', 'qualified', 'capped', 'voided'] as const).map((s) => (
             <button
               key={s || 'all'}
               onClick={() => { setFilter(s); setOffset(0) }}
@@ -211,11 +228,12 @@ export default function AdminReferralPage() {
                 <th className="px-4 py-3">Holat</th>
                 <th className="px-4 py-3">Yaratilgan</th>
                 <th className="px-4 py-3">Mukofot berilgan</th>
+                <th className="px-4 py-3">Amal</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {!list && <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">Yuklanmoqda…</td></tr>}
-              {list?.items.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">Takliflar yo‘q</td></tr>}
+              {!list && <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">Yuklanmoqda…</td></tr>}
+              {list?.items.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">Takliflar yo‘q</td></tr>}
               {list?.items.map((r) => (
                 <tr key={r.id}>
                   <td className="px-4 py-3">{r.referrer.name ?? <span className="font-mono text-xs">{r.referrer.id.slice(0, 8)}</span>}</td>
@@ -223,6 +241,13 @@ export default function AdminReferralPage() {
                   <td className="px-4 py-3">{STATUS_LABEL[r.status]}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString('uz-UZ')}</td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{r.qualified_at ? new Date(r.qualified_at).toLocaleString('uz-UZ') : '—'}</td>
+                  <td className="px-4 py-3">
+                    {r.status !== 'voided' && (
+                      <button onClick={() => voidItem(r.id)} className="rounded-lg border border-error/30 px-2.5 py-1 text-xs font-semibold text-error hover:bg-error/10">
+                        Bekor qilish
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

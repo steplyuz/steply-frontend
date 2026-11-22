@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Search, UserCog, X, Loader2, CheckCircle2, XCircle, ShieldCheck, Shield } from 'lucide-react'
 import { adminApi } from '@/shared/api'
+import { REGISTRATION_OPTIONS, registrationLabel } from '@/shared/lib/registration-labels'
 
 type GlobalRole = 'admin' | 'super_admin' | 'teacher' | 'student'
 
@@ -138,6 +139,7 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
+  const [regFilter, setRegFilter] = useState<string>('all')
   const [editUser, setEditUser] = useState<any | null>(null)
 
   const load = useCallback(async () => {
@@ -146,6 +148,7 @@ export default function AdminUsersPage() {
       const data = await adminApi.users({
         search: search || undefined,
         role: roleFilter !== 'all' ? roleFilter : undefined,
+        registration_method: regFilter !== 'all' ? regFilter : undefined,
         limit: 100,
       })
       setUsers(data)
@@ -154,7 +157,7 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, roleFilter])
+  }, [search, roleFilter, regFilter])
 
   useEffect(() => { void load() }, [load])
 
@@ -204,6 +207,20 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
+      {/* Ro'yxatdan o'tish usuli bo'yicha filtr */}
+      <div className="flex flex-wrap items-center gap-2">
+        <label htmlFor="reg-filter" className="text-xs font-semibold text-muted-foreground">Ro‘yxat usuli:</label>
+        <select
+          id="reg-filter"
+          value={regFilter}
+          onChange={e => setRegFilter(e.target.value)}
+          className="rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        >
+          <option value="all">Barchasi</option>
+          {REGISTRATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </div>
+
       {/* Role Filter */}
       <div className="flex flex-wrap gap-2">
         {ROLES.map(r => (
@@ -237,6 +254,7 @@ export default function AdminUsersPage() {
                 <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Username</th>
                 <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Global Rol</th>
                 <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Holat</th>
+                <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Ro‘yxat usuli</th>
                 <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sana</th>
                 <th className="px-5 py-3 text-right text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Amallar</th>
               </tr>
@@ -270,6 +288,7 @@ export default function AdminUsersPage() {
                       {u.is_active ? 'Faol' : 'Bloklangan'}
                     </span>
                   </td>
+                  <td className="px-5 py-3.5 text-xs text-muted-foreground">{registrationLabel(u.registration_method)}</td>
                   <td className="px-5 py-3.5 text-xs text-muted-foreground">
                     {u.created_at ? new Date(u.created_at).toLocaleDateString('uz-UZ') : '—'}
                   </td>

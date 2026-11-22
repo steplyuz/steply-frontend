@@ -14,6 +14,11 @@ export const ROUTES = {
   adminReferral: '/admin/referral',
   adminTiers: '/admin/tiers',
 
+  notificationsInbox: '/notifications/inbox',
+  adminNotifications: '/admin/notifications',
+  adminCredits: '/admin/credits',
+  adminSubscriptions: '/admin/subscriptions',
+
   mockExams: '/mock-exams',
   mockExamsAdmin: '/admin/mock-exams',
   mockExamsPapersAdmin: '/admin/mock-exams/papers',

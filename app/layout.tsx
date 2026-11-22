@@ -5,6 +5,7 @@ import './globals.css'
 import { AuthProvider } from '@/shared/providers/auth-context'
 import TelegramScript from '@/features/auth/components/telegram-script'
 import { AlphabetProvider } from '@/shared/providers/alphabet-provider'
+import { ReferralCapture } from '@/shared/providers/referral-capture'
 
 /* Shriftlar (variable nomlari globals.css dagi --font-sans / --font-display bilan bog'langan).
    MUHIM: next/font qiymatlari to'g'ridan-to'g'ri yozilgan literal bo'lishi shart —

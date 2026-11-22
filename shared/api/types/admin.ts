@@ -5,6 +5,7 @@ import type { JsonObject } from './common'
 export type AdminUsersQuery = {
   search?: string
   role?: string
+  registration_method?: string
   is_active?: boolean
   offset?: number
   limit?: number
@@ -33,6 +34,8 @@ export interface AdminUser {
   full_name: string | null
   username: string | null
   mk_id: string | null
+  /** Qanday ro'yxatdan o'tgan: phone_sms | phone_telegram | google | telegram_login | unknown */
+  registration_method: string | null
   created_at: string
 }
 
@@ -40,6 +43,7 @@ export interface AdminUserDetail {
   id: string
   is_active: boolean
   global_role: AdminUser['global_role']
+  registration_method?: string | null
   profile: JsonObject | null
   contacts: JsonObject[]
   sessions: Array<{ id: string; expires_at: string; is_revoked: boolean }>

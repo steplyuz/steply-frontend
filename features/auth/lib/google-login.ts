@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { authApi } from "@/shared/api"
 import type { Me } from "@/shared/api/types"
+import { clearStoredReferralCode, getStoredReferralCode } from "@/shared/lib/referral"
 import { loadScriptOnce, type LoginCallbacks } from "@/features/auth/lib/script-loader"
 
 const GOOGLE_GSI_SCRIPT = "https://accounts.google.com/gsi/client"
@@ -115,7 +116,8 @@ export function useGoogleLogin({ onSuccess, onError, text = "signin_with", local
             }
             setBusy(true)
             try {
-              await authApi.googleVerify(response.credential)
+              await authApi.googleVerify(response.credential, getStoredReferralCode())
+              clearStoredReferralCode()
               const me = await authApi.me()
               callbacks.current.onSuccess(me)
             } catch (err: unknown) {
