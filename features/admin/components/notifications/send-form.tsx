@@ -213,7 +213,7 @@ export function SendForm({ onSent }: { onSent?: () => void }) {
             <div>
               <span className={labelCls}>Yuboruvchi hisob</span>
               <select className={adminInput} value={accountId} onChange={(e) => setAccountId(e.target.value)}>
-                <option value="">Default (Gmail yoki Resend)</option>
+                <option value="">Standart: Resend (korporativ domen)</option>
                 {usableAccounts.map((a) => (
                   <option key={a.id} value={a.id}>{a.email}{a.is_default ? ' (default)' : ''}</option>
                 ))}
